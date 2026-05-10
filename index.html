@@ -2482,12 +2482,17 @@ header {
   margin: 8px auto 0;
   overflow: hidden;
   border-radius: 24px;
+  /* CRITICAL on mobile: only allow vertical page scroll inside this element.
+     Without this, iOS Safari interprets touch on a wide flex child as horizontal swipe
+     and blocks vertical scrolling of the page. */
+  touch-action: pan-y;
 }
 .map-canvas {
   display: flex;
   width: 200%;
   height: 100%;
   transition: transform 0.9s cubic-bezier(0.65, 0, 0.35, 1);
+  will-change: transform;
 }
 .map-canvas.at-island { transform: translateX(-50%); }
 .map-section {
@@ -3588,8 +3593,7 @@ body[data-lang="en"] [data-th] { display: none; }
 
         <!-- ================== Section 2: Death island ================== -->
         <div class="map-section map-section-island">
-          <video class="map-img" autoplay loop muted playsinline preload="metadata"
-                 poster="">
+          <video class="map-img" id="islandMapVideo" loop muted playsinline preload="none">
             <source src="assets/Video/death-island.mp4" type="video/mp4">
           </video>
 
@@ -4704,7 +4708,7 @@ body[data-lang="en"] [data-th] { display: none; }
 <div class="room-overlay" id="room-island">
   <button class="close-btn" data-close>✕</button>
   <div class="island-room">
-    <video class="island-bg-video" autoplay muted loop playsinline>
+    <video class="island-bg-video" id="islandBgVideo" muted loop playsinline preload="none">
       <source src="assets/Video/death-island.mp4" type="video/mp4">
     </video>
     <div class="island-veil"></div>
@@ -4936,8 +4940,18 @@ body[data-lang="en"] [data-th] { display: none; }
   const mapCanvas = document.getElementById('mapCanvas');
   function panMap(target) {
     if (!mapCanvas) return;
-    if (target === 'island') mapCanvas.classList.add('at-island');
-    else mapCanvas.classList.remove('at-island');
+    const islandVid = document.getElementById('islandMapVideo');
+    if (target === 'island') {
+      mapCanvas.classList.add('at-island');
+      // Lazy-load island video when first panning to it (battery friendly on mobile)
+      if (islandVid && islandVid.paused) {
+        islandVid.load();
+        islandVid.play().catch(() => {});
+      }
+    } else {
+      mapCanvas.classList.remove('at-island');
+      if (islandVid && !islandVid.paused) islandVid.pause();
+    }
   }
   document.querySelectorAll('.pan-nav').forEach(b => {
     b.addEventListener('click', () => panMap(b.dataset.pan));
@@ -4957,8 +4971,14 @@ body[data-lang="en"] [data-th] { display: none; }
       const gb = document.getElementById('gardenBg');
       if (gb) gb.style.backgroundImage = 'url("assets/images/garden.jpg")';
     }
-    if (roomId === 'island' && typeof window.resetMemento === 'function') {
-      window.resetMemento();
+    if (roomId === 'island') {
+      if (typeof window.resetMemento === 'function') window.resetMemento();
+      // Lazy-load + play island bg video only when room opens
+      const ibv = document.getElementById('islandBgVideo');
+      if (ibv) {
+        ibv.load();
+        ibv.play().catch(() => {/* will rely on user gesture */});
+      }
     }
     if (roomId === 'alone') {
       // Reset alone room state — go to bedroom pane (default), reset other sessions
@@ -4993,6 +5013,9 @@ body[data-lang="en"] [data-th] { display: none; }
   function closeAllRooms() {
     document.querySelectorAll('.room-overlay.active').forEach(o => o.classList.remove('active'));
     body.style.overflow = '';
+    // Stop island bg video when leaving (saves CPU/battery)
+    const ibv = document.getElementById('islandBgVideo');
+    if (ibv && !ibv.paused) ibv.pause();
   }
   document.querySelectorAll('[data-close], [data-back-map]').forEach(btn =>
     btn.addEventListener('click', closeAllRooms)
