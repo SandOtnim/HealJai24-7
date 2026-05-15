@@ -9,6 +9,18 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
 
+<!-- =========================================================
+     CLOUDFLARE WEB ANALYTICS — Privacy-friendly, cookie-free
+     SETUP:
+     1) Go to https://www.cloudflare.com/web-analytics/ → sign up (free)
+     2) Add your site (e.g. healjai247.netlify.app or your own domain)
+     3) Copy the <script> snippet Cloudflare gives you
+     4) REPLACE the placeholder line below with that snippet
+        — it will look like:
+        <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token":"YOUR_REAL_TOKEN"}'></script>
+     ========================================================= -->
+<!-- <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token":"PASTE_YOUR_TOKEN_HERE"}'></script> -->
+
 <style>
 :root {
   --bg: #FFFFFF;
@@ -28,6 +40,7 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
+html { touch-action: manipulation; }
 body {
   font-family: 'IBM Plex Sans Thai', sans-serif;
   background: var(--bg);
@@ -35,6 +48,9 @@ body {
   line-height: 1.6;
   overflow-x: hidden;
   min-height: 100vh;
+  /* Explicitly allow vertical page scroll on touch — defends against any
+     nested handler that might claim too much. */
+  touch-action: pan-y;
 }
 button { font-family: inherit; cursor: pointer; border: none; background: none; }
 
@@ -1179,14 +1195,214 @@ header {
 .alone-pane { display: none; }
 .alone-pane.active { display: block; animation: stepIn 0.4s var(--ease); }
 
+/* ===== Sub-room mode (hotspot click → fullscreen view of that activity) ===== */
+.subroom-back {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px 9px 14px;
+  background: var(--bg);
+  border: 1.5px solid var(--beige);
+  color: var(--ink);
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 22px;
+  transition: all var(--transition);
+  -webkit-tap-highlight-color: transparent;
+}
+.subroom-back:hover {
+  background: var(--cream);
+  border-color: var(--clay);
+}
+.alone-content.subroom-active .subroom-back,
+.museum-inner.subroom-active .subroom-back {
+  display: inline-flex;
+  animation: stepIn 0.4s var(--ease);
+}
+/* Hide stage + intro when in subroom mode */
+.alone-content.subroom-active .room-stage,
+.alone-content.subroom-active .aesthetic-toggle,
+.alone-content.subroom-active .room-eyebrow,
+.alone-content.subroom-active .room-title,
+.alone-content.subroom-active .room-subtitle,
+.museum-inner.subroom-active .room-stage,
+.museum-inner.subroom-active .room-eyebrow,
+.museum-inner.subroom-active .room-title,
+.museum-inner.subroom-active .room-subtitle {
+  display: none;
+}
+/* Tabs stay visible in subroom mode as quick switcher (compact form) */
+.alone-content.subroom-active .alone-tabs,
+.museum-inner.subroom-active .museum-tabs {
+  margin-top: 0;
+  margin-bottom: 28px;
+  animation: stepIn 0.4s var(--ease) 0.05s backwards;
+}
+/* In default mode (stage view), hide the panes — they only show after a hotspot/tab click */
+.alone-content:not(.subroom-active) .alone-pane,
+.museum-inner:not(.subroom-active) .gallery-pane {
+  display: none !important;
+}
+/* Hidden tab containers are kept as DOM markers only — never visible */
+.alone-tabs[hidden],
+.museum-tabs[hidden] { display: none !important; }
+/* The active pane fades in when entering subroom */
+.alone-content.subroom-active .alone-pane.active,
+.museum-inner.subroom-active .gallery-pane.active {
+  animation: stepIn 0.5s var(--ease) 0.1s backwards;
+}
+
+/* ===== Spatial illustration room (bedroom + museum) ===== */
+.aesthetic-toggle {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 0 0 14px;
+}
+.aest-btn {
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--beige);
+  background: var(--bg);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all var(--transition);
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.aest-btn:hover { border-color: var(--clay); color: var(--ink); }
+.aest-btn.active {
+  background: var(--clay);
+  color: var(--bg);
+  border-color: var(--clay);
+}
+.room-stage {
+  position: relative;
+  max-width: 460px;
+  margin: 0 auto 18px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 12px 30px var(--shadow);
+  transition: opacity 0.4s var(--ease);
+}
+.room-stage.swapping { opacity: 0; }
+.room-illustration {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.hotspot {
+  position: absolute;
+  background: rgba(255,253,247,0.55);   /* glassy transparent */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,253,247,0.6);
+  border-radius: 999px;
+  padding: 6px 12px 6px 10px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex; align-items: center; gap: 7px;
+  z-index: 5;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  /* Gentle float up/down — each hotspot delays differently for organic feel */
+  animation: hotspotFloat 3.4s ease-in-out infinite;
+  transition: background 0.3s var(--ease), color 0.3s var(--ease), border-color 0.3s var(--ease);
+}
+.hotspot:hover {
+  background: rgba(193,141,107,0.92);
+  color: var(--bg);
+  border-color: var(--clay);
+}
+.hotspot:hover .hotspot-dot {
+  background: var(--bg);
+  box-shadow: 0 0 0 4px rgba(255,253,247,0.35);
+}
+.hotspot:focus-visible { outline: 2px dashed var(--clay); outline-offset: 4px; }
+.hotspot.active {
+  background: rgba(193,141,107,0.92);
+  color: var(--bg);
+  border-color: var(--clay);
+  animation: hotspotFloatActive 3.4s ease-in-out infinite;
+}
+.hotspot-dot {
+  width: 7px; height: 7px;
+  background: var(--clay);
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(193,141,107,0.25);
+  flex-shrink: 0;
+  transition: all 0.3s var(--ease);
+}
+@keyframes hotspotFloat {
+  0%, 100% {
+    transform: translate(-50%, -50%);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.16);
+  }
+  50% {
+    transform: translate(-50%, calc(-50% - 5px));
+    box-shadow: 0 8px 16px rgba(0,0,0,0.18);
+  }
+}
+@keyframes hotspotFloatActive {
+  0%, 100% {
+    transform: translate(-50%, -50%);
+    box-shadow: 0 4px 14px rgba(193,141,107,0.35);
+  }
+  50% {
+    transform: translate(-50%, calc(-50% - 5px));
+    box-shadow: 0 8px 20px rgba(193,141,107,0.5);
+  }
+}
+/* Stagger the float so they feel organic, not synchronized */
+.room-stage .hotspot:nth-child(2) { animation-delay: 0.4s; }
+.room-stage .hotspot:nth-child(3) { animation-delay: 0.8s; }
+.room-stage .hotspot:nth-child(4) { animation-delay: 1.2s; }
+.room-stage .hotspot:nth-child(5) { animation-delay: 1.6s; }
+.room-stage .hotspot:nth-child(6) { animation-delay: 2.0s; }
+
+/* ===== Museum hotspot positions ===== */
+.room-stage-museum .hotspot[data-mpane="objects"] { top: 40%; left: 30%; }
+.room-stage-museum .hotspot[data-mpane="words"]   { top: 40%; left: 72%; }
+
+/* ===== Per-aesthetic hotspot positions (bedroom only) ===== */
+/* COZY layout (bed center, window left, mirror right) */
+.room-stage[data-aest="cozy"] .hotspot[data-pane="bedroom"]  { top: 38%; left: 50%; }
+.room-stage[data-aest="cozy"] .hotspot[data-pane="mood"]     { top: 28%; left: 56%; }
+.room-stage[data-aest="cozy"] .hotspot[data-pane="letter"]   { top: 60%; left: 14%; }
+.room-stage[data-aest="cozy"] .hotspot[data-pane="cat"]      { top: 82%; left: 55%; }
+.room-stage[data-aest="cozy"] .hotspot[data-pane="meditate"] { top: 78%; left: 22%; }
+/* LOFT layout (bed center-right, window top-left, mirror upper-right) */
+.room-stage[data-aest="loft"] .hotspot[data-pane="bedroom"]  { top: 22%; left: 18%; }
+.room-stage[data-aest="loft"] .hotspot[data-pane="mood"]     { top: 26%; left: 50%; }
+.room-stage[data-aest="loft"] .hotspot[data-pane="letter"]   { top: 90%; left: 14%; }
+.room-stage[data-aest="loft"] .hotspot[data-pane="cat"]      { top: 82%; left: 52%; }
+.room-stage[data-aest="loft"] .hotspot[data-pane="meditate"] { top: 90%; left: 38%; }
+
+@media (max-width: 480px) {
+  .room-stage { max-width: 92vw; }
+  .hotspot { font-size: 10px; padding: 5px 10px; }
+  .hotspot-dot { width: 6px; height: 6px; box-shadow: 0 0 0 3px rgba(193,141,107,0.25); }
+}
+
 /* ===== Island room (Memento mori) ===== */
 .island-room {
   position: relative;
   min-height: 100vh;
   padding: 90px 24px 80px;
   text-align: center;
-  overflow: hidden;
   color: #fefcf9;
+  isolation: isolate;     /* clip via room-overlay scroll, not here */
 }
 .island-bg-video {
   position: absolute;
@@ -1309,6 +1525,186 @@ header {
   z-index: 2;
   margin-top: 36px;
 }
+
+/* Always-visible back button at top of island room (since night bg makes ✕ hard to spot) */
+.island-back-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 28px;
+  padding: 9px 18px 9px 14px;
+  background: rgba(254,252,249,0.16);
+  border: 1.5px solid rgba(254,252,249,0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fefcf9;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all var(--transition);
+  -webkit-tap-highlight-color: transparent;
+}
+.island-back-top:hover {
+  background: rgba(254,252,249,0.28);
+  border-color: rgba(254,252,249,0.6);
+  transform: translateY(-1px);
+}
+.island-back-arrow { font-size: 16px; line-height: 1; }
+
+/* ===== Movie mood picker ===== */
+.movie-mood-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+.movie-mood-card {
+  background: var(--bg);
+  border: 1.5px solid var(--beige);
+  border-radius: 16px;
+  padding: 16px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: inherit;
+}
+.movie-mood-card:hover {
+  border-color: var(--clay);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(193,141,107,0.18);
+}
+.movie-mood-icon { font-size: 32px; margin-bottom: 6px; }
+.movie-mood-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+.movie-mood-sub {
+  font-size: 11px;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+.movie-results {
+  margin-top: 24px;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+}
+.movie-results h4 {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 18px;
+  color: var(--clay);
+  margin-bottom: 14px;
+  text-align: center;
+}
+.movie-item {
+  background: var(--cream);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.movie-item-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.movie-item-meta {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+.movie-item-why {
+  font-size: 12.5px;
+  color: var(--ink);
+  font-style: italic;
+  line-height: 1.6;
+}
+
+/* ===== Article list ===== */
+.article-list {
+  max-width: 560px;
+  margin: 0 auto;
+  text-align: left;
+}
+.article-item {
+  background: var(--bg);
+  border: 1px solid var(--beige);
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.article-item:hover {
+  border-color: var(--clay);
+  box-shadow: 0 4px 14px rgba(193,141,107,0.15);
+}
+.article-tag {
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--clay);
+  background: var(--cream);
+  padding: 3px 9px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+}
+.article-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 16px;
+  color: var(--ink);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.article-preview {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+.article-body {
+  display: none;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--beige);
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--ink);
+}
+.article-item.expanded .article-body { display: block; }
+.article-body p { margin-bottom: 12px; }
+.article-body strong { color: var(--clay); }
+
+/* Community room disclaimer — clarifies this is NOT therapy */
+.community-disclaimer {
+  background: rgba(255,253,247,0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(193,141,107,0.25);
+  border-radius: 14px;
+  padding: 14px 18px;
+  max-width: 600px;
+  margin: 14px auto 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  text-align: left;
+}
+.community-disclaimer-icon { font-size: 20px; line-height: 1.4; flex-shrink: 0; }
+.community-disclaimer p {
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+  margin: 0;
+}
+.community-disclaimer strong { color: var(--clay); font-weight: 600; }
 
 /* ===== Discord widget mockup ===== */
 .discord-mockup {
@@ -1464,6 +1860,61 @@ header {
 }
 .discord-cta:hover { background: var(--ink); color: var(--bg); text-decoration: none; }
 
+/* ===== Coloring (paint therapy) ===== */
+.color-stage {
+  text-align: center;
+}
+.color-canvas {
+  width: 100%;
+  max-width: 380px;
+  height: auto;
+  display: block;
+  margin: 0 auto 18px;
+  border-radius: 20px;
+  background: #fefcf9;
+  box-shadow: 0 10px 28px var(--shadow);
+}
+.color-canvas .cz {
+  cursor: pointer;
+  transition: filter 0.2s var(--ease);
+}
+.color-canvas .cz:hover { filter: brightness(0.94); }
+.color-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 0 auto 18px;
+  max-width: 360px;
+}
+.color-swatch {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255,255,255,0.85);
+  cursor: pointer;
+  outline: 1.5px solid rgba(0,0,0,0.12);
+  outline-offset: -1.5px;
+  transition: transform 0.2s var(--ease);
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.color-swatch:hover { transform: scale(1.1); }
+.color-swatch.active {
+  transform: scale(1.18);
+  outline: 2.5px solid var(--ink);
+  outline-offset: 2px;
+}
+.color-swatch.eraser {
+  background: var(--bg);
+  color: var(--ink-soft);
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px dashed var(--ink-soft);
+}
+.color-actions {
+  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+}
+
 /* ===== Cat tab ===== */
 .cat-stage {
   background: linear-gradient(180deg, var(--cream), var(--bg));
@@ -1472,6 +1923,8 @@ header {
   margin: 0 auto;
   max-width: 460px;
   text-align: center;
+  position: relative;
+  overflow: visible;        /* let particles float beyond the stage */
 }
 .cat-img {
   display: block;
@@ -1483,11 +1936,68 @@ header {
   object-fit: cover;
   box-shadow: 0 10px 28px var(--shadow);
   background: var(--bg);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-drag: none;
   transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
+  animation: catBreathe 4.4s ease-in-out infinite;
 }
 .cat-img.swapping {
   opacity: 0;
   transform: scale(0.92);
+  animation: none;
+}
+.cat-img.wiggle {
+  animation: catWiggle 0.55s ease-in-out;
+}
+@keyframes catBreathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.018); }
+}
+@keyframes catWiggle {
+  0%   { transform: scale(1) rotate(0); }
+  20%  { transform: scale(1.06) rotate(-2deg); }
+  40%  { transform: scale(1.05) rotate(2deg); }
+  60%  { transform: scale(1.04) rotate(-1deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+/* Hand emoji that appears at click point — looks like petting motion */
+.cat-hand {
+  position: absolute;
+  font-size: 38px;
+  pointer-events: none;
+  z-index: 6;
+  transform: translate(-50%, -50%);
+  animation: catHandPet 1.2s ease-out forwards;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.18));
+  will-change: transform, opacity;
+}
+@keyframes catHandPet {
+  0%   { transform: translate(-50%, -120%) scale(0.5) rotate(-12deg); opacity: 0; }
+  20%  { transform: translate(-50%, -90%)  scale(1.1) rotate(-12deg); opacity: 1; }
+  40%  { transform: translate(-50%, -60%)  scale(1.0) rotate(0deg);   opacity: 1; }
+  60%  { transform: translate(-50%, -90%)  scale(1.05) rotate(-8deg); opacity: 1; }
+  80%  { transform: translate(-50%, -65%)  scale(1.0) rotate(4deg);   opacity: 0.85; }
+  100% { transform: translate(-50%, -110%) scale(0.7) rotate(0deg);   opacity: 0; }
+}
+
+/* Floating particles (hearts, fish, notes, Zz) */
+.cat-particle {
+  position: absolute;
+  font-size: 24px;
+  pointer-events: none;
+  z-index: 5;
+  animation: catParticleFloat 1.7s ease-out forwards;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12));
+}
+@keyframes catParticleFloat {
+  0%   { transform: translate(0, 0) scale(0.4) rotate(0); opacity: 0; }
+  15%  { transform: translate(0, -10px) scale(1.1) rotate(-8deg); opacity: 1; }
+  60%  { transform: translate(var(--drift, 0), -70px) scale(1) rotate(8deg); opacity: 0.9; }
+  100% { transform: translate(var(--drift, 0), -130px) scale(0.7) rotate(-4deg); opacity: 0; }
 }
 .cat-message {
   font-family: 'IBM Plex Serif', serif;
@@ -1615,6 +2125,127 @@ header {
   background: var(--bg);
   color: var(--ink);
 }
+/* Philosophy line — frames healing as a daily habit, not a fix-when-broken activity */
+.streak-philosophy {
+  text-align: center;
+  font-family: 'IBM Plex Serif', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.7;
+  max-width: 460px;
+  margin: 0 auto 14px;
+  padding: 10px 18px;
+  background: var(--cream);
+  border-radius: 14px;
+  border: 1px solid var(--beige);
+}
+
+/* Milestone medal row */
+.medal-row {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 auto 20px;
+  max-width: 520px;
+}
+.medal {
+  flex: 1 1 80px;
+  min-width: 70px;
+  background: var(--bg);
+  border: 1.5px dashed var(--beige);
+  border-radius: 14px;
+  padding: 10px 6px 8px;
+  text-align: center;
+  position: relative;
+  transition: all 0.4s var(--ease);
+  opacity: 0.5;
+}
+.medal-icon {
+  font-size: 26px;
+  line-height: 1;
+  filter: grayscale(0.5);
+  transition: filter 0.4s var(--ease), transform 0.4s var(--ease);
+}
+.medal-label {
+  font-size: 11px;
+  color: var(--ink-soft);
+  margin-top: 4px;
+  font-weight: 500;
+}
+.medal-sub {
+  font-size: 9px;
+  color: var(--ink-soft);
+  font-style: italic;
+  margin-top: 2px;
+}
+.medal.unlocked {
+  background: linear-gradient(135deg, #fef3e0 0%, #f7d9b0 100%);
+  border-style: solid;
+  border-color: var(--clay);
+  opacity: 1;
+  box-shadow: 0 4px 14px rgba(193,141,107,0.25);
+}
+.medal.unlocked .medal-icon {
+  filter: grayscale(0);
+  transform: scale(1.05);
+  animation: medalShine 2.4s ease-in-out infinite;
+}
+.medal.unlocked .medal-label { color: var(--clay); font-weight: 600; }
+.medal.just-unlocked {
+  animation: medalUnlock 0.9s ease-out;
+}
+@keyframes medalShine {
+  0%, 100% { transform: scale(1.05); }
+  50%      { transform: scale(1.15) rotate(3deg); }
+}
+@keyframes medalUnlock {
+  0%   { transform: scale(0.6) rotate(-15deg); opacity: 0; }
+  60%  { transform: scale(1.25) rotate(8deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+/* Daily writing streak badge */
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #fef3e0 0%, #f7d9b0 100%);
+  border: 1.5px solid rgba(193,141,107,0.45);
+  color: var(--clay);
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 auto 18px;
+  animation: streakPulse 3s ease-in-out infinite;
+}
+.streak-badge[hidden] { display: none; }
+.streak-flame { font-size: 18px; line-height: 1; }
+@keyframes streakPulse {
+  0%, 100% { box-shadow: 0 4px 12px rgba(193,141,107,0.18); }
+  50%      { box-shadow: 0 4px 18px rgba(193,141,107,0.42); }
+}
+.streak-history {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--beige);
+}
+.streak-history[hidden] { display: none; }
+.streak-history-line {
+  font-size: 12px;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+.streak-history-line strong {
+  color: var(--clay);
+  font-style: normal;
+  font-weight: 600;
+}
+
 #letterText {
   width: 100%;
   max-width: 520px;
@@ -1723,6 +2354,35 @@ header {
   color: var(--ink);
   font-weight: 500;
 }
+/* Ambient sound picker — rain/ocean/garden/birds */
+.ambient-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ambient-pill {
+  background: var(--bg);
+  border: 1.5px solid var(--beige);
+  color: var(--ink-soft);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.ambient-pill:hover { border-color: var(--clay); color: var(--ink); }
+.ambient-pill.active {
+  background: var(--clay);
+  color: var(--bg);
+  border-color: var(--clay);
+}
+.ambient-pill.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
 .rain-toggle {
   display: inline-flex;
   align-items: center;
@@ -2482,27 +3142,38 @@ header {
   margin: 8px auto 0;
   overflow: hidden;
   border-radius: 24px;
-  /* CRITICAL on mobile: only allow vertical page scroll inside this element.
-     Without this, iOS Safari interprets touch on a wide flex child as horizontal swipe
-     and blocks vertical scrolling of the page. */
+  /* Browser handles vertical scroll (page) by default.
+     We capture horizontal swipes via JS and translate the canvas — so vertical
+     swipe always passes through cleanly with no friction. */
   touch-action: pan-y;
+  cursor: grab;
 }
+.map-wrapper.is-dragging { cursor: grabbing; }
+
 .map-canvas {
   display: flex;
-  width: 200%;
+  align-items: center;
   height: 100%;
-  transition: transform 0.9s cubic-bezier(0.65, 0, 0.35, 1);
+  width: max-content;
   will-change: transform;
+  user-select: none;
+  -webkit-user-select: none;
 }
-.map-canvas.at-island { transform: translateX(-50%); }
 .map-section {
   position: relative;
-  width: 50%;
-  height: 100%;
   flex-shrink: 0;
+  -webkit-user-drag: none;
+}
+.map-section-heart {
+  width: min(720px, 94vw);
+  aspect-ratio: 1/1;
 }
 .map-section-island {
-  background: linear-gradient(180deg, #1c1d3a 0%, #2a2647 60%, #3b2f4d 100%);
+  /* Same size as heart — feels like the city continues seamlessly. */
+  width: min(720px, 94vw);
+  aspect-ratio: 1/1;
+  margin-left: clamp(40px, 7vw, 80px);
+  margin-right: 12px;
 }
 .map-img {
   width: 100%; height: 100%;
@@ -2510,55 +3181,94 @@ header {
   user-select: none; -webkit-user-drag: none;
   display: block;
 }
-/* Pan navigation arrows */
-.pan-nav {
+/* Wooden arrow plate — absolute overlay on the map, always visible.
+   Two variants: .signpost-right (default, points →) and .signpost-left (points ←) */
+.signpost {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255,253,247,0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1.5px solid rgba(193,141,107,0.35);
-  color: var(--ink);
-  padding: 12px 14px;
-  border-radius: 999px;
+  background: linear-gradient(180deg, #d8b78c 0%, #c19a6c 100%);
+  color: #4a2f1a;
+  padding: 10px 18px;
   font-family: inherit;
   font-size: 12px;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  z-index: 10;
-  display: flex; align-items: center; gap: 8px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.18);
-  transition: all var(--transition);
-  animation: panNavBob 2.6s ease-in-out infinite;
-}
-.pan-nav:hover {
-  background: var(--clay);
-  color: var(--bg);
-  border-color: var(--clay);
-  transform: translateY(-50%) scale(1.06);
-}
-.pan-nav-right { right: 14px; }
-.pan-nav-left  { left: 14px; }
-.pan-nav-glyph {
-  font-size: 18px; line-height: 1;
-}
-.pan-nav-label {
-  font-weight: 500;
+  font-weight: 600;
   white-space: nowrap;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 4px 12px rgba(60,40,20,0.28), inset 0 1px 0 rgba(255,255,255,0.35);
+  border: 1.5px solid #8b6f47;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 8;
+  letter-spacing: 0.02em;
+  animation: signpostBob 2.6s ease-in-out infinite;
+  transition: opacity 0.4s var(--ease), transform 0.3s var(--ease);
 }
-.pan-nav-left .pan-nav-glyph { order: -1; }
-@keyframes panNavBob {
-  0%, 100% { box-shadow: 0 6px 18px rgba(0,0,0,0.18); }
-  50%      { box-shadow: 0 6px 26px rgba(193,141,107,0.45); }
+.signpost-right {
+  right: 18px;
+  padding-left: 22px;
+  border-radius: 3px 14px 14px 3px;
 }
-/* Single pin on island */
-.pin-island { top: 50%; left: 50%; animation-delay: 0.2s; }
-.pin-island .pin-pulse { background: rgba(126,111,168,0.4); }
+.signpost-right::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0; height: 0;
+  border-top: 14px solid transparent;
+  border-bottom: 14px solid transparent;
+  border-right: 10px solid #8b6f47;
+}
+.signpost-left {
+  left: 18px;
+  padding-right: 22px;
+  border-radius: 14px 3px 3px 14px;
+}
+.signpost-left::after {
+  content: '';
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0; height: 0;
+  border-top: 14px solid transparent;
+  border-bottom: 14px solid transparent;
+  border-left: 10px solid #8b6f47;
+}
+.signpost:focus { outline: none; }
+.signpost:focus-visible { outline: 2px dashed var(--clay); outline-offset: 4px; }
+.signpost:hover {
+  transform: translateY(calc(-50% - 2px)) scale(1.04);
+  box-shadow: 0 6px 16px rgba(60,40,20,0.32);
+}
+.signpost.gone {
+  opacity: 0;
+  pointer-events: none;
+}
+.signpost-right.gone { transform: translate(8px, -50%); }
+.signpost-left.gone  { transform: translate(-8px, -50%); }
+@keyframes signpostBob {
+  0%, 100% { transform: translate(0, -50%); }
+  50%      { transform: translate(4px, -50%); }
+}
+.signpost-left {
+  animation-name: signpostBobLeft;
+}
+@keyframes signpostBobLeft {
+  0%, 100% { transform: translate(0, -50%); }
+  50%      { transform: translate(-4px, -50%); }
+}
+.signpost-arrow-tip { font-size: 14px; line-height: 1; }
 @media (max-width: 480px) {
-  .pan-nav-label { display: none; }
-  .pan-nav { padding: 12px 14px; }
+  .signpost { font-size: 11px; padding: 8px 14px; }
+  .signpost-right { right: 12px; padding-left: 18px; }
+  .signpost-left  { left: 12px; padding-right: 18px; }
 }
+/* Single pin on island — positioned near the pier/center of the cute graveyard */
+.pin-island { top: 58%; left: 50%; animation-delay: 0.2s; }
+.pin-island .pin-pulse { background: rgba(126,111,168,0.45); }
 
 /* Google-style pin (red teardrop) — drops in on load, hovers up on hover */
 .pin {
@@ -2643,6 +3353,16 @@ header {
   transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
   z-index: 10;
   box-shadow: 0 10px 24px rgba(0,0,0,0.22);
+  /* Block text selection + iOS callout when user long-presses a pin */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+/* Also block selection on the pin itself + parents that propagate touch */
+.pin, .pin * {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 .pin-preview::after {
   content: '';
@@ -2720,6 +3440,8 @@ header {
   background: var(--bg);
   z-index: 100;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;     /* iOS momentum scrolling */
+  overscroll-behavior: contain;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.6s var(--ease);
@@ -2776,6 +3498,9 @@ header {
   margin-top: 56px;
   padding-top: 40px;
   border-top: 1px solid var(--beige);
+}
+.room-nav-simple {
+  justify-content: center;
 }
 .nav-btn {
   display: inline-flex; align-items: center; gap: 10px;
@@ -3369,12 +4094,160 @@ header {
 }
 .soon-close:hover { background: var(--clay); }
 
+/* ============ SAFETY BANNER (mental-health disclaimer) ============ */
+.safety-banner {
+  background: linear-gradient(180deg, #fffaf2 0%, var(--cream) 100%);
+  border-top: 1px solid var(--beige);
+  padding: 36px 24px 28px;
+}
+.safety-banner-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  color: var(--ink);
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.safety-banner-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 15px;
+  color: var(--clay);
+  flex-wrap: wrap;
+}
+.safety-icon { font-size: 18px; }
+.safety-banner p {
+  margin-bottom: 12px;
+  color: var(--ink-soft);
+}
+.safety-hotlines {
+  list-style: none;
+  padding: 14px 16px;
+  background: rgba(255,253,247,0.75);
+  border-radius: 12px;
+  border: 1px solid var(--beige);
+}
+.safety-hotlines li {
+  padding: 5px 0;
+  font-size: 13px;
+  color: var(--ink);
+}
+.safety-hotlines li + li {
+  border-top: 1px solid rgba(193,141,107,0.12);
+  margin-top: 5px;
+  padding-top: 10px;
+}
+.safety-hotlines strong {
+  display: inline-block;
+  min-width: 56px;
+  color: var(--clay);
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  margin-right: 4px;
+}
+@media (max-width: 480px) {
+  .safety-banner { padding: 28px 18px 22px; }
+  .safety-banner-head { font-size: 14px; }
+  .safety-banner-inner { font-size: 12px; }
+  .safety-hotlines li, .safety-hotlines strong { font-size: 12px; }
+}
+
 footer {
   text-align: center;
   padding: 40px 24px;
   color: var(--ink-soft);
   font-size: 13px;
   background: var(--cream);
+}
+.footer-link {
+  display: inline-block;
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 12px;
+  margin-top: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.footer-link:hover { color: var(--clay); }
+
+/* Privacy Policy modal */
+.privacy-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(60,40,20,0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.privacy-modal.show { display: flex; animation: stepIn 0.4s var(--ease); }
+.privacy-card {
+  background: var(--bg);
+  max-width: 680px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 20px;
+  padding: 36px 32px 28px;
+  position: relative;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--ink);
+}
+.privacy-close {
+  position: absolute;
+  top: 18px; right: 18px;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--cream);
+  border: 1px solid var(--beige);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition);
+}
+.privacy-close:hover { background: var(--clay); color: var(--bg); border-color: var(--clay); }
+.privacy-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 24px;
+  color: var(--clay);
+  margin-bottom: 4px;
+}
+.privacy-updated {
+  font-size: 12px;
+  color: var(--ink-soft);
+  font-style: italic;
+  margin-bottom: 24px;
+}
+.privacy-body h3 {
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  font-size: 15px;
+  color: var(--clay);
+  margin-top: 22px;
+  margin-bottom: 8px;
+}
+.privacy-body p { margin-bottom: 12px; color: var(--ink); }
+.privacy-body ul { padding-left: 22px; margin-bottom: 12px; }
+.privacy-body li { margin-bottom: 6px; }
+.privacy-body strong { color: var(--clay); font-weight: 600; }
+@media (max-width: 480px) {
+  .privacy-modal { padding: 12px; }
+  .privacy-card { padding: 28px 22px 22px; font-size: 13px; }
+  .privacy-title { font-size: 20px; }
 }
 
 /* ============ MOBILE ============ */
@@ -3582,13 +4455,6 @@ body[data-lang="en"] [data-th] { display: none; }
         </div>
       </div>
 
-          <!-- Pan arrow → island -->
-          <button class="pan-nav pan-nav-right" data-pan="island" aria-label="ไปเกาะแห่งเวลา">
-            <span class="pan-nav-glyph">→</span>
-            <span class="pan-nav-label">
-              <span data-th>เกาะแห่งเวลา</span><span data-en>Time Island</span>
-            </span>
-          </button>
         </div><!-- /map-section-heart -->
 
         <!-- ================== Section 2: Death island ================== -->
@@ -3610,23 +4476,135 @@ body[data-lang="en"] [data-th] { display: none; }
             </div>
           </div>
 
-          <!-- Pan arrow ← back to heart -->
-          <button class="pan-nav pan-nav-left" data-pan="heart" aria-label="กลับสู่แผนที่หัวใจ">
-            <span class="pan-nav-glyph">←</span>
-            <span class="pan-nav-label">
-              <span data-th>กลับหัวใจ</span><span data-en>Back to heart</span>
-            </span>
-          </button>
         </div><!-- /map-section-island -->
 
       </div><!-- /map-canvas -->
+
+      <!-- Right-pointing sign — visible on heart side, hides when island visible -->
+      <button class="signpost signpost-right" id="signpost" aria-label="ไปเกาะแห่งเวลา">
+        <span data-th>เกาะแห่งเวลา</span><span data-en>Time Island</span>
+        <span class="signpost-arrow-tip">→</span>
+      </button>
+
+      <!-- Left-pointing sign — visible on island side, hides when heart visible -->
+      <button class="signpost signpost-left gone" id="signpostBack" aria-label="กลับเกาะหัวใจ">
+        <span class="signpost-arrow-tip">←</span>
+        <span data-th>เกาะหัวใจ</span><span data-en>Heart Island</span>
+      </button>
     </div>
   </main>
+
+  <!-- Safety disclaimer banner — IMPORTANT for mental health site -->
+  <section class="safety-banner">
+    <div class="safety-banner-inner">
+      <div class="safety-banner-head">
+        <span class="safety-icon">🤍</span>
+        <strong data-th>นี่คือพื้นที่ฮีลใจเบื้องต้น ไม่ใช่การบำบัด</strong>
+        <strong data-en>A gentle space for everyday healing — not a substitute for therapy</strong>
+      </div>
+      <p data-th>
+        ฮีลใจ 24/7 เป็นกิจกรรมเบาๆ ที่ออกแบบให้ทุกคนเข้าถึงได้ — ไม่ใช่บริการจิตวิทยาวิชาชีพ ไม่ใช่การวินิจฉัย และไม่ใช่ทางเลือกแทนนักจิตบำบัด
+        ถ้าใจรู้สึกหนักมาก หรืออยู่ในวิกฤต ขอให้ติดต่อผู้เชี่ยวชาญ:
+      </p>
+      <p data-en>
+        Heal 24/7 is a gentle, accessible everyday-healing space — it is not professional therapy, diagnosis, or a replacement for a therapist.
+        If you are in crisis, please reach out:
+      </p>
+      <ul class="safety-hotlines">
+        <li><strong>1323</strong> <span data-th>สายด่วนสุขภาพจิต กรมสุขภาพจิต (24 ชม. ฟรี)</span><span data-en>Mental Health Hotline · Dept. of Mental Health (24/7, free)</span></li>
+        <li><strong>1667</strong> <span data-th>สมาคมสะมาริตันส์แห่งประเทศไทย</span><span data-en>Samaritans of Thailand</span></li>
+        <li><strong>1669</strong> <span data-th>สถาบันการแพทย์ฉุกเฉิน — กรณีฉุกเฉิน</span><span data-en>Emergency Medical (life-threatening only)</span></li>
+      </ul>
+    </div>
+  </section>
 
   <footer>
     <span data-th>© 2026 ฮีลใจ 24/7 — สำหรับคนเมืองที่อยากมีที่ฮีลใจ</span>
     <span data-en>© 2026 Heal 24/7 — for everyone who needs a place to come back to</span>
+    <br>
+    <button class="footer-link" data-open-privacy>
+      <span data-th>นโยบายความเป็นส่วนตัว (PDPA)</span><span data-en>Privacy Policy (PDPA)</span>
+    </button>
   </footer>
+
+  <!-- Privacy Policy modal -->
+  <div class="privacy-modal" id="privacyModal">
+    <div class="privacy-card">
+      <button class="privacy-close" data-close-privacy aria-label="ปิด">✕</button>
+      <h2 class="privacy-title">
+        <span data-th>นโยบายความเป็นส่วนตัว</span><span data-en>Privacy Policy</span>
+      </h2>
+      <p class="privacy-updated">
+        <span data-th>อัพเดทล่าสุด: 15 พฤษภาคม 2569</span><span data-en>Last updated: 15 May 2026</span>
+      </p>
+
+      <div class="privacy-body" data-th>
+        <h3>1. เราเก็บข้อมูลอะไร</h3>
+        <p>ฮีลใจ 24/7 เป็นเว็บไซต์ที่ออกแบบมาให้ <strong>ใช้งานได้แบบไม่ต้องล็อกอิน</strong> เราเก็บข้อมูลน้อยที่สุดเท่าที่จำเป็น:</p>
+        <ul>
+          <li><strong>ข้อมูลการเข้าชม (Analytics):</strong> จำนวน visitors · หน้าที่เข้า · ประเทศ · browser · device type — รวบรวมผ่าน Cloudflare Web Analytics โดยไม่ใช้ cookie ไม่ระบุตัวตน</li>
+          <li><strong>ข้อมูลที่คุณกรอกใน Google Form:</strong> เมื่อคุณตอบแบบสำรวจ "คุณฮีลใจยังไง?" หรือ "ฝากคำพูดในพิพิธพันธ์" Google จะเก็บคำตอบของคุณ (อยู่ภายใต้ Google Privacy Policy)</li>
+          <li><strong>การตั้งค่าในเครื่อง (localStorage):</strong> เช่น aesthetic ห้องที่เลือก (cozy/loft), ข้อความที่เขียนถึงตัวเอง — เก็บไว้ในเบราเซอร์คุณเท่านั้น เราเข้าไม่ถึง</li>
+        </ul>
+
+        <h3>2. เราไม่ทำอะไรกับข้อมูล</h3>
+        <ul>
+          <li>เราไม่ขายข้อมูลคุณให้ third party</li>
+          <li>เราไม่ใช้ cookie tracking ข้ามเว็บ</li>
+          <li>เราไม่เก็บ IP address หรือข้อมูลระบุตัวบุคคล</li>
+          <li>ข้อความที่คุณเขียนถึงตัวเองอยู่ในเบราเซอร์คุณคนเดียว ไม่ส่งไปไหน</li>
+        </ul>
+
+        <h3>3. สิทธิ์ของคุณ (PDPA)</h3>
+        <p>ภายใต้พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA) คุณมีสิทธิ์:</p>
+        <ul>
+          <li>เข้าถึงข้อมูลที่เราเก็บเกี่ยวกับคุณ</li>
+          <li>ขอให้ลบข้อมูลของคุณออก</li>
+          <li>ถอนความยินยอม</li>
+          <li>ร้องเรียนต่อสำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล</li>
+        </ul>
+
+        <h3>4. ข้อจำกัด</h3>
+        <p>ฮีลใจ 24/7 เป็นพื้นที่ฮีลใจเบื้องต้น <strong>ไม่ใช่บริการจิตวิทยาวิชาชีพ</strong> ถ้าคุณอยู่ในวิกฤต โปรดติดต่อ <strong>1323</strong> (สายด่วนสุขภาพจิต 24 ชม.) หรือ <strong>1667</strong> (สะมาริตันส์)</p>
+
+        <h3>5. ติดต่อเรา</h3>
+        <p>ถ้ามีข้อสงสัยเรื่องข้อมูลส่วนบุคคล ส่งอีเมลถึง <strong>sandotnim.jako@gmail.com</strong></p>
+      </div>
+
+      <div class="privacy-body" data-en>
+        <h3>1. What we collect</h3>
+        <p>Heal 24/7 is designed to work <strong>without requiring login</strong>. We collect the bare minimum:</p>
+        <ul>
+          <li><strong>Visit analytics:</strong> visitor count, pages viewed, country, browser, device type — via Cloudflare Web Analytics, no cookies, anonymous.</li>
+          <li><strong>Google Form submissions:</strong> when you fill out the "How do you heal?" survey or submit words for the museum wall, Google stores your responses (under Google's Privacy Policy).</li>
+          <li><strong>Local browser storage:</strong> aesthetic preference (cozy/loft), your private journal entries — stored only in your browser. We cannot access these.</li>
+        </ul>
+
+        <h3>2. What we never do</h3>
+        <ul>
+          <li>We don't sell your data to third parties</li>
+          <li>We don't use cross-site tracking cookies</li>
+          <li>We don't store IP addresses or personal identifiers</li>
+          <li>Your journal entries stay in your browser only — they never leave your device</li>
+        </ul>
+
+        <h3>3. Your rights (PDPA)</h3>
+        <p>Under Thailand's Personal Data Protection Act (PDPA, 2019), you have the right to:</p>
+        <ul>
+          <li>Access data we hold about you</li>
+          <li>Request data deletion</li>
+          <li>Withdraw consent</li>
+          <li>File a complaint with the Personal Data Protection Committee</li>
+        </ul>
+
+        <h3>4. Limitations</h3>
+        <p>Heal 24/7 is a gentle everyday-healing space, <strong>not a professional psychology service</strong>. If you're in crisis, please contact <strong>1323</strong> (Mental Health Hotline, 24/7) or <strong>1667</strong> (Samaritans).</p>
+
+        <h3>5. Contact</h3>
+        <p>For privacy questions, email <strong>sandotnim.jako@gmail.com</strong></p>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- =============== ห้องมู — INTERACTIVE GAME =============== -->
@@ -4075,10 +5053,8 @@ body[data-lang="en"] [data-th] { display: none; }
         <span data-en>💡 Want to meditate instead? Try <a href="#" data-go-room="alone">"Be with yourself"</a> — 4 breathing patterns</span>
       </p>
 
-      <nav class="room-nav">
-        <button class="nav-btn" data-go="mu">← <span data-th>ห้องมู</span><span data-en>Sacred</span></button>
-        <button class="nav-btn map" data-back-map><span data-th>กลับแผนที่</span><span data-en>Back to map</span></button>
-        <button class="nav-btn next" data-go="museum"><span data-th>พิพิธพันธ์ปล่อยวางใจ</span><span data-en>Letting Go Museum</span> →</button>
+      <nav class="room-nav room-nav-simple">
+        <button class="nav-btn map" data-back-map>← <span data-th>กลับแผนที่</span><span data-en>Back to map</span></button>
       </nav>
     </div>
   </div>
@@ -4089,6 +5065,9 @@ body[data-lang="en"] [data-th] { display: none; }
   <button class="close-btn" data-close>✕</button>
   <div class="room-content">
     <div class="museum-inner">
+      <button class="subroom-back" data-subroom-back>
+        ← <span data-th>กลับเข้าพิพิธพันธ์</span><span data-en>Back to museum</span>
+      </button>
       <span class="room-eyebrow"><span data-th>ห้องที่ 3 · พิพิธพันธ์ปล่อยวางใจ</span><span data-en>Room 03 · Letting Go Museum</span></span>
       <h2 class="room-title"><span data-th>พิพิธพันธ์ปล่อยวางใจ</span><span data-en>The Letting Go Museum</span></h2>
       <p class="room-subtitle">
@@ -4096,13 +5075,23 @@ body[data-lang="en"] [data-th] { display: none; }
         <span data-en>An exhibition of things once held tight, and words that helped someone move forward.</span>
       </p>
 
-      <div class="museum-tabs">
-        <button class="museum-tab active" data-pane="objects">
-          📦 <span data-th>ของจัดแสดง</span><span data-en>Exhibits</span>
+      <!-- Illustrated museum with clickable hotspots (2 zones) -->
+      <div class="room-stage room-stage-museum">
+        <img class="room-illustration" src="assets/images/room-museum.jpg" alt="พิพิธพันธ์ไว้วางใจ"/>
+        <button class="hotspot" data-mpane="objects">
+          <span class="hotspot-dot"></span>
+          <span class="hotspot-label" data-th>📦 ของจัดแสดง</span><span class="hotspot-label" data-en>📦 Exhibits</span>
         </button>
-        <button class="museum-tab" data-pane="words">
-          💌 <span data-th>คำดีๆ บนผนัง</span><span data-en>Words on the wall</span>
+        <button class="hotspot" data-mpane="words">
+          <span class="hotspot-dot"></span>
+          <span class="hotspot-label" data-th>💌 คำพูดบนผนัง</span><span class="hotspot-label" data-en>💌 Wall of words</span>
         </button>
+      </div>
+
+      <!-- Tabs removed — hotspots on illustration are the only navigation. -->
+      <div class="museum-tabs" hidden aria-hidden="true">
+        <button class="museum-tab active" data-pane="objects"></button>
+        <button class="museum-tab" data-pane="words"></button>
       </div>
 
       <!-- Pane 1: Exhibits -->
@@ -4147,10 +5136,8 @@ body[data-lang="en"] [data-th] { display: none; }
         </div>
       </div>
 
-      <nav class="room-nav">
-        <button class="nav-btn" data-go="travel">← <span data-th>ออกไปข้างนอก</span><span data-en>Step outside</span></button>
-        <button class="nav-btn map" data-back-map><span data-th>กลับแผนที่</span><span data-en>Back to map</span></button>
-        <button class="nav-btn next" data-go="alone"><span data-th>อยู่กับตัวเอง</span><span data-en>Be alone</span> →</button>
+      <nav class="room-nav room-nav-simple">
+        <button class="nav-btn map" data-back-map>← <span data-th>กลับแผนที่</span><span data-en>Back to map</span></button>
       </nav>
     </div>
   </div>
@@ -4252,6 +5239,11 @@ body[data-lang="en"] [data-th] { display: none; }
     <div class="alone-bg" id="aloneBg"></div>
 
     <div class="alone-content">
+      <!-- Sub-room back button (visible only when a hotspot/tab is active) -->
+      <button class="subroom-back" data-subroom-back>
+        ← <span data-th>กลับห้องนอน</span><span data-en>Back to bedroom</span>
+      </button>
+
       <span class="room-eyebrow"><span data-th>ห้องที่ 4</span><span data-en>Room 04</span></span>
       <h2 class="room-title"><span data-th>อยู่กับตัวเอง</span><span data-en>Be With Yourself</span></h2>
       <p class="room-subtitle">
@@ -4259,13 +5251,50 @@ body[data-lang="en"] [data-th] { display: none; }
         <span data-en>Come back to your room. Where you don't owe anyone anything.</span>
       </p>
 
-      <!-- Session tabs (bedroom first by default) -->
-      <div class="alone-tabs">
-        <button class="alone-tab active" data-pane="bedroom">🌧 <span data-th>ห้องนอน</span><span data-en>Bedroom</span></button>
-        <button class="alone-tab" data-pane="cat">🐱 <span data-th>อยู่กับแมว</span><span data-en>With cat</span></button>
-        <button class="alone-tab" data-pane="mood">😊 <span data-th>เช็คใจ</span><span data-en>Mood</span></button>
-        <button class="alone-tab" data-pane="letter">📝 <span data-th>เขียนถึงตัวเอง</span><span data-en>Letter</span></button>
-        <button class="alone-tab" data-pane="meditate">🧘 <span data-th>นั่งสมาธิ</span><span data-en>Meditate</span></button>
+      <!-- Aesthetic toggle (Cozy / Loft) — persisted in localStorage -->
+      <div class="aesthetic-toggle" role="group" aria-label="เลือกบรรยากาศห้อง">
+        <button class="aest-btn active" data-aest="cozy">🌸 <span data-th>Cozy</span><span data-en>Cozy</span></button>
+        <button class="aest-btn" data-aest="loft">🪵 <span data-th>Loft</span><span data-en>Loft</span></button>
+      </div>
+
+      <!-- Illustrated bedroom with clickable hotspots (5 zones) — positions in CSS per aesthetic -->
+      <div class="room-stage" data-aest="cozy">
+        <img id="bedroomImg" class="room-illustration" src="assets/images/bedroom-cozy.jpg" alt="ห้องนอน"/>
+        <button class="hotspot" data-pane="bedroom">
+          <span class="hotspot-dot"></span>
+          <span class="hotspot-label" data-th>🪟 ดูฟ้าฝน</span><span class="hotspot-label" data-en>🪟 Watch the sky</span>
+        </button>
+        <button class="hotspot" data-pane="mood">
+          <span class="hotspot-dot"></span>
+          <span class="hotspot-label" data-th>😊 เช็คใจ</span><span class="hotspot-label" data-en>😊 Mood</span>
+        </button>
+        <button class="hotspot" data-pane="letter">
+          <span class="hotspot-dot"></span>
+          <span class="hotspot-label" data-th>📝 เขียน</span><span class="hotspot-label" data-en>📝 Letter</span>
+        </button>
+        <button class="hotspot" data-pane="cat">
+          <span class="hotspot-dot"></span>
+          <span class="hotspot-label" data-th>🐱 อยู่กับแมว</span><span class="hotspot-label" data-en>🐱 With cat</span>
+        </button>
+        <button class="hotspot" data-pane="meditate">
+          <span class="hotspot-dot"></span>
+          <span class="hotspot-label" data-th>🧘 สมาธิ</span><span class="hotspot-label" data-en>🧘 Meditate</span>
+        </button>
+        <button class="hotspot" data-pane="color">
+          <span class="hotspot-dot"></span>
+          <span class="hotspot-label" data-th>🎨 ระบายสี</span><span class="hotspot-label" data-en>🎨 Color</span>
+        </button>
+      </div>
+
+      <!-- Tabs removed — hotspots on illustration are the only navigation.
+           Hidden DOM markers below preserve pane-switching logic. -->
+      <div class="alone-tabs" hidden aria-hidden="true">
+        <button class="alone-tab active" data-pane="bedroom"></button>
+        <button class="alone-tab" data-pane="cat"></button>
+        <button class="alone-tab" data-pane="mood"></button>
+        <button class="alone-tab" data-pane="letter"></button>
+        <button class="alone-tab" data-pane="meditate"></button>
+        <button class="alone-tab" data-pane="color"></button>
       </div>
 
       <!-- ===== Pane: Mood check ===== -->
@@ -4284,6 +5313,18 @@ body[data-lang="en"] [data-th] { display: none; }
       <!-- ===== Pane: Letter ===== -->
       <div class="alone-pane" id="apane-letter">
         <h3 class="alone-h3"><span data-th>เขียนถึงใจตัวเอง</span><span data-en>A letter to your own heart</span></h3>
+
+        <!-- Daily writing streak + milestone medals -->
+        <div class="streak-badge" id="streakBadge" hidden>
+          <span class="streak-flame">🌱</span>
+          <span class="streak-text"></span>
+        </div>
+        <div class="streak-philosophy">
+          <span data-th>การฮีลที่ดีไม่ใช่ "ทุกข์ใจแล้วค่อยมาฮีล" — แต่คือการฮีลให้เป็นนิสัยทุกวัน · เขียนสั้นๆ แค่ 1 ประโยคก็พอ</span>
+          <span data-en>Real healing isn't waiting until you're hurt — it's a gentle daily habit. Even one sentence is enough.</span>
+        </div>
+        <div class="medal-row" id="medalRow"></div>
+
         <div class="letter-mode-row">
           <button class="letter-mode-btn active" data-letter-mode="now">
             <span data-th>ปลอบตัวเองตอนนี้</span><span data-en>Comfort yourself now</span>
@@ -4302,6 +5343,14 @@ body[data-lang="en"] [data-th] { display: none; }
         </div>
         <div class="letter-success" id="letterSuccess">
           ✨ <span data-th>เก็บไว้แล้ว — กลับมาอ่านได้เสมอ</span><span data-en>Saved — come back any time</span>
+        </div>
+
+        <!-- Past entries hint — shown when user has saved at least once -->
+        <div class="streak-history" id="streakHistory" hidden>
+          <p class="streak-history-line">
+            <span data-th>📖 คุณเขียนถึงตัวเองมาแล้ว <strong id="streakTotal">0</strong> ครั้ง</span>
+            <span data-en>📖 You've written to yourself <strong id="streakTotalEn">0</strong> times</span>
+          </p>
         </div>
       </div>
 
@@ -4390,12 +5439,25 @@ body[data-lang="en"] [data-th] { display: none; }
         </div>
 
         <div class="bedroom-controls">
-          <div class="ctrl-row">
-            <span class="ctrl-label"><span data-th>เสียงฝน</span><span data-en>Rain sound</span></span>
-            <button class="rain-toggle" id="rainToggle" aria-pressed="false">
-              <span class="rain-toggle-track"><span class="rain-toggle-thumb"></span></span>
-              <span class="rain-toggle-state" id="rainToggleState"><span data-th>ปิดอยู่</span><span data-en>Off</span></span>
-            </button>
+          <div class="ctrl-row" style="flex-direction:column; align-items:flex-start; gap:10px">
+            <span class="ctrl-label"><span data-th>เสียงบรรยากาศ</span><span data-en>Ambient sound</span></span>
+            <div class="ambient-picker" id="ambientPicker">
+              <button class="ambient-pill active" data-ambient="off">
+                <span data-th>ปิด</span><span data-en>Off</span>
+              </button>
+              <button class="ambient-pill" data-ambient="rain" data-src="assets/audio/rain.mp3">
+                🌧 <span data-th>ฝน</span><span data-en>Rain</span>
+              </button>
+              <button class="ambient-pill" data-ambient="ocean" data-src="assets/audio/ocean.mp3">
+                🌊 <span data-th>ทะเล</span><span data-en>Ocean</span>
+              </button>
+              <button class="ambient-pill" data-ambient="garden" data-src="assets/audio/garden.mp3">
+                🌿 <span data-th>สวน</span><span data-en>Garden</span>
+              </button>
+              <button class="ambient-pill" data-ambient="birds" data-src="assets/audio/birds.mp3">
+                🐦 <span data-th>นก</span><span data-en>Birds</span>
+              </button>
+            </div>
           </div>
           <audio id="rainAudio" src="assets/audio/rain.mp3" loop preload="none"></audio>
 
@@ -4411,6 +5473,66 @@ body[data-lang="en"] [data-th] { display: none; }
         </div>
       </div>
 
+      <!-- ===== Pane: Coloring — click-to-fill mandala (paint therapy) ===== -->
+      <div class="alone-pane" id="apane-color">
+        <h3 class="alone-h3"><span data-th>ระบายสีดอกไม้</span><span data-en>Color a flower</span></h3>
+        <p class="alone-sub">
+          <span data-th>เลือกสีที่ใจชอบ แล้วแตะที่กลีบดอก — ไม่มีถูกผิด ไม่มีหมดเวลา</span>
+          <span data-en>Pick a color, tap a petal — no right or wrong, no clock</span>
+        </p>
+
+        <div class="color-stage">
+          <svg class="color-canvas" id="colorCanvas" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-label="ดอกไม้ระบายสี">
+            <!-- Background circle -->
+            <circle class="cz" cx="200" cy="200" r="195" fill="#ffffff" stroke="#c19a6c" stroke-width="2"/>
+            <!-- Outer ring petals (8) -->
+            <g class="petal-ring outer">
+              <path class="cz" d="M200 30 C 230 60, 230 110, 200 130 C 170 110, 170 60, 200 30 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5"/>
+              <path class="cz" d="M200 30 C 230 60, 230 110, 200 130 C 170 110, 170 60, 200 30 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(45 200 200)"/>
+              <path class="cz" d="M200 30 C 230 60, 230 110, 200 130 C 170 110, 170 60, 200 30 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(90 200 200)"/>
+              <path class="cz" d="M200 30 C 230 60, 230 110, 200 130 C 170 110, 170 60, 200 30 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(135 200 200)"/>
+              <path class="cz" d="M200 30 C 230 60, 230 110, 200 130 C 170 110, 170 60, 200 30 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(180 200 200)"/>
+              <path class="cz" d="M200 30 C 230 60, 230 110, 200 130 C 170 110, 170 60, 200 30 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(225 200 200)"/>
+              <path class="cz" d="M200 30 C 230 60, 230 110, 200 130 C 170 110, 170 60, 200 30 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(270 200 200)"/>
+              <path class="cz" d="M200 30 C 230 60, 230 110, 200 130 C 170 110, 170 60, 200 30 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(315 200 200)"/>
+            </g>
+            <!-- Inner ring petals (8, smaller, offset) -->
+            <g class="petal-ring inner">
+              <path class="cz" d="M200 130 C 220 150, 220 180, 200 195 C 180 180, 180 150, 200 130 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(22.5 200 200)"/>
+              <path class="cz" d="M200 130 C 220 150, 220 180, 200 195 C 180 180, 180 150, 200 130 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(67.5 200 200)"/>
+              <path class="cz" d="M200 130 C 220 150, 220 180, 200 195 C 180 180, 180 150, 200 130 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(112.5 200 200)"/>
+              <path class="cz" d="M200 130 C 220 150, 220 180, 200 195 C 180 180, 180 150, 200 130 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(157.5 200 200)"/>
+              <path class="cz" d="M200 130 C 220 150, 220 180, 200 195 C 180 180, 180 150, 200 130 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(202.5 200 200)"/>
+              <path class="cz" d="M200 130 C 220 150, 220 180, 200 195 C 180 180, 180 150, 200 130 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(247.5 200 200)"/>
+              <path class="cz" d="M200 130 C 220 150, 220 180, 200 195 C 180 180, 180 150, 200 130 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(292.5 200 200)"/>
+              <path class="cz" d="M200 130 C 220 150, 220 180, 200 195 C 180 180, 180 150, 200 130 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(337.5 200 200)"/>
+            </g>
+            <!-- Center ring -->
+            <circle class="cz" cx="200" cy="200" r="42" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5"/>
+            <!-- Center dot -->
+            <circle class="cz" cx="200" cy="200" r="18" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5"/>
+          </svg>
+
+          <!-- Color palette — pastel earth-tones -->
+          <div class="color-palette" id="colorPalette">
+            <button class="color-swatch active" data-color="#f4b6a6" style="background:#f4b6a6" aria-label="peach"></button>
+            <button class="color-swatch" data-color="#e8a87c" style="background:#e8a87c" aria-label="coral"></button>
+            <button class="color-swatch" data-color="#c1a07a" style="background:#c1a07a" aria-label="caramel"></button>
+            <button class="color-swatch" data-color="#a8c4a2" style="background:#a8c4a2" aria-label="sage"></button>
+            <button class="color-swatch" data-color="#cce0bc" style="background:#cce0bc" aria-label="mint"></button>
+            <button class="color-swatch" data-color="#a8c4d8" style="background:#a8c4d8" aria-label="blue"></button>
+            <button class="color-swatch" data-color="#d8b4d8" style="background:#d8b4d8" aria-label="lavender"></button>
+            <button class="color-swatch" data-color="#f4d6a6" style="background:#f4d6a6" aria-label="butter"></button>
+            <button class="color-swatch eraser" data-color="#ffffff" aria-label="ลบ">✕</button>
+          </div>
+
+          <div class="color-actions">
+            <button class="nav-btn" id="colorReset">↻ <span data-th>ล้างทั้งหมด</span><span data-en>Clear all</span></button>
+            <button class="nav-btn next" id="colorSave">💾 <span data-th>เก็บภาพ</span><span data-en>Save</span></button>
+          </div>
+        </div>
+      </div>
+
       <!-- ===== Pane: Cat — orange/white companion ===== -->
       <div class="alone-pane" id="apane-cat">
         <h3 class="alone-h3"><span data-th>อยู่กับแมวสักครู่</span><span data-en>Spend a moment with a cat</span></h3>
@@ -4422,8 +5544,8 @@ body[data-lang="en"] [data-th] { display: none; }
         <div class="cat-stage">
           <img class="cat-img" id="catImg" src="assets/images/cat-sit.jpg" alt="แมวส้มขาว"/>
           <div class="cat-message" id="catMessage">
-            <span data-th>เพื่อนตัวน้อยรอเธออยู่ — แตะปุ่มข้างล่างได้เลย</span>
-            <span data-en>Your little companion is here — try a button below</span>
+            <span data-th>เพื่อนตัวน้อยรอเธออยู่ — ลองลูบหัว ลูบหลัง หรือจิ้มพุงดูสิ</span>
+            <span data-en>Your little companion is here — try petting head, back, or belly</span>
           </div>
         </div>
 
@@ -4435,10 +5557,8 @@ body[data-lang="en"] [data-th] { display: none; }
         </div>
       </div>
 
-      <nav class="room-nav">
-        <button class="nav-btn" data-go="museum">← <span data-th>พิพิธพันธ์</span><span data-en>Museum</span></button>
-        <button class="nav-btn map" data-back-map><span data-th>กลับแผนที่</span><span data-en>Back to map</span></button>
-        <button class="nav-btn next" data-go="community"><span data-th>ชุมชน</span><span data-en>Community</span> →</button>
+      <nav class="room-nav room-nav-simple">
+        <button class="nav-btn map" data-back-map>← <span data-th>กลับแผนที่</span><span data-en>Back to map</span></button>
       </nav>
     </div>
   </div>
@@ -4458,11 +5578,22 @@ body[data-lang="en"] [data-th] { display: none; }
         <span data-en>Read a fortune · co-work · take a quiz</span>
       </p>
 
+      <!-- Disclaimer: this is NOT a therapy space -->
+      <div class="community-disclaimer">
+        <span class="community-disclaimer-icon">💭</span>
+        <p>
+          <span data-th>ที่นี่เป็นพื้นที่คุยกันแบบเพื่อน — ไม่ใช่ห้องบำบัด ไม่ใช่ที่ปรึกษามืออาชีพ ทุกคนที่นี่ก็มีวันที่ใจหนัก ไม่ต้องเข้มแข็ง ไม่ต้องเปรียบเทียบ · ถ้าใจหนักมากจริงๆ แนะนำให้โทร <strong>1323</strong> (สายด่วนสุขภาพจิต 24 ชม.)</span>
+          <span data-en>This is a friend-like conversation space — not therapy, not professional advice. Everyone here has heavy days. You don't have to be strong or compare yourself. · If you're really struggling, please call <strong>1323</strong> (Mental Health Hotline, 24/7).</span>
+        </p>
+      </div>
+
       <div class="alone-tabs">
         <button class="alone-tab active" data-cpane="lofi">🪴 <span data-th>โต๊ะทำงาน</span><span data-en>Work desk</span></button>
         <button class="alone-tab" data-cpane="quiz">🧠 <span data-th>แบบทดสอบ</span><span data-en>Quiz</span></button>
         <button class="alone-tab" data-cpane="fortune">🔮 <span data-th>ดูดวง</span><span data-en>Fortune</span></button>
         <button class="alone-tab" data-cpane="chat">💬 <span data-th>คุยกัน</span><span data-en>Chat</span></button>
+        <button class="alone-tab" data-cpane="movies">🎬 <span data-th>หนัง/ซีรี่ส์</span><span data-en>Films</span></button>
+        <button class="alone-tab" data-cpane="articles">📚 <span data-th>บทความ</span><span data-en>Articles</span></button>
       </div>
 
       <!-- Pane: Cozy work desk -->
@@ -4695,10 +5826,29 @@ body[data-lang="en"] [data-th] { display: none; }
         </div>
       </div>
 
-      <nav class="room-nav">
-        <button class="nav-btn" data-go="alone">← <span data-th>อยู่กับตัวเอง</span><span data-en>Be alone</span></button>
-        <button class="nav-btn map" data-back-map><span data-th>กลับแผนที่</span><span data-en>Back to map</span></button>
-        <button class="nav-btn next" data-go="mu"><span data-th>ห้องมู</span><span data-en>Sacred</span> →</button>
+      <!-- ============ Pane: Movies — film/series picker by mood ============ -->
+      <div class="alone-pane" id="cpane-movies">
+        <h3 class="alone-h3"><span data-th>หนัง/ซีรี่ส์/อนิเมะ ตามอารมณ์</span><span data-en>Films by mood</span></h3>
+        <p class="alone-sub">
+          <span data-th>วิธีฮีลที่คนตอบแบบสำรวจทำมากที่สุด — เลือกตาม mood วันนี้</span>
+          <span data-en>The #1 healing method from our survey — pick by today's mood</span>
+        </p>
+        <div class="movie-mood-grid" id="movieMoodGrid"></div>
+        <div class="movie-results" id="movieResults" hidden></div>
+      </div>
+
+      <!-- ============ Pane: Articles — basic mental-health knowledge ============ -->
+      <div class="alone-pane" id="cpane-articles">
+        <h3 class="alone-h3"><span data-th>บทความฮีลใจเบื้องต้น</span><span data-en>Gentle healing reads</span></h3>
+        <p class="alone-sub">
+          <span data-th>ความรู้พื้นฐานจากผู้เชี่ยวชาญ — ไม่ใช่การบำบัด แค่ทำความเข้าใจใจตัวเอง</span>
+          <span data-en>Basics from therapists — not therapy, just understanding your own heart</span>
+        </p>
+        <div class="article-list" id="articleList"></div>
+      </div>
+
+      <nav class="room-nav room-nav-simple">
+        <button class="nav-btn map" data-back-map>← <span data-th>กลับแผนที่</span><span data-en>Back to map</span></button>
       </nav>
     </div>
   </div>
@@ -4714,6 +5864,10 @@ body[data-lang="en"] [data-th] { display: none; }
     <div class="island-veil"></div>
 
     <div class="island-content">
+      <button class="island-back-top" data-back-map>
+        <span class="island-back-arrow">←</span>
+        <span data-th>กลับแผนที่</span><span data-en>Back to map</span>
+      </button>
       <span class="room-eyebrow">
         <span data-th>นอกเกาะหัวใจ · Off the heart map</span>
         <span data-en>Off the heart map</span>
@@ -4749,7 +5903,7 @@ body[data-lang="en"] [data-th] { display: none; }
     </div>
 
     <nav class="room-nav island-nav">
-      <button class="nav-btn map" data-back-map><span data-th>← กลับแผนที่หัวใจ</span><span data-en>← Back to heart map</span></button>
+      <button class="nav-btn map" data-back-map><span data-th>← กลับแผนที่</span><span data-en>← Back to map</span></button>
     </nav>
   </div>
 </div>
@@ -4936,26 +6090,189 @@ body[data-lang="en"] [data-th] { display: none; }
   });
 
   // ============ ROOMS ============
-  // ============ PAN nav (heart ↔ island) ============
-  const mapCanvas = document.getElementById('mapCanvas');
-  function panMap(target) {
-    if (!mapCanvas) return;
+  // ============ MAP scrolling — JS-driven, axis-locked, iPhone-like momentum ============
+  // Why JS instead of native scroll? On iOS, native horizontal scroll on a wide
+  // element fights with vertical page scroll — slight wobble locks to one axis.
+  // With JS we can *cleanly release* a touch session if the user moves vertically,
+  // letting the page scroll naturally. Drag (mouse + finger) and signpost both work.
+  (function initMapScroll() {
+    const wrapper = document.querySelector('.map-wrapper');
+    const canvas = document.getElementById('mapCanvas');
+    const islandSection = document.querySelector('.map-section-island');
     const islandVid = document.getElementById('islandMapVideo');
-    if (target === 'island') {
-      mapCanvas.classList.add('at-island');
-      // Lazy-load island video when first panning to it (battery friendly on mobile)
-      if (islandVid && islandVid.paused) {
-        islandVid.load();
-        islandVid.play().catch(() => {});
-      }
-    } else {
-      mapCanvas.classList.remove('at-island');
-      if (islandVid && !islandVid.paused) islandVid.pause();
+    const signpost = document.getElementById('signpost');
+    const signpostBack = document.getElementById('signpostBack');
+    if (!wrapper || !canvas || !islandSection) return;
+
+    let pos = 0;          // current translateX in px (negative = scrolled right)
+    let minPos = 0;       // most-negative allowed (scrollWidth - viewWidth)
+    let velocity = 0;     // px/ms
+    let momentumId = null;
+    let dragging = false;
+    let activePointerId = null;
+    let startX = 0, startY = 0;
+    let lastX = 0, lastTime = 0;
+    let axis = null;      // null | 'x' | 'y'
+    const AXIS_THRESHOLD = 7;
+
+    function clamp(v) { return Math.max(minPos, Math.min(0, v)); }
+    function setPos(v) {
+      pos = clamp(v);
+      canvas.style.transform = `translate3d(${pos}px, 0, 0)`;
+      updateSignpostVisibility();
     }
-  }
-  document.querySelectorAll('.pan-nav').forEach(b => {
-    b.addEventListener('click', () => panMap(b.dataset.pan));
-  });
+    function recompute() {
+      const total = canvas.scrollWidth;
+      minPos = -(total - wrapper.clientWidth);
+      if (minPos > 0) minPos = 0;
+      setPos(pos); // re-clamp
+    }
+    // Recompute after layout settles + on resize + after island video loads
+    requestAnimationFrame(() => requestAnimationFrame(recompute));
+    window.addEventListener('resize', recompute);
+    if (islandVid) islandVid.addEventListener('loadedmetadata', recompute);
+
+    // ----- Lazy-load + play island video when scrolled near island -----
+    function checkIslandVisible() {
+      const islandLeft = islandSection.offsetLeft + pos; // pos is negative
+      const islandRight = islandLeft + islandSection.offsetWidth;
+      const wrapperW = wrapper.clientWidth;
+      // Visible if any part of island intersects viewport
+      const visible = islandRight > 0 && islandLeft < wrapperW;
+      if (islandVid) {
+        if (visible && islandVid.paused) {
+          islandVid.load(); islandVid.play().catch(() => {});
+        } else if (!visible && !islandVid.paused) {
+          islandVid.pause();
+        }
+      }
+      return visible;
+    }
+
+    function updateSignpostVisibility() {
+      const islandLeft = islandSection.offsetLeft + pos;
+      const wrapperW = wrapper.clientWidth;
+      // "On island side" = island center is past the halfway of viewport
+      const onIslandSide = islandLeft < wrapperW * 0.5;
+      if (signpost) signpost.classList.toggle('gone', onIslandSide);
+      if (signpostBack) signpostBack.classList.toggle('gone', !onIslandSide);
+      checkIslandVisible();
+    }
+
+    // ----- Momentum -----
+    function cancelMomentum() {
+      if (momentumId) cancelAnimationFrame(momentumId);
+      momentumId = null;
+    }
+    function applyMomentum() {
+      if (Math.abs(velocity) < 0.04) { momentumId = null; return; }
+      setPos(pos + velocity * 16);
+      // Bounce-back resistance at edges
+      if (pos <= minPos || pos >= 0) velocity *= 0.7;
+      else velocity *= 0.94;
+      momentumId = requestAnimationFrame(applyMomentum);
+    }
+
+    // ----- Pointer (covers mouse + touch + pen) -----
+    wrapper.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.pin') || e.target.closest('.signpost')) return;
+      cancelMomentum();
+      dragging = true;
+      activePointerId = e.pointerId;
+      axis = null;
+      startX = lastX = e.clientX;
+      startY = e.clientY;
+      lastTime = performance.now();
+      velocity = 0;
+      // For mouse only — capture so we get events outside the wrapper
+      if (e.pointerType === 'mouse') {
+        try { wrapper.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+    });
+
+    wrapper.addEventListener('pointermove', (e) => {
+      if (!dragging || e.pointerId !== activePointerId) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      // First-move axis decision
+      if (!axis) {
+        if (Math.abs(dy) > AXIS_THRESHOLD && Math.abs(dy) > Math.abs(dx)) {
+          // VERTICAL dominant → release the touch so the page can scroll naturally
+          dragging = false;
+          axis = 'y';
+          activePointerId = null;
+          wrapper.classList.remove('is-dragging');
+          if (e.pointerType === 'mouse') {
+            try { wrapper.releasePointerCapture(e.pointerId); } catch (_) {}
+          }
+          return;
+        }
+        if (Math.abs(dx) > AXIS_THRESHOLD) {
+          axis = 'x';
+          wrapper.classList.add('is-dragging');
+        } else {
+          return; // not enough movement yet
+        }
+      }
+
+      if (axis === 'x') {
+        e.preventDefault();
+        const moveX = e.clientX - lastX;
+        const now = performance.now();
+        const dt = Math.max(1, now - lastTime);
+        velocity = velocity * 0.4 + (moveX / dt) * 0.6;
+        setPos(pos + moveX);
+        lastX = e.clientX;
+        lastTime = now;
+      }
+    });
+
+    function endDrag(e) {
+      if (!dragging || (e && e.pointerId !== activePointerId)) return;
+      dragging = false;
+      activePointerId = null;
+      wrapper.classList.remove('is-dragging');
+      if (axis === 'x' && Math.abs(velocity) > 0.05) {
+        cancelMomentum();
+        momentumId = requestAnimationFrame(applyMomentum);
+      }
+      axis = null;
+    }
+    wrapper.addEventListener('pointerup', endDrag);
+    wrapper.addEventListener('pointercancel', endDrag);
+
+    // ----- Signpost click → smooth glide to island -----
+    function smoothScrollTo(target, duration = 700) {
+      cancelMomentum();
+      const start = pos;
+      const change = target - start;
+      const t0 = performance.now();
+      function step(now) {
+        const t = Math.min(1, (now - t0) / duration);
+        // ease-in-out cubic
+        const eased = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
+        setPos(start + change * eased);
+        if (t < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+    if (signpost) {
+      signpost.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Pan so the island is roughly centered
+        const target = -(islandSection.offsetLeft + islandSection.offsetWidth/2 - wrapper.clientWidth/2);
+        smoothScrollTo(clamp(target));
+      });
+    }
+    if (signpostBack) {
+      signpostBack.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Back to heart island = scroll to position 0
+        smoothScrollTo(0);
+      });
+    }
+  })();
 
   function openRoom(roomId) {
     closeAllRooms();
@@ -4964,12 +6281,20 @@ body[data-lang="en"] [data-th] { display: none; }
     overlay.classList.add('active');
     overlay.scrollTop = 0;
     body.style.overflow = 'hidden';
-    // Reset map to heart view when leaving (so back-to-map shows heart)
-    if (roomId !== 'island') panMap('heart');
     if (roomId === 'mu') resetGame();
     if (roomId === 'travel') {
       const gb = document.getElementById('gardenBg');
       if (gb) gb.style.backgroundImage = 'url("assets/images/garden.jpg")';
+    }
+    if (roomId === 'museum') {
+      // Show museum stage on entry (not subroom mode)
+      const mi = document.querySelector('#room-museum .museum-inner');
+      if (mi) mi.classList.remove('subroom-active');
+      // Reset to objects tab
+      document.querySelectorAll('.museum-tab').forEach(t =>
+        t.classList.toggle('active', t.dataset.pane === 'objects'));
+      document.querySelectorAll('#room-museum .gallery-pane').forEach(p =>
+        p.classList.toggle('active', p.id === 'pane-objects'));
     }
     if (roomId === 'island') {
       if (typeof window.resetMemento === 'function') window.resetMemento();
@@ -4981,7 +6306,9 @@ body[data-lang="en"] [data-th] { display: none; }
       }
     }
     if (roomId === 'alone') {
-      // Reset alone room state — go to bedroom pane (default), reset other sessions
+      // Reset alone room state — show the stage (not subroom mode)
+      const ac = document.querySelector('#room-alone .alone-content');
+      if (ac) ac.classList.remove('subroom-active');
       document.querySelectorAll('.alone-tab[data-pane]').forEach(t =>
         t.classList.toggle('active', t.dataset.pane === 'bedroom'));
       document.querySelectorAll('#room-alone .alone-pane').forEach(p =>
@@ -5810,37 +7137,82 @@ body[data-lang="en"] [data-th] { display: none; }
     },
   ];
 
-  // === Words data ===
+  // === Words data — real quotes from survey responses (anonymized) ===
   const WORDS = [
     {
-      th: 'วันที่ใจอ่อนแอ คือวันที่ใจกำลังเรียนรู้ที่จะแข็งแรง',
-      en: "The day your heart feels weak is the day it's learning to be strong.",
-      author: '— anonymous',
+      th: 'เหนื่อยนักก็พักนิ่งๆ ดูความรู้สึกของเราไปเรื่อยๆ',
+      en: 'When you\'re really tired, rest still — and just watch your feelings drift by.',
+      author: '— หญิง อายุ 65 · ภูเก็ต',
     },
     {
-      th: 'ทุกคนมีจังหวะของตัวเอง — ไม่ต้องรีบ',
-      en: 'Everyone has their own pace — no need to rush.',
-      author: '— ที่ไหนสักที่ / Somewhere',
+      th: 'ทุกปัญหาแก้ได้ที่ตัวเรา — สิ่งศักดิ์สิทธิ์เป็นเพียงตัวช่วยให้สบายใจขึ้น',
+      en: 'Every problem is solved within ourselves — the sacred just helps us feel better.',
+      author: '— Ambivert · กทม.',
     },
     {
-      th: 'การปล่อยวาง ไม่ใช่การลืม แต่คือการให้พื้นที่กับสิ่งใหม่',
-      en: "Letting go isn't forgetting — it's making space for what's new.",
+      th: 'มันเป็นเช่นนั้นเอง! ทุกอย่างไม่แน่',
+      en: 'It is what it is! Nothing is certain.',
+      author: '— หญิง อายุ 62 · ปริญญาเอก',
+    },
+    {
+      th: 'ตั้งสติอยู่กับปัจจุบัน ในที่สุดจะเกิดปัญญาแก้ปัญหาต่างๆ ได้เอง',
+      en: 'Stay present with yourself — wisdom to solve will arise on its own.',
+      author: '— ชาย อายุ 65 · ข้าราชการบำนาญ',
+    },
+    {
+      th: 'โลกเปลี่ยนแปลงเร็ว วุ่นวาย ต้องรักตัวเองให้เป็น ให้กำลังใจตัวเองบ้าง',
+      en: 'The world changes fast and gets chaotic — learn to love yourself, cheer yourself on.',
+      author: '— ชาย อายุ 52 · Freelance',
+    },
+    {
+      th: 'ชีวิตมันสั้น ไปหาของอร่อยกินกันเถอะ!',
+      en: 'Life\'s short — let\'s go find something delicious to eat!',
+      author: '— anon · กทม.',
+    },
+    {
+      th: 'เชื่อว่าชีวิตเราจะมีสิ่งดีๆ เกิดขึ้นได้ ถึงวันนี้จะเป็น bad day แต่วันต่อไปมันจะต้องดีขึ้นจ้า',
+      en: "I believe good things still come. Today might be a bad day — but tomorrow will be better.",
+      author: '— หญิง อายุ 31 · พนักงานบริษัท',
+    },
+    {
+      th: 'ชีวิตจะมีทางออกของมันเสมอ วางใจได้เลย',
+      en: 'Life always finds a way out. You can trust that.',
+      author: '— หญิง · กทม.',
+    },
+    {
+      th: 'เราไม่มีทางรู้หรอกว่าเราเข้มแข็งได้แค่ไหน จนมันเป็นทางเลือกสุดท้ายที่เรามี — พวกเราเก่งนะ',
+      en: "We never know how strong we are until being strong is the only choice. We're brave.",
+      author: '— หญิง · Introvert · กทม.',
+    },
+    {
+      th: 'ในเวลาที่ยังหายใจอยู่ อย่างน้อยก็ต้องพยายามใช้ชีวิตให้ดี ให้มีความสุขนะ',
+      en: 'While we\'re still breathing, at least try to live well — to be happy.',
+      author: '— หญิง อายุ 32 · พนง.ออฟฟิศ',
+    },
+    {
+      th: 'Manage expectation ตัวเองให้เป็น — หัดช่างแม่งบ่อยๆ',
+      en: 'Learn to manage your own expectations — practice letting things go.',
+      author: '— หญิง · Introvert · กทม.',
+    },
+    {
+      th: 'บางวันอาจจะเหนื่อยหรือยากไปบ้าง แต่ก็อยากให้เธอยังอยู่ข้างตัวเอง ใจดีกับตัวเอง',
+      en: 'Some days are heavy. I just hope you stay on your own side — be kind to yourself.',
+      author: '— anon ส่งให้คุณ (´｡• ᵕ •｡`)',
+    },
+    {
+      th: 'รักตัวเองให้มากๆ โลกนี้ยังมีสิ่งน่ารักเต็มไปหมดให้เราได้พบเจอ :)',
+      en: "Love yourself plenty — the world still has so many lovely things waiting :)",
+      author: '— หญิง อายุ 30 · สมุทรปราการ',
+    },
+    {
+      th: 'เดี๋ยวพรุ่งนี้มันก็ดีขึ้น ถ้าไม่ดีขึ้นก็รอวันต่อๆ ไป มันจะมีวันที่ดีเอง งุงิ คริคริ ⭐',
+      en: 'Tomorrow will be better. If not, the day after. A good day will come ⭐',
       author: '— anon',
     },
     {
-      th: 'เก่งแล้วล่ะ — แค่หายใจให้ครบวันไหน ก็เก่งแล้ว',
-      en: "You're already enough — just making it through today is enough.",
-      author: '— เพจที่ส่งให้',
-    },
-    {
-      th: 'ใจที่เคยเจ็บ คือใจที่กล้าเปิด',
-      en: 'A heart that has hurt is a heart brave enough to open.',
-      author: '— กวี / a poet',
-    },
-    {
-      th: 'ขอบคุณที่อยู่กับตัวเองมาถึงวันนี้',
-      en: 'Thank yourself for staying through to today.',
-      author: '— เพื่อนที่ยังไม่รู้จัก / a friend you don\'t know yet',
+      th: 'กินข้าวให้อิ่ม ฟังเพลงที่ชอบ ดูเมะเรื่องโปรด รักตัวเองในแบบตัวเองนะ',
+      en: 'Eat full, play your favorite songs, watch your favorite anime — love yourself, your way.',
+      author: '— หญิง อายุ 24 · กรุงเทพ',
     },
   ];
 
@@ -6079,84 +7451,685 @@ body[data-lang="en"] [data-th] { display: none; }
   // ห้องอยู่กับตัวเอง — Multi-pane interactions
   // ============================================================
 
-  // Tab switching for Alone room (5 panes)
+  // ============ ALONE ROOM — Sub-room mode (each pane becomes fullscreen) ============
+  const aloneContent = document.querySelector('#room-alone .alone-content');
+  function switchAlonePane(target, enterSubroom = true) {
+    document.querySelectorAll('.alone-tab[data-pane]').forEach(t =>
+      t.classList.toggle('active', t.dataset.pane === target));
+    document.querySelectorAll('#room-alone .alone-pane').forEach(p =>
+      p.classList.toggle('active', p.id === 'apane-' + target));
+    document.querySelectorAll('#room-alone .hotspot[data-pane]').forEach(h =>
+      h.classList.toggle('active', h.dataset.pane === target));
+    if (enterSubroom && aloneContent) {
+      aloneContent.classList.add('subroom-active');
+      const overlay = document.getElementById('room-alone');
+      if (overlay) overlay.scrollTop = 0;
+    }
+  }
+  function exitAloneSubroom() {
+    if (aloneContent) aloneContent.classList.remove('subroom-active');
+    const overlay = document.getElementById('room-alone');
+    if (overlay) overlay.scrollTop = 0;
+  }
   document.querySelectorAll('.alone-tab[data-pane]').forEach(tab => {
-    tab.addEventListener('click', () => {
-      const target = tab.dataset.pane;
-      document.querySelectorAll('.alone-tab[data-pane]').forEach(t =>
-        t.classList.toggle('active', t.dataset.pane === target));
-      document.querySelectorAll('#room-alone .alone-pane').forEach(p =>
-        p.classList.toggle('active', p.id === 'apane-' + target));
+    tab.addEventListener('click', () => switchAlonePane(tab.dataset.pane, true));
+  });
+  document.querySelectorAll('#room-alone .hotspot[data-pane]').forEach(h => {
+    h.addEventListener('click', () => switchAlonePane(h.dataset.pane, true));
+  });
+
+  // ============ MUSEUM — Sub-room mode ============
+  const museumInner = document.querySelector('#room-museum .museum-inner');
+  function switchMuseumPane(target, enterSubroom = true) {
+    document.querySelectorAll('.museum-tab').forEach(t =>
+      t.classList.toggle('active', t.dataset.pane === target));
+    document.querySelectorAll('#room-museum .gallery-pane').forEach(p =>
+      p.classList.toggle('active', p.id === 'pane-' + target));
+    document.querySelectorAll('#room-museum .hotspot[data-mpane]').forEach(h =>
+      h.classList.toggle('active', h.dataset.mpane === target));
+    if (enterSubroom && museumInner) {
+      museumInner.classList.add('subroom-active');
+      const overlay = document.getElementById('room-museum');
+      if (overlay) overlay.scrollTop = 0;
+    }
+  }
+  function exitMuseumSubroom() {
+    if (museumInner) museumInner.classList.remove('subroom-active');
+    const overlay = document.getElementById('room-museum');
+    if (overlay) overlay.scrollTop = 0;
+  }
+  document.querySelectorAll('.museum-tab').forEach(tab => {
+    tab.addEventListener('click', () => switchMuseumPane(tab.dataset.pane, true));
+  });
+  document.querySelectorAll('#room-museum .hotspot[data-mpane]').forEach(h => {
+    h.addEventListener('click', () => switchMuseumPane(h.dataset.mpane, true));
+  });
+
+  // Back buttons exit subroom
+  document.querySelectorAll('[data-subroom-back]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.closest('#room-alone')) exitAloneSubroom();
+      else if (btn.closest('#room-museum')) exitMuseumSubroom();
     });
   });
 
-  // ============ CAT companion ============
+  // ============ COLORING (paint-by-click mandala) ============
+  (function initColoring() {
+    const canvas = document.getElementById('colorCanvas');
+    const palette = document.getElementById('colorPalette');
+    const resetBtn = document.getElementById('colorReset');
+    const saveBtn = document.getElementById('colorSave');
+    if (!canvas || !palette) return;
+
+    let currentColor = '#f4b6a6'; // default peach
+
+    // Pick color
+    palette.querySelectorAll('.color-swatch').forEach(s => {
+      s.addEventListener('click', () => {
+        palette.querySelectorAll('.color-swatch').forEach(x => x.classList.remove('active'));
+        s.classList.add('active');
+        currentColor = s.dataset.color;
+      });
+    });
+
+    // Fill SVG region on click
+    canvas.querySelectorAll('.cz').forEach(el => {
+      el.addEventListener('click', () => {
+        el.setAttribute('fill', currentColor);
+      });
+    });
+
+    // Reset — restore all to white
+    resetBtn.addEventListener('click', () => {
+      canvas.querySelectorAll('.cz').forEach(el => el.setAttribute('fill', '#ffffff'));
+    });
+
+    // Save — export SVG → PNG → download
+    saveBtn.addEventListener('click', () => {
+      try {
+        const svgData = new XMLSerializer().serializeToString(canvas);
+        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+        const img = new Image();
+        img.onload = () => {
+          const c = document.createElement('canvas');
+          c.width = 800; c.height = 800;
+          const ctx = c.getContext('2d');
+          ctx.fillStyle = '#fefcf9';
+          ctx.fillRect(0, 0, 800, 800);
+          ctx.drawImage(img, 0, 0, 800, 800);
+          c.toBlob(blob => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'healjai-flower-' + Date.now() + '.png';
+            a.click();
+            URL.revokeObjectURL(a.href);
+          }, 'image/png');
+          URL.revokeObjectURL(url);
+        };
+        img.src = url;
+      } catch (e) {
+        alert('Save failed — ลองคลิกขวาที่ภาพแล้ว Save image แทน');
+      }
+    });
+  })();
+
+  // ============ MOVIES — by mood ============
+  (function initMovies() {
+    const grid = document.getElementById('movieMoodGrid');
+    const results = document.getElementById('movieResults');
+    if (!grid) return;
+
+    const MOODS = [
+      { id: 'comedy',  icon: '😆', label_th: 'อยากหัวเราะ', label_en: 'Need a laugh',
+        sub_th: 'comedy เบาๆ',  sub_en: 'easy comedy' },
+      { id: 'cry',     icon: '😢', label_th: 'อยากร้องไห้', label_en: 'Want to cry',
+        sub_th: 'drama ซึ้งๆ',  sub_en: 'tender drama' },
+      { id: 'calm',    icon: '🌿', label_th: 'อยากสงบ',     label_en: 'Want calm',
+        sub_th: 'อนิเมะ slice-of-life', sub_en: 'slice-of-life anime' },
+      { id: 'thrill',  icon: '🕵', label_th: 'อยากระบาย',   label_en: 'Want distraction',
+        sub_th: 'thriller / mystery',   sub_en: 'thriller / mystery' },
+      { id: 'romance', icon: '💗', label_th: 'อยากใจฟู',     label_en: 'Want butterflies',
+        sub_th: 'romcom',                sub_en: 'romcom' },
+      { id: 'cozy',    icon: '🍵', label_th: 'อยากอุ่นๆ',    label_en: 'Want cozy',
+        sub_th: 'feel-good',             sub_en: 'feel-good' },
+    ];
+    const FILMS = {
+      comedy: [
+        { title: 'Brooklyn Nine-Nine', meta: 'ซีรี่ส์ · 8 ซีซั่น · Netflix',
+          why_th: 'ตำรวจตลก ใจดีให้กันทุกตอน ดูปุ๊บใจฟูปั๊บ',
+          why_en: 'Goofy cops who actually care — instant mood lift.' },
+        { title: 'รันนิ่งแมน (Running Man)', meta: 'รายการเกาหลี · ดูตอนไหนก็ได้',
+          why_th: '"รันนิ่งแมนคือรายการแรกที่จะกดดู" — จาก user คนหนึ่ง',
+          why_en: '"Running Man is the first thing I open" — quote from one of our respondents.' },
+        { title: 'Schitt\'s Creek', meta: 'ซีรี่ส์ · 6 ซีซั่น',
+          why_th: 'ครอบครัวงงๆ ที่ค่อยๆ น่ารักขึ้น',
+          why_en: 'A clueless family that slowly becomes lovely.' },
+      ],
+      cry: [
+        { title: 'Your Name. (Kimi no Na wa)', meta: 'อนิเมะ · 1 ชม. 47 นาที',
+          why_th: 'ร้องไห้แล้วสบายขึ้น',
+          why_en: 'Cry, then feel lighter.' },
+        { title: 'Inside Out 2', meta: 'แอนิเมชั่น · Pixar',
+          why_th: 'เข้าใจอารมณ์ตัวเองโดยไม่รู้ตัว',
+          why_en: 'Understand your own emotions without realizing.' },
+        { title: 'When Life Gives You Tangerines', meta: 'ซีรี่ส์เกาหลี · Netflix',
+          why_th: 'ชีวิตทั้งหนัก ทั้งสวยงาม',
+          why_en: 'Heavy and beautiful at once.' },
+      ],
+      calm: [
+        { title: 'Aggretsuko', meta: 'อนิเมะ · 4 ซีซั่น',
+          why_th: 'แพนด้าออฟฟิศที่ระเบิดอารมณ์ด้วย metal — relatable',
+          why_en: 'Office panda who screams metal — relatable.' },
+        { title: 'My Neighbor Totoro', meta: 'Studio Ghibli · 1 ชม. 26 นาที',
+          why_th: 'ฟังเสียงลม ดูสายฝน รู้สึกเป็นเด็กอีกครั้ง',
+          why_en: 'Listen to wind, watch rain, feel like a child again.' },
+        { title: 'Mushishi', meta: 'อนิเมะ slice-of-life',
+          why_th: 'ตอนละหนึ่งเรื่อง สงบเหมือนนั่งสมาธิ',
+          why_en: 'One story per episode — calming like meditation.' },
+      ],
+      thrill: [
+        { title: 'Knives Out', meta: 'ภาพยนตร์ · 2 ชม. 10 นาที',
+          why_th: '"หนังแนวสอบสวน ช่วยให้โฟกัสดีมาก ลืมเวลาไปเลย" — quote จาก survey',
+          why_en: '"Detective films help me focus, I lose track of time" — survey quote.' },
+        { title: 'Sherlock', meta: 'ซีรี่ส์ BBC · 4 ซีซั่น',
+          why_th: 'สมองหมุนตามจนลืมเรื่องของตัวเอง',
+          why_en: 'Your brain spins along until you forget your own problems.' },
+        { title: 'The Glory', meta: 'ซีรี่ส์เกาหลี · Netflix',
+          why_th: 'แค้น เข้มข้น ระบายได้',
+          why_en: 'Revenge, intense, cathartic.' },
+      ],
+      romance: [
+        { title: 'Past Lives', meta: 'ภาพยนตร์ · 1 ชม. 46 นาที',
+          why_th: 'รักที่ไม่ได้ครอบครอง แต่ยังเป็นรัก',
+          why_en: 'Love unfulfilled — still love.' },
+        { title: 'About Time', meta: 'ภาพยนตร์ · 2 ชม. 3 นาที',
+          why_th: 'ทำให้รักวันธรรมดามากขึ้น',
+          why_en: 'Makes you love ordinary days more.' },
+        { title: '20th Century Girl', meta: 'ภาพยนตร์เกาหลี · Netflix',
+          why_th: 'รักวัยมัธยมที่ทำให้คิดถึง',
+          why_en: 'A teen love that makes you miss your own.' },
+      ],
+      cozy: [
+        { title: 'Midnight Diner', meta: 'ซีรี่ส์ญี่ปุ่น · Netflix',
+          why_th: 'ร้านอาหารกลางคืน เรื่องเล็กๆ ของคนแปลกหน้า',
+          why_en: 'Late-night diner, small stories from strangers.' },
+        { title: 'Howl\'s Moving Castle', meta: 'Studio Ghibli',
+          why_th: 'บ้านลึกลับ ใจอบอุ่น',
+          why_en: 'Mysterious home, warm heart.' },
+        { title: 'Heartstopper', meta: 'ซีรี่ส์อังกฤษ · Netflix',
+          why_th: 'รักนุ่มๆ ของเด็กนักเรียน',
+          why_en: 'Gentle teen love.' },
+      ],
+    };
+
+    function render() {
+      grid.innerHTML = '';
+      const lang = body.dataset.lang || 'th';
+      MOODS.forEach(m => {
+        const card = document.createElement('button');
+        card.className = 'movie-mood-card';
+        card.dataset.mood = m.id;
+        card.innerHTML = `
+          <div class="movie-mood-icon">${m.icon}</div>
+          <div class="movie-mood-label">${lang === 'th' ? m.label_th : m.label_en}</div>
+          <div class="movie-mood-sub">${lang === 'th' ? m.sub_th : m.sub_en}</div>
+        `;
+        card.addEventListener('click', () => showMood(m.id));
+        grid.appendChild(card);
+      });
+    }
+
+    function showMood(moodId) {
+      const films = FILMS[moodId] || [];
+      const mood = MOODS.find(m => m.id === moodId);
+      const lang = body.dataset.lang || 'th';
+      results.hidden = false;
+      results.innerHTML = `
+        <h4>${mood.icon} ${lang === 'th' ? mood.label_th : mood.label_en}</h4>
+        ${films.map(f => `
+          <div class="movie-item">
+            <div class="movie-item-title">${f.title}</div>
+            <div class="movie-item-meta">${f.meta}</div>
+            <div class="movie-item-why">${lang === 'th' ? f.why_th : f.why_en}</div>
+          </div>
+        `).join('')}
+      `;
+      results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    render();
+  })();
+
+  // ============ ARTICLES — basic mental health knowledge ============
+  (function initArticles() {
+    const list = document.getElementById('articleList');
+    if (!list) return;
+
+    const ARTICLES = [
+      {
+        tag_th: 'อารมณ์ 101', tag_en: 'Emotions 101',
+        title_th: 'ทำไมเศร้าโดยไม่มีเหตุผล?',
+        title_en: 'Why do I feel sad for no reason?',
+        body_th: `<p>ความเศร้า "โดยไม่มีเหตุผล" — จริงๆ แล้วมีเหตุผลเสมอ แค่เหตุผลนั้นอาจไม่ได้อยู่บนผิว</p>
+                  <p><strong>สาเหตุที่พบบ่อย:</strong></p>
+                  <p>• <strong>นอนน้อย / hormone ผันผวน</strong> — ร่างกายเหนื่อยก็ส่งสัญญาณมาเป็นความรู้สึกเศร้า</p>
+                  <p>• <strong>Emotional residue</strong> — เรื่องเล็กๆ ที่สะสมมาทั้งสัปดาห์ ระเบิดออกเป็นเศร้าก้อนเดียว</p>
+                  <p>• <strong>Anniversary effect</strong> — ร่างกายจำวันสำคัญในอดีตได้ ก่อนสมองจะรู้ตัว</p>
+                  <p><strong>สิ่งที่ทำได้:</strong> ยอมรับว่ามีเศร้าก่อน · ไม่ต้องหาเหตุผลทันที · เขียนสิ่งที่รู้สึก · ถ้าเศร้าเกิน 2 อาทิตย์ติด → ขอความช่วยเหลือผู้เชี่ยวชาญ</p>`,
+        body_en: `<p>"Sadness for no reason" — usually has a reason, just not on the surface.</p>
+                  <p><strong>Common causes:</strong></p>
+                  <p>• <strong>Sleep debt / hormone shifts</strong> — your body's "tired" signal often surfaces as sadness.</p>
+                  <p>• <strong>Emotional residue</strong> — small things stacking up all week, releasing as one big sad.</p>
+                  <p>• <strong>Anniversary effect</strong> — the body remembers important dates before the mind does.</p>
+                  <p><strong>What to do:</strong> Accept the sadness first · don't rush to explain · write what you feel · if it lasts 2+ weeks, see a professional.</p>`,
+      },
+      {
+        tag_th: 'การฝึก', tag_en: 'Practice',
+        title_th: 'หายใจ 4-7-8 — สงบใจใน 2 นาที',
+        title_en: '4-7-8 Breathing — calm in 2 minutes',
+        body_th: `<p>เทคนิคของ Dr. Andrew Weil — ใช้ได้ทันทีตอนตื่นเต้น/วิตกกังวล</p>
+                  <p><strong>วิธีทำ:</strong></p>
+                  <p>1. หายใจเข้าทางจมูก นับ <strong>4</strong> วินาที</p>
+                  <p>2. กลั้นหายใจ นับ <strong>7</strong> วินาที</p>
+                  <p>3. หายใจออกทางปาก นับ <strong>8</strong> วินาที (ทำเสียง "ฟู่")</p>
+                  <p>4. ทำซ้ำ 4 รอบ</p>
+                  <p><strong>ทำไมได้ผล:</strong> การหายใจออกยาวกว่าหายใจเข้า ไปกระตุ้น parasympathetic nervous system ที่ทำให้หัวใจช้าลง</p>`,
+        body_en: `<p>Dr. Andrew Weil's technique — works instantly for anxiety/panic.</p>
+                  <p><strong>How:</strong></p>
+                  <p>1. Inhale through nose for <strong>4</strong> seconds</p>
+                  <p>2. Hold for <strong>7</strong> seconds</p>
+                  <p>3. Exhale through mouth for <strong>8</strong> seconds (make a "whoosh" sound)</p>
+                  <p>4. Repeat 4 times</p>
+                  <p><strong>Why it works:</strong> longer exhale activates parasympathetic nervous system → heart slows down.</p>`,
+      },
+      {
+        tag_th: 'มายาคติ', tag_en: 'Myth',
+        title_th: '"แค่คิดบวก" ไม่ได้ช่วยทุกอย่าง',
+        title_en: '"Just think positive" doesn\'t fix everything',
+        body_th: `<p><strong>Toxic positivity</strong> = การบังคับให้รู้สึกดีตลอดเวลา → ทำให้เรา "เก็บกด" อารมณ์จริง</p>
+                  <p>การปฏิเสธความรู้สึกลบ (เศร้า โกรธ กลัว) ไม่ทำให้มันหายไป — แต่ทำให้สะสมจนระเบิด</p>
+                  <p><strong>แทนที่จะคิดบวก ลอง "คิดอย่างมีเมตตา":</strong></p>
+                  <p>• แทน "ฉันต้องเข้มแข็ง" → "ฉันมีสิทธิ์เหนื่อย"</p>
+                  <p>• แทน "อย่าคิดมาก" → "อะไรทำให้ฉันคิดมากนะ?"</p>
+                  <p>• แทน "ใครๆ ก็เจอ" → "เจอแบบนี้คงไม่ง่ายสำหรับฉันเหมือนกัน"</p>
+                  <p>การยอมรับว่าเจ็บ คือก้าวแรกที่ทำให้หายจริงๆ</p>`,
+        body_en: `<p><strong>Toxic positivity</strong> = forcing yourself to feel good always → suppresses real emotions.</p>
+                  <p>Denying negative feelings doesn't make them disappear — they pile up until they explode.</p>
+                  <p><strong>Instead of "positive thinking," try "compassionate thinking":</strong></p>
+                  <p>• Instead of "I must be strong" → "I'm allowed to be tired"</p>
+                  <p>• Instead of "Stop overthinking" → "What's making me overthink?"</p>
+                  <p>• Instead of "Everyone goes through this" → "This probably isn't easy for me either"</p>
+                  <p>Acknowledging hurt is the first step to healing.</p>`,
+      },
+      {
+        tag_th: 'ความสัมพันธ์', tag_en: 'Boundaries',
+        title_th: 'ขีดเส้นแบ่งใจ (Boundaries) ไม่ใช่การใจร้าย',
+        title_en: 'Boundaries are not unkindness',
+        body_th: `<p>คนไทยมักโตมากับ "ต้องเกรงใจ" "ห้ามทำให้คนอื่นไม่สบายใจ" — แต่ boundary คือการดูแลใจตัวเอง ไม่ใช่การทำร้ายคนอื่น</p>
+                  <p><strong>สัญญาณว่าควรขีดเส้น:</strong></p>
+                  <p>• หลังเจอคนนี้แล้วเหนื่อยทุกครั้ง</p>
+                  <p>• รู้สึกผิดเวลาบอกว่า "ไม่"</p>
+                  <p>• ให้มากกว่าที่ได้รับเป็นเรื่องปกติ</p>
+                  <p><strong>ประโยคที่ใช้ได้:</strong></p>
+                  <p>• "ตอนนี้ฉันยังไม่พร้อมคุยเรื่องนี้"</p>
+                  <p>• "ขอเวลาคิดก่อนนะ"</p>
+                  <p>• "ฉันรักคุณ แต่ทำสิ่งนั้นให้ไม่ได้"</p>`,
+        body_en: `<p>Thai culture often teaches "เกรงใจ" — never make others uncomfortable. But boundaries protect YOUR heart, they don't hurt others.</p>
+                  <p><strong>Signs you need a boundary:</strong></p>
+                  <p>• You feel exhausted after every encounter with this person</p>
+                  <p>• Saying "no" feels guilt-laden</p>
+                  <p>• Giving more than receiving feels normal</p>
+                  <p><strong>Useful phrases:</strong></p>
+                  <p>• "I'm not ready to talk about this yet"</p>
+                  <p>• "Let me think first"</p>
+                  <p>• "I love you, but I can't do that"</p>`,
+      },
+      {
+        tag_th: 'เมื่อไหร่หาผู้เชี่ยวชาญ', tag_en: 'When to seek help',
+        title_th: 'รู้ได้ยังไงว่าควรไปหาจิตแพทย์?',
+        title_en: 'How do I know when to see a therapist?',
+        body_th: `<p>การไปหาผู้เชี่ยวชาญ <strong>ไม่ได้แปลว่าเรา "บ้า" หรือ "อ่อนแอ"</strong> — เหมือนไปหาหมอตอนเจ็บหัวเข่า ใจก็เจ็บได้</p>
+                  <p><strong>ควรพิจารณาไปหา เมื่อ:</strong></p>
+                  <p>• เศร้า / วิตกกังวลติดต่อกัน <strong>มากกว่า 2 อาทิตย์</strong></p>
+                  <p>• กระทบการทำงาน / การกิน / การนอน</p>
+                  <p>• คิดทำร้ายตัวเอง หรือไม่อยากมีชีวิตอยู่</p>
+                  <p>• ใช้แอลกอฮอล์/สิ่งเสพติด มากกว่าเดิม</p>
+                  <p>• รู้สึกตัดขาดจากคนรอบข้าง</p>
+                  <p><strong>ช่องทางในไทย:</strong></p>
+                  <p>• <strong>1323</strong> สายด่วนสุขภาพจิต (24 ชม. ฟรี)</p>
+                  <p>• <strong>1667</strong> สะมาริตันส์</p>
+                  <p>• ปรึกษานักจิตวิทยาผ่านแอป Ooca, MorDee (~700-1500 บาท/ครั้ง)</p>
+                  <p>• รพ.รัฐ มีคลินิกจิตเวช ใช้สิทธิ์บัตรทอง/ประกันสังคมได้</p>`,
+        body_en: `<p>Seeing a therapist <strong>doesn't mean you're "crazy" or "weak"</strong> — like seeing a doctor for a sore knee, hearts can hurt too.</p>
+                  <p><strong>Consider seeking help when:</strong></p>
+                  <p>• Sadness/anxiety lasts <strong>more than 2 weeks</strong></p>
+                  <p>• Affects work / eating / sleeping</p>
+                  <p>• Thoughts of self-harm or not wanting to live</p>
+                  <p>• Increased alcohol/substance use</p>
+                  <p>• Feeling disconnected from people around you</p>
+                  <p><strong>Channels in Thailand:</strong></p>
+                  <p>• <strong>1323</strong> Mental Health Hotline (24/7, free)</p>
+                  <p>• <strong>1667</strong> Samaritans</p>
+                  <p>• Apps: Ooca, MorDee (~700–1500 THB/session)</p>
+                  <p>• Public hospitals have psychiatric clinics covered by Universal/Social Security insurance</p>`,
+      },
+    ];
+
+    function render() {
+      list.innerHTML = '';
+      const lang = body.dataset.lang || 'th';
+      ARTICLES.forEach((a, i) => {
+        const el = document.createElement('div');
+        el.className = 'article-item';
+        el.innerHTML = `
+          <div class="article-tag">${lang === 'th' ? a.tag_th : a.tag_en}</div>
+          <div class="article-title">${lang === 'th' ? a.title_th : a.title_en}</div>
+          <div class="article-preview">${(lang === 'th' ? a.body_th : a.body_en).replace(/<[^>]+>/g, '').substring(0, 100)}…</div>
+          <div class="article-body">${lang === 'th' ? a.body_th : a.body_en}</div>
+        `;
+        el.addEventListener('click', () => el.classList.toggle('expanded'));
+        list.appendChild(el);
+      });
+    }
+
+    render();
+  })();
+
+  // ============ Privacy Policy modal ============
+  const privacyModal = document.getElementById('privacyModal');
+  document.querySelectorAll('[data-open-privacy]').forEach(b => {
+    b.addEventListener('click', () => {
+      if (privacyModal) {
+        privacyModal.classList.add('show');
+        body.style.overflow = 'hidden';
+      }
+    });
+  });
+  document.querySelectorAll('[data-close-privacy]').forEach(b => {
+    b.addEventListener('click', () => {
+      if (privacyModal) {
+        privacyModal.classList.remove('show');
+        body.style.overflow = '';
+      }
+    });
+  });
+  if (privacyModal) {
+    privacyModal.addEventListener('click', (e) => {
+      if (e.target === privacyModal) {
+        privacyModal.classList.remove('show');
+        body.style.overflow = '';
+      }
+    });
+  }
+
+  // ============ AESTHETIC TOGGLE (Cozy / Loft) ============
+  // Persisted in localStorage → user comes back to same vibe.
+  (function initAesthetic() {
+    const bedroomImg = document.getElementById('bedroomImg');
+    const stage = bedroomImg ? bedroomImg.closest('.room-stage') : null;
+    if (!bedroomImg) return;
+
+    function applyAesthetic(aest, animate = true) {
+      document.querySelectorAll('.aest-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.aest === aest));
+      if (stage) stage.dataset.aest = aest;   // CSS reads this for hotspot positions
+      if (animate && stage) {
+        stage.classList.add('swapping');
+        setTimeout(() => {
+          bedroomImg.src = 'assets/images/bedroom-' + aest + '.jpg';
+          bedroomImg.onload = () => stage.classList.remove('swapping');
+        }, 250);
+      } else {
+        bedroomImg.src = 'assets/images/bedroom-' + aest + '.jpg';
+      }
+    }
+
+    // Load saved choice on init
+    const saved = localStorage.getItem('bedroomAesthetic') || 'cozy';
+    applyAesthetic(saved, false);
+
+    // Toggle on click
+    document.querySelectorAll('.aest-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        const aest = b.dataset.aest;
+        localStorage.setItem('bedroomAesthetic', aest);
+        applyAesthetic(aest, true);
+      });
+    });
+  })();
+
+  // ============ CAT companion — particles + breathing + soft purr ============
   (function initCat() {
     const catImg = document.getElementById('catImg');
     const catMsg = document.getElementById('catMessage');
     if (!catImg || !catMsg) return;
+    const catStage = catImg.closest('.cat-stage');
 
     const CAT_STATES = {
-      pet:   { img: 'cat-belly.jpg',
+      pet:   { img: 'cat-belly.jpg', particle: '🤍', count: 6, sound: 'purr',
                th: '🤍 เพื่อนตัวน้อยตัวนิ่ม สุขใจมาก — เธอด้วยนะ',
                en: '🤍 Soft little friend, happy and loved — you too.' },
-      feed:  { img: 'cat-eat.jpg',
+      feed:  { img: 'cat-eat.jpg', particle: '🐟', count: 4, sound: null,
                th: '🍽 อิ่มท้องแล้ว ไปหาคุณข้าวให้ตัวเองด้วยนะ',
                en: '🍽 Belly full. Don\'t forget to feed yourself too.' },
-      play:  { img: 'cat-play.jpg',
+      play:  { img: 'cat-play.jpg', particle: '🎵', count: 5, sound: null,
                th: '🧶 เล่นกับใครสักคนทำให้ใจเบาขึ้น แม้แค่ 5 นาที',
                en: '🧶 Even 5 minutes of play lightens the heart.' },
-      watch: { img: 'cat-sleep.jpg',
+      watch: { img: 'cat-sleep.jpg', particle: '💤', count: 3, sound: 'purr',
                th: '😴 นั่งเงียบๆ มองมัน — เป็นช่วงเวลาที่ดีของวัน',
                en: '😴 Just watching it sleep — one of the day\'s good moments.' },
     };
 
     function setLangSpan(html_th, html_en) {
       catMsg.innerHTML = '<span data-th>' + html_th + '</span><span data-en>' + html_en + '</span>';
-      // Re-apply current language
       const lang = body.dataset.lang || 'th';
       catMsg.querySelectorAll('[data-th]').forEach(s => s.style.display = lang === 'th' ? '' : 'none');
       catMsg.querySelectorAll('[data-en]').forEach(s => s.style.display = lang === 'en' ? '' : 'none');
     }
 
-    document.querySelectorAll('.cat-action').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const action = btn.dataset.catAction;
-        const state = CAT_STATES[action];
-        if (!state) return;
+    // ----- Floating particles around the cat -----
+    function spawnParticles(emoji, count) {
+      if (!catStage) return;
+      const imgRect = catImg.getBoundingClientRect();
+      const stageRect = catStage.getBoundingClientRect();
+      const baseX = imgRect.left - stageRect.left + imgRect.width / 2;
+      const baseY = imgRect.top - stageRect.top + imgRect.height / 3;
+      for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.className = 'cat-particle';
+        p.textContent = emoji;
+        const offsetX = (Math.random() - 0.5) * 100;
+        const driftX = (Math.random() - 0.5) * 80;
+        p.style.left = (baseX + offsetX - 12) + 'px';
+        p.style.top  = baseY + 'px';
+        p.style.setProperty('--drift', driftX + 'px');
+        p.style.animationDelay = (i * 0.08) + 's';
+        p.style.fontSize = (18 + Math.random() * 10) + 'px';
+        catStage.appendChild(p);
+        setTimeout(() => p.remove(), 2200);
+      }
+    }
 
-        document.querySelectorAll('.cat-action').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+    // ----- Soft purr generated via Web Audio API (no audio file needed) -----
+    let audioCtx = null;
+    let purrTimeoutId = null;
+    function ensureAudioCtx() {
+      if (!audioCtx) {
+        try {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (_) { audioCtx = null; }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+      }
+      return audioCtx;
+    }
+    function playPurr(durationMs = 2200) {
+      const ctx = ensureAudioCtx();
+      if (!ctx) return;
+      const now = ctx.currentTime;
 
-        // Fade out → swap → fade in
-        catImg.classList.add('swapping');
-        catMsg.classList.add('swapping');
-        setTimeout(() => {
-          catImg.src = 'assets/images/' + state.img;
-          setLangSpan(state.th, state.en);
-          // Wait for image to load before fading in (prevents flash)
-          if (catImg.complete) {
-            catImg.classList.remove('swapping');
-            catMsg.classList.remove('swapping');
-          } else {
-            catImg.onload = () => {
-              catImg.classList.remove('swapping');
-              catMsg.classList.remove('swapping');
-            };
-          }
-        }, 300);
+      // Filtered noise for rumble
+      const bufferSize = ctx.sampleRate * 2;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+      noise.loop = true;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 90;
+      filter.Q.value = 1.2;
+
+      // Slow LFO for purr rhythm (~25 Hz = soft trill)
+      const lfo = ctx.createOscillator();
+      lfo.type = 'sine';
+      lfo.frequency.value = 26;
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.value = 0.6;
+
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(0, now);
+      masterGain.gain.linearRampToValueAtTime(0.12, now + 0.25);
+      masterGain.gain.setValueAtTime(0.12, now + (durationMs / 1000) - 0.3);
+      masterGain.gain.linearRampToValueAtTime(0, now + (durationMs / 1000));
+
+      lfo.connect(lfoGain);
+      lfoGain.connect(masterGain.gain);
+      noise.connect(filter);
+      filter.connect(masterGain);
+      masterGain.connect(ctx.destination);
+
+      noise.start(now);
+      lfo.start(now);
+      noise.stop(now + (durationMs / 1000) + 0.1);
+      lfo.stop(now + (durationMs / 1000) + 0.1);
+
+      if (purrTimeoutId) clearTimeout(purrTimeoutId);
+      purrTimeoutId = setTimeout(() => { purrTimeoutId = null; }, durationMs);
+    }
+
+    // ----- Trigger an action (button click) — sets new base pose -----
+    function triggerAction(action) {
+      const state = CAT_STATES[action];
+      if (!state) return;
+
+      // Cancel any pending "return to base" timer — new base is being set
+      if (reactionTimeoutId) {
+        clearTimeout(reactionTimeoutId);
+        reactionTimeoutId = null;
+      }
+      basePose = state.img;
+
+      document.querySelectorAll('.cat-action').forEach(b => {
+        b.classList.toggle('active', b.dataset.catAction === action);
       });
+
+      spawnParticles(state.particle, state.count);
+      if (state.sound === 'purr') playPurr(2000);
+
+      catImg.classList.add('swapping');
+      catMsg.classList.add('swapping');
+      setTimeout(() => {
+        catImg.src = 'assets/images/' + state.img;
+        setLangSpan(state.th, state.en);
+        const finish = () => {
+          catImg.classList.remove('swapping');
+          catMsg.classList.remove('swapping');
+        };
+        if (catImg.complete) finish();
+        else catImg.onload = finish;
+      }, 280);
+    }
+
+    document.querySelectorAll('.cat-action').forEach(btn => {
+      btn.addEventListener('click', () => triggerAction(btn.dataset.catAction));
     });
 
-    // Reset when entering room/pane
+    // ----- Spawn hand emoji at click point — petting motion -----
+    function spawnHand(clientX, clientY) {
+      if (!catStage) return;
+      const stageRect = catStage.getBoundingClientRect();
+      const hand = document.createElement('div');
+      hand.className = 'cat-hand';
+      hand.textContent = '✋';
+      hand.style.left = (clientX - stageRect.left) + 'px';
+      hand.style.top  = (clientY - stageRect.top) + 'px';
+      catStage.appendChild(hand);
+      setTimeout(() => hand.remove(), 1300);
+    }
+
+    // ----- Touch zones: click on the cat triggers a temporary reaction -----
+    // Top 40% = head → look up
+    // Middle 40-75% = body/back → look back
+    // Bottom 75-100% = belly/legs → wiggle only
+    // After 2.4s, return to the "base" pose (whichever the last action button set).
+    let basePose = 'cat-sit.jpg';
+    let reactionTimeoutId = null;
+
+    function swapCatImg(src, onDone) {
+      catImg.classList.add('swapping');
+      setTimeout(() => {
+        catImg.src = 'assets/images/' + src;
+        const finish = () => {
+          catImg.classList.remove('swapping');
+          if (onDone) onDone();
+        };
+        if (catImg.complete) finish();
+        else catImg.onload = finish;
+      }, 220);
+    }
+
+    function reactAndReturn(reactionImg, particleEmoji, particleCount, sound) {
+      if (reactionTimeoutId) {
+        clearTimeout(reactionTimeoutId);
+        reactionTimeoutId = null;
+      }
+      swapCatImg(reactionImg);
+      spawnParticles(particleEmoji, particleCount);
+      if (sound === 'purr') playPurr(2000);
+      reactionTimeoutId = setTimeout(() => {
+        swapCatImg(basePose);
+        reactionTimeoutId = null;
+      }, 2400);
+    }
+
+    catImg.addEventListener('click', (e) => {
+      const rect = catImg.getBoundingClientRect();
+      const yRatio = (e.clientY - rect.top) / rect.height;
+
+      spawnHand(e.clientX, e.clientY);
+
+      if (yRatio < 0.4) {
+        // HEAD — cat looks up adoringly
+        reactAndReturn('cat-look-up.jpg', '🤍', 5, 'purr');
+      } else if (yRatio < 0.75) {
+        // BACK/BODY — cat turns to look back
+        reactAndReturn('cat-look-back.jpg', '🤍', 4, 'purr');
+      } else {
+        // BELLY/LEGS — wiggle only, no pose change
+        catImg.classList.remove('wiggle');
+        void catImg.offsetWidth;
+        catImg.classList.add('wiggle');
+        spawnParticles('🤍', 4);
+        playPurr(1400);
+      }
+    });
+
+    // ----- Reset when entering room -----
     window.resetCat = function() {
+      if (reactionTimeoutId) { clearTimeout(reactionTimeoutId); reactionTimeoutId = null; }
+      basePose = 'cat-sit.jpg';
       document.querySelectorAll('.cat-action').forEach(b => b.classList.remove('active'));
-      catImg.classList.remove('swapping');
+      catImg.classList.remove('swapping', 'wiggle');
       catMsg.classList.remove('swapping');
       catImg.src = 'assets/images/cat-sit.jpg';
       setLangSpan(
-        'เพื่อนตัวน้อยรอเธออยู่ — แตะปุ่มข้างล่างได้เลย',
-        'Your little companion is here — try a button below'
+        'เพื่อนตัวน้อยรอเธออยู่ — ลองลูบหัว ลูบหลัง หรือจิ้มพุงดูสิ',
+        'Your little companion is here — try petting head, back, or belly'
       );
     };
   })();
@@ -6306,7 +8279,140 @@ body[data-lang="en"] [data-th] { display: none; }
     letterSuccess.classList.add('show');
     letterText.value = '';
     letterSave.disabled = true;
+    // Update writing streak
+    if (typeof window.recordWritingDay === 'function') window.recordWritingDay();
   });
+
+  // ============ Daily writing streak — localStorage based, intrinsic motivation ============
+  (function initWritingStreak() {
+    const STREAK_KEY = 'writingDays';   // array of YYYY-MM-DD strings
+    const MEDALS_KEY = 'writingMedalsSeen';   // array of milestone numbers user has already celebrated
+    const badge = document.getElementById('streakBadge');
+    const history = document.getElementById('streakHistory');
+    const medalRow = document.getElementById('medalRow');
+    const totalTH = document.getElementById('streakTotal');
+    const totalEN = document.getElementById('streakTotalEn');
+    if (!badge || !history) return;
+
+    // Milestone medals — symbolic only, no extrinsic rewards
+    const MILESTONES = [
+      { days: 3,  icon: '🌱', label_th: 'แรกผลิ',     label_en: 'Sprout',   sub_th: '3 วัน',  sub_en: '3 days' },
+      { days: 5,  icon: '🌿', label_th: 'แตกใบ',     label_en: 'Growing',  sub_th: '5 วัน',  sub_en: '5 days' },
+      { days: 10, icon: '🌳', label_th: 'หยั่งราก',   label_en: 'Rooted',   sub_th: '10 วัน', sub_en: '10 days' },
+      { days: 15, icon: '🌸', label_th: 'ผลิดอก',    label_en: 'Blossom',  sub_th: '15 วัน', sub_en: '15 days' },
+      { days: 21, icon: '🌟', label_th: 'นิสัยใหม่', label_en: 'New habit', sub_th: '21 วัน · ครบ!', sub_en: '21 days · complete' },
+    ];
+
+    function getMedalsSeen() {
+      try { return JSON.parse(localStorage.getItem(MEDALS_KEY) || '[]'); }
+      catch (_) { return []; }
+    }
+    function saveMedalsSeen(arr) {
+      localStorage.setItem(MEDALS_KEY, JSON.stringify(arr));
+    }
+
+    function getDays() {
+      try { return JSON.parse(localStorage.getItem(STREAK_KEY) || '[]'); }
+      catch (_) { return []; }
+    }
+    function saveDays(days) {
+      localStorage.setItem(STREAK_KEY, JSON.stringify(days));
+    }
+    function todayStr() {
+      const d = new Date();
+      return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    }
+    function calcStreak(days) {
+      if (!days.length) return 0;
+      const sorted = days.slice().sort().reverse(); // newest first
+      let streak = 0;
+      const oneDay = 86400000;
+      let cursor = new Date(todayStr());
+      for (const ds of sorted) {
+        const d = new Date(ds);
+        const diff = Math.round((cursor - d) / oneDay);
+        if (diff === 0) { streak++; cursor = new Date(cursor.getTime() - oneDay); }
+        else if (diff === 1) { streak++; cursor = new Date(cursor.getTime() - oneDay); }
+        else break;
+      }
+      return streak;
+    }
+    function renderMedals(totalDays, justUnlocked) {
+      if (!medalRow) return;
+      medalRow.innerHTML = '';
+      const lang = body.dataset.lang || 'th';
+      MILESTONES.forEach(m => {
+        const el = document.createElement('div');
+        const unlocked = totalDays >= m.days;
+        el.className = 'medal' + (unlocked ? ' unlocked' : '') + (justUnlocked === m.days ? ' just-unlocked' : '');
+        el.innerHTML = `
+          <div class="medal-icon">${m.icon}</div>
+          <div class="medal-label">${lang === 'th' ? m.label_th : m.label_en}</div>
+          <div class="medal-sub">${lang === 'th' ? m.sub_th : m.sub_en}</div>
+        `;
+        medalRow.appendChild(el);
+      });
+    }
+
+    function checkNewMedal(total) {
+      const seen = getMedalsSeen();
+      for (const m of MILESTONES) {
+        if (total >= m.days && !seen.includes(m.days)) {
+          seen.push(m.days);
+          saveMedalsSeen(seen);
+          return m.days; // just unlocked this one
+        }
+      }
+      return null;
+    }
+
+    function renderStreak(justUnlockedMilestone) {
+      const days = getDays();
+      const total = days.length;
+      const streak = calcStreak(days);
+
+      // Always render medals (locked + unlocked) — visual goal
+      renderMedals(total, justUnlockedMilestone);
+
+      if (total === 0) {
+        badge.hidden = true;
+        history.hidden = true;
+        return;
+      }
+      history.hidden = false;
+      if (totalTH) totalTH.textContent = total;
+      if (totalEN) totalEN.textContent = total;
+
+      // Show streak badge only if streak >= 2 (so it doesn't show on first write)
+      if (streak >= 2) {
+        badge.hidden = false;
+        const txt = badge.querySelector('.streak-text');
+        const lang = body.dataset.lang || 'th';
+        if (lang === 'th') {
+          txt.innerHTML = 'เขียนมา <strong>' + streak + ' วันติด</strong> · ใจน่ากอดมาก 💗';
+        } else {
+          txt.innerHTML = '<strong>' + streak + '-day streak</strong> · your heart is showing up 💗';
+        }
+      } else {
+        badge.hidden = true;
+      }
+    }
+
+    // Expose for letter save handler
+    window.recordWritingDay = function() {
+      const days = getDays();
+      const t = todayStr();
+      if (!days.includes(t)) {
+        days.push(t);
+        saveDays(days);
+      }
+      const justUnlocked = checkNewMedal(days.length);
+      renderStreak(justUnlocked);
+    };
+
+    // Initial render
+    renderStreak();
+  })();
 
   // Bedroom — rain toggle (with fade in/out) + track switcher
   const rainOverlay = document.getElementById('rainOverlay');
@@ -6339,23 +8445,45 @@ body[data-lang="en"] [data-th] { display: none; }
     // file missing — keep visual rain but no audio
   });
 
-  rainToggle.addEventListener('click', () => {
-    const on = rainToggle.getAttribute('aria-pressed') === 'true';
-    if (on) {
-      // Fade out, then pause
-      rainToggle.setAttribute('aria-pressed', 'false');
-      rainOverlay.classList.remove('show');
-      rainState.innerHTML = '<span data-th>ปิดอยู่</span><span data-en>Off</span>';
-      fadeAudio(rainAudio, rainAudio.volume, 0, RAIN_FADE_MS, () => rainAudio.pause());
-    } else {
-      // Start at 0, play, fade up to target
-      rainToggle.setAttribute('aria-pressed', 'true');
-      rainOverlay.classList.add('show');
-      rainState.innerHTML = '<span data-th>เปิดอยู่</span><span data-en>On</span>';
+  // ============ AMBIENT picker — Rain / Ocean / Garden / Birds / Off ============
+  // Only the chosen ambient plays at a time. Files missing = pill is disabled but UI still shows.
+  document.querySelectorAll('.ambient-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      const choice = pill.dataset.ambient;
+      const src = pill.dataset.src;
+
+      document.querySelectorAll('.ambient-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+
+      if (choice === 'off' || !src) {
+        // Fade out + pause
+        rainOverlay.classList.remove('show');
+        fadeAudio(rainAudio, rainAudio.volume, 0, RAIN_FADE_MS, () => rainAudio.pause());
+        return;
+      }
+
+      // Switch source if different
+      if (!rainAudio.src.endsWith(src)) {
+        rainAudio.src = src;
+        rainAudio.load();
+      }
+      // Visual rain overlay only for 'rain'
+      if (choice === 'rain') rainOverlay.classList.add('show');
+      else rainOverlay.classList.remove('show');
+
       rainAudio.volume = 0;
       rainAudio.play()
         .then(() => fadeAudio(rainAudio, 0, RAIN_TARGET_VOL, RAIN_FADE_MS))
-        .catch(() => {/* file missing or autoplay blocked */});
+        .catch(() => {/* file missing or autoplay blocked → silently fail */});
+    });
+  });
+
+  // If audio file errors (e.g. ocean.mp3 not uploaded yet), gray out that pill
+  rainAudio.addEventListener('error', () => {
+    const active = document.querySelector('.ambient-pill.active');
+    if (active && active.dataset.ambient !== 'off') {
+      active.classList.add('disabled');
+      active.title = 'ไฟล์เสียงยังไม่ได้อัพโหลด';
     }
   });
 
