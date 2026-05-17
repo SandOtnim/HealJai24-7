@@ -41,12 +41,14 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 html { touch-action: manipulation; }
+html { overflow-x: hidden; max-width: 100vw; }
 body {
   font-family: 'IBM Plex Sans Thai', sans-serif;
   background: var(--bg);
   color: var(--ink);
   line-height: 1.6;
   overflow-x: hidden;
+  max-width: 100vw;
   min-height: 100vh;
   /* Explicitly allow vertical page scroll on touch — defends against any
      nested handler that might claim too much. */
@@ -72,12 +74,15 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .phrase {
   font-family: 'IBM Plex Serif', serif;
   font-weight: 300;
-  font-size: clamp(28px, 5vw, 48px);
-  line-height: 1.4;
+  font-size: clamp(20px, 6vw, 48px);
+  line-height: 1.45;
   color: var(--ink);
-  letter-spacing: -0.5px;
+  letter-spacing: -0.3px;
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 0 20px;
+  word-break: keep-all;
   opacity: 0; transform: translateY(8px);
   transition: opacity 1s var(--ease), transform 1.4s var(--ease);
 }
@@ -248,6 +253,45 @@ header {
 .mini-quest.active { display: block; }
 
 /* Sothon: vow contract */
+/* Vow path choice — simple bow vs make-a-vow */
+.vow-choice {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.vow-choice h4 { font-size: 17px; color: var(--ink); }
+.vow-choice-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.vow-path-btn {
+  background: var(--bg);
+  border: 1.5px solid var(--beige);
+  border-radius: 16px;
+  padding: 18px 14px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition);
+  text-align: center;
+}
+.vow-path-btn:hover {
+  border-color: var(--clay);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(193,141,107,0.18);
+}
+.vow-path-icon { font-size: 30px; margin-bottom: 8px; line-height: 1; }
+.vow-path-title {
+  font-weight: 600; font-size: 14px; color: var(--ink); margin-bottom: 4px;
+}
+.vow-path-sub {
+  font-size: 11.5px; color: var(--ink-soft); line-height: 1.5;
+}
+@media (max-width: 480px) {
+  .vow-choice-buttons { grid-template-columns: 1fr; gap: 10px; }
+}
+
 .vow-contract {
   background: linear-gradient(180deg, #F8F0E2, var(--cream));
   border: 2px dashed var(--clay);
@@ -529,7 +573,7 @@ header {
 }
 
 /* ==========================================
-   พิพิธพันธ์ปล่อยวางใจ — Museum Room (Art gallery feel)
+   พิพิธภัณฑ์ฮีลใจ — Museum Room (Art gallery feel)
    ========================================== */
 /* Gallery wall background */
 #room-museum .room-content {
@@ -540,9 +584,14 @@ header {
   padding-right: 0;
 }
 .museum-inner {
-  max-width: 920px;
+  max-width: min(920px, 100vw);
   margin: 0 auto;
   padding: 0 32px;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+@media (max-width: 640px) {
+  .museum-inner { padding: 0 16px; }
 }
 
 .museum-tabs {
@@ -585,15 +634,88 @@ header {
   margin-bottom: 36px;
 }
 
-/* === Art Gallery Exhibits (frames + plaques) === */
+/* === Art Gallery Exhibits — horizontal slide with Mac-dock-style focus === */
 .exhibits {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 56px;
-  margin: 36px 0 40px;
+  display: flex;
+  gap: 28px;
+  margin: 36px 0 14px;
+  overflow-x: auto;
+  overflow-y: visible;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 32px 4px 40px;
+  scrollbar-width: thin;
+  scroll-behavior: smooth;
 }
+.exhibits::-webkit-scrollbar { height: 6px; }
+.exhibits::-webkit-scrollbar-thumb { background: var(--beige); border-radius: 3px; }
+.exhibits .exhibit {
+  flex: 0 0 min(380px, 88%);
+  scroll-snap-align: center;
+  --dock-scale: 1;
+  --dock-opacity: 1;
+  transform: scale(var(--dock-scale));
+  opacity: var(--dock-opacity);
+  transition: transform 0.45s cubic-bezier(0.34, 1.2, 0.6, 1),
+              opacity 0.4s ease;
+  will-change: transform, opacity;
+}
+@media (hover: hover) and (pointer: fine) {
+  .exhibits .exhibit:hover {
+    transform: scale(calc(var(--dock-scale) * 1.10)) translateY(-6px);
+    opacity: 1;
+    z-index: 50;
+    transition: transform 0.22s cubic-bezier(0.34, 1.5, 0.4, 1),
+                opacity 0.18s ease;
+  }
+}
+/* Controls + auto-advance indicator */
+.exhibit-nav {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 18px;
+  flex-wrap: wrap;
+}
+.exhibit-nav-btn {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid var(--beige);
+  background: var(--bg);
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--ink);
+  transition: all var(--transition);
+  display: flex; align-items: center; justify-content: center;
+}
+.exhibit-nav-btn:hover { background: var(--clay); color: var(--bg); border-color: var(--clay); }
+.exhibit-nav-dots {
+  display: flex; gap: 6px;
+}
+.exhibit-dot {
+  width: 7px; height: 7px;
+  background: var(--beige);
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.exhibit-dot.active { background: var(--clay); width: 18px; border-radius: 4px; }
+.exhibit-auto-toggle {
+  font-size: 11px;
+  background: none;
+  border: 1px solid var(--beige);
+  border-radius: 999px;
+  padding: 5px 10px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  margin-left: 8px;
+}
+.exhibit-auto-toggle.on { background: var(--clay); color: var(--bg); border-color: var(--clay); }
 @media (min-width: 760px) {
-  .exhibits { grid-template-columns: 1fr 1fr; gap: 64px 48px; }
+  .exhibits .exhibit { flex: 0 0 min(440px, 60%); }
 }
 
 .exhibit {
@@ -602,9 +724,7 @@ header {
   align-items: stretch;
   gap: 18px;
   cursor: pointer;
-  transition: transform 0.4s var(--ease);
 }
-.exhibit:hover { transform: translateY(-4px); }
 
 .exhibit-frame {
   position: relative;
@@ -797,15 +917,32 @@ header {
 .exhibit-detail-close:hover { background: var(--bg); transform: scale(1.05); }
 
 /* === Words gallery cards (printed quotes on wall) === */
-.word-card-wall {
+/* Words gallery — uses .exhibits horizontal-scroll layout (proven safe).
+   Override the in-DOM .word-card-wall sizing so cards have proper width. */
+.exhibits.words-as-exhibits { scroll-snap-type: x proximity; }
+.exhibits.words-as-exhibits .word-card-wall {
+  flex: 0 0 240px;
+  scroll-snap-align: center;
   background: linear-gradient(180deg, #FFFEF7 0%, #F8F1E0 100%);
   border: 1px solid #E8DDC8;
-  padding: 28px 26px 22px;
+  padding: 26px 22px 20px;
   position: relative;
   cursor: pointer;
   transition: all var(--transition);
   box-shadow: 0 6px 14px rgba(92, 74, 60, 0.08);
   border-radius: 2px;
+  /* Allow Thai (no spaces) to wrap inside card */
+  word-break: break-all !important;
+  overflow-wrap: anywhere;
+  display: flex;
+  flex-direction: column;
+}
+.exhibits.words-as-exhibits .word-card-wall span,
+.exhibits.words-as-exhibits .word-card-wall div {
+  word-break: break-all !important;
+}
+@media (min-width: 760px) {
+  .exhibits.words-as-exhibits .word-card-wall { flex: 0 0 260px; }
 }
 .word-card-wall:hover {
   transform: translateY(-3px) rotate(-0.3deg);
@@ -1372,8 +1509,8 @@ header {
 .room-stage .hotspot:nth-child(6) { animation-delay: 2.0s; }
 
 /* ===== Museum hotspot positions ===== */
-.room-stage-museum .hotspot[data-mpane="objects"] { top: 40%; left: 30%; }
-.room-stage-museum .hotspot[data-mpane="words"]   { top: 40%; left: 72%; }
+.room-stage-museum .hotspot[data-mpane="objects"] { top: 22%; left: 30%; }
+.room-stage-museum .hotspot[data-mpane="words"]   { top: 22%; left: 72%; }
 
 /* ===== Per-aesthetic hotspot positions (bedroom only) ===== */
 /* COZY layout (bed center, window left, mirror right) */
@@ -1393,6 +1530,292 @@ header {
   .room-stage { max-width: 92vw; }
   .hotspot { font-size: 10px; padding: 5px 10px; }
   .hotspot-dot { width: 6px; height: 6px; box-shadow: 0 0 0 3px rgba(193,141,107,0.25); }
+}
+
+/* ===== Release Room (throwing game) ===== */
+.release-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 90px 24px 30px;
+  text-align: center;
+}
+.release-stage[hidden] { display: none; }
+.release-section { margin: 28px 0; text-align: center; }
+.release-h4 {
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  margin-bottom: 14px;
+  text-transform: uppercase;
+}
+.release-places {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  max-width: 540px;
+  margin: 0 auto;
+}
+.release-place {
+  background: var(--bg);
+  border: 1.5px solid var(--beige);
+  border-radius: 18px;
+  padding: 18px 14px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition);
+  text-align: center;
+}
+.release-place:hover {
+  border-color: var(--clay);
+  transform: translateY(-2px);
+}
+.release-place.active {
+  background: var(--cream);
+  border-color: var(--clay);
+  box-shadow: 0 4px 14px rgba(193,141,107,0.2);
+}
+.release-place-icon { font-size: 36px; margin-bottom: 6px; line-height: 1; }
+.release-place-label { font-weight: 600; font-size: 13px; color: var(--ink); margin-bottom: 4px; }
+.release-place-sub { font-size: 11px; color: var(--ink-soft); line-height: 1.5; }
+
+.release-times {
+  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+}
+.release-time {
+  background: var(--bg);
+  border: 1.5px solid var(--beige);
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.release-time:hover { border-color: var(--clay); color: var(--ink); }
+.release-time.active { background: var(--clay); color: var(--bg); border-color: var(--clay); }
+
+.release-start-btn {
+  font-size: 17px;
+  padding: 16px 36px;
+  margin-top: 22px;
+}
+
+/* Leaderboard */
+.release-leaderboard {
+  margin: 48px auto 0;
+  max-width: 460px;
+  text-align: left;
+  background: var(--cream);
+  border-radius: 16px;
+  padding: 22px 24px;
+}
+.release-leaderboard .release-h4 { text-align: center; }
+.leaderboard-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.leaderboard-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 4px;
+  border-bottom: 1px solid rgba(193,141,107,0.15);
+  font-size: 13px;
+}
+.leaderboard-list li:last-child { border-bottom: none; }
+.lb-rank {
+  width: 22px; height: 22px;
+  background: var(--bg);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 11px;
+  color: var(--clay);
+  flex-shrink: 0;
+}
+.lb-rank.gold { background: linear-gradient(135deg,#ffd97a,#ffb84d); color: #6b3a00; }
+.lb-rank.silver { background: linear-gradient(135deg,#e0e0e0,#bdbdbd); color: #444; }
+.lb-rank.bronze { background: linear-gradient(135deg,#e8a87c,#b87333); color: #4a2300; }
+.lb-name { flex: 1; color: var(--ink); font-weight: 500; }
+.lb-meta { font-size: 11px; color: var(--ink-soft); }
+.lb-score {
+  font-weight: 700;
+  color: var(--clay);
+  font-family: 'IBM Plex Serif', serif;
+}
+.leaderboard-empty { text-align: center; color: var(--ink-soft); font-style: italic; font-size: 13px; }
+
+/* Game play screen */
+.release-hud {
+  display: flex; justify-content: space-around;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.release-counter {
+  flex: 1; max-width: 180px;
+  background: var(--cream);
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+.counter-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+  margin-bottom: 2px;
+}
+.counter-value {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 28px;
+  color: var(--clay);
+  font-feature-settings: 'tnum';
+  font-weight: 600;
+  line-height: 1.1;
+}
+.release-scene {
+  position: relative;
+  height: 60vh;
+  min-height: 380px;
+  max-height: 540px;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto 18px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #e8d7b8 0%, #d4b896 60%, #c19a6c 100%);
+  overflow: hidden;
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.release-scene.scene-office { background: linear-gradient(180deg, #d8e4f0 0%, #b8cce0 60%, #8da8c4 100%); }
+.release-scene.scene-kitchen { background: linear-gradient(180deg, #f4e6cc 0%, #e8d4a4 60%, #c8a878 100%); }
+.release-scene.scene-bedroom { background: linear-gradient(180deg, #f4d4d4 0%, #e8b8b8 60%, #c89898 100%); }
+.scene-hint {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-size: 14px;
+  color: rgba(255,255,255,0.85);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  pointer-events: none;
+  font-weight: 500;
+  padding: 16px;
+  background: rgba(0,0,0,0.18);
+  border-radius: 14px;
+  backdrop-filter: blur(4px);
+  transition: opacity 0.4s ease;
+}
+.release-scene.played .scene-hint { opacity: 0; }
+
+/* Thrown item — animated emoji on the scene */
+.thrown-item {
+  position: absolute;
+  font-size: 42px;
+  pointer-events: none;
+  z-index: 2;
+  animation: throwArc 0.9s cubic-bezier(0.4, 1.4, 0.6, 1) forwards;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.25));
+}
+@keyframes throwArc {
+  0%   { transform: translate(-50%, 0) scale(0.4) rotate(0); opacity: 0; }
+  20%  { transform: translate(-50%, -60%) scale(1) rotate(180deg); opacity: 1; }
+  60%  { transform: translate(-50%, -90%) scale(1.1) rotate(540deg); opacity: 1; }
+  100% { transform: translate(-50%, -100%) scale(0.6) rotate(720deg); opacity: 0; }
+}
+/* Impact splash when item "lands" */
+.throw-splash {
+  position: absolute;
+  font-size: 28px;
+  pointer-events: none;
+  z-index: 3;
+  animation: splashOut 0.6s ease-out forwards;
+}
+@keyframes splashOut {
+  0%   { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+  30%  { transform: translate(-50%, -50%) scale(1.4); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+}
+
+.release-stop-btn {
+  margin: 0 auto;
+  display: inline-flex;
+}
+
+/* Result screen */
+.release-result-icon { font-size: 56px; margin-bottom: 12px; line-height: 1; }
+.release-result-title strong { color: var(--clay); font-size: 1.25em; }
+.release-breakdown {
+  background: var(--cream);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin: 18px auto;
+  max-width: 420px;
+  text-align: left;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 18px;
+}
+.breakdown-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 13px;
+  color: var(--ink);
+}
+.breakdown-row .br-count { font-weight: 700; color: var(--clay); }
+.release-question {
+  font-family: 'IBM Plex Serif', serif;
+  font-style: italic;
+  font-size: 17px;
+  color: var(--ink);
+  margin: 22px 0 14px;
+}
+.release-yesno {
+  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+.release-name-entry {
+  background: var(--cream);
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin: 0 auto 18px;
+  max-width: 440px;
+}
+.release-name-row {
+  display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;
+}
+.release-name-row input {
+  flex: 1; min-width: 160px;
+  padding: 10px 14px;
+  background: var(--bg);
+  border: 1.5px solid var(--beige);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+}
+.release-name-row input:focus { border-color: var(--clay); }
+.release-skip-save {
+  font-size: 11px;
+  margin-top: 10px;
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.release-result-share { margin-top: 8px; }
+
+@media (max-width: 480px) {
+  .release-inner { padding: 78px 14px 24px; }
+  .release-scene { height: 52vh; min-height: 320px; }
+  .counter-value { font-size: 22px; }
+  .release-breakdown { grid-template-columns: 1fr; }
+  .thrown-item { font-size: 36px; }
 }
 
 /* ===== Island room (Memento mori) ===== */
@@ -1863,6 +2286,36 @@ header {
 /* ===== Coloring (paint therapy) ===== */
 .color-stage {
   text-align: center;
+}
+.color-levels {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 0 0 18px;
+}
+.color-level-btn {
+  background: var(--bg);
+  border: 1px solid var(--beige);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all 0.25s var(--ease);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.color-level-btn:hover {
+  background: var(--cream);
+  color: var(--ink);
+}
+.color-level-btn.active {
+  background: var(--clay);
+  color: var(--bg);
+  border-color: var(--clay);
 }
 .color-canvas {
   width: 100%;
@@ -2854,6 +3307,11 @@ header {
   margin: 18px auto 0;
   text-align: center;
 }
+.fortune-actions {
+  display: flex; gap: 10px; justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
 .fortune-result-room.show { display: block; animation: stepIn 0.5s var(--ease); }
 .fortune-num-room {
   display: inline-block;
@@ -2884,6 +3342,114 @@ header {
 }
 
 /* Garden / sit room */
+/* ===== Wheel of Activities (ออกไปข้างนอก) ===== */
+.wheel-mode {
+  display: flex; gap: 10px; justify-content: center;
+  margin: 0 auto 18px;
+  flex-wrap: wrap;
+}
+.wheel-mode-btn {
+  background: var(--bg);
+  border: 1.5px solid var(--beige);
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.wheel-mode-btn:hover { border-color: var(--clay); color: var(--ink); }
+.wheel-mode-btn.active {
+  background: var(--clay);
+  color: var(--bg);
+  border-color: var(--clay);
+}
+.wheel-custom-editor {
+  max-width: 460px;
+  margin: 0 auto 22px;
+  text-align: center;
+}
+.wheel-textarea {
+  width: 100%;
+  background: var(--cream);
+  border: 1.5px solid var(--beige);
+  border-radius: 14px;
+  padding: 14px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  resize: vertical;
+  line-height: 1.7;
+  outline: none;
+  transition: border-color var(--transition);
+  margin-bottom: 12px;
+  min-height: 120px;
+}
+.wheel-textarea:focus { border-color: var(--clay); }
+
+.wheel-stage {
+  position: relative;
+  max-width: 360px;
+  margin: 0 auto 28px;
+  text-align: center;
+}
+.wheel-pointer {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 32px;
+  color: var(--clay);
+  z-index: 5;
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,0.25));
+}
+.wheel-disc-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1/1;
+  margin-bottom: 18px;
+}
+.wheel-disc {
+  width: 100%; height: 100%;
+  display: block;
+  transition: transform 4.5s cubic-bezier(0.17, 0.67, 0.32, 1.04);
+  filter: drop-shadow(0 8px 24px rgba(60,40,20,0.18));
+}
+.wheel-spin-btn {
+  min-width: 140px;
+  font-size: 16px;
+  padding: 14px 32px;
+}
+.wheel-result {
+  text-align: center;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 28px 24px;
+  background: linear-gradient(180deg, var(--cream), var(--bg));
+  border-radius: 24px;
+  box-shadow: 0 10px 28px var(--shadow);
+  animation: stepIn 0.6s var(--ease);
+}
+.wheel-result[hidden] { display: none; }
+.wheel-result-icon { font-size: 36px; margin-bottom: 10px; }
+.wheel-result-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 22px;
+  color: var(--clay);
+  margin-bottom: 8px;
+  font-style: italic;
+}
+.wheel-result-sub {
+  color: var(--ink-soft);
+  font-size: 13px;
+  margin-bottom: 16px;
+  line-height: 1.7;
+}
+.wheel-result-actions {
+  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+}
+
 .garden-room {
   position: relative;
   min-height: 100vh;
@@ -3148,6 +3714,63 @@ header {
   touch-action: pan-y;
   cursor: grab;
 }
+/* Pin previews are PORTALED to body via JS to escape map-wrapper clipping.
+   The portaled clone sits at top z-index, fixed-positioned to viewport. */
+.pin-preview-portal {
+  position: fixed;
+  z-index: 10050;
+  pointer-events: none;
+  width: 170px;
+  background: var(--ink);
+  color: var(--bg);
+  padding: 11px 14px;
+  border-radius: 12px;
+  text-align: left;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.22);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
+  user-select: none;
+  -webkit-user-select: none;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.pin-preview-portal.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.pin-preview-portal::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+}
+.pin-preview-portal.arrow-down::after {
+  top: 100%;
+  border-top-color: var(--ink);
+}
+.pin-preview-portal.arrow-up::after {
+  bottom: 100%;
+  border-bottom-color: var(--ink);
+}
+.pin-preview-portal .pin-preview-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-style: italic;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.pin-preview-portal .pin-preview-tags {
+  font-size: 11px;
+  opacity: 0.85;
+  line-height: 1.55;
+}
+.pin-preview-portal .pin-preview-coming {
+  font-size: 11px;
+  font-style: italic;
+  margin-top: 4px;
+  opacity: 0.85;
+}
 .map-wrapper.is-dragging { cursor: grabbing; }
 
 .map-canvas {
@@ -3185,18 +3808,18 @@ header {
    Two variants: .signpost-right (default, points →) and .signpost-left (points ←) */
 .signpost {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  bottom: 6%;                  /* moved to BOTTOM of map */
+  transform: translateY(0);
   background: linear-gradient(180deg, #d8b78c 0%, #c19a6c 100%);
   color: #4a2f1a;
-  padding: 10px 18px;
+  padding: 5px 10px;
   font-family: inherit;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
   white-space: nowrap;
-  display: flex; align-items: center; gap: 8px;
-  box-shadow: 0 4px 12px rgba(60,40,20,0.28), inset 0 1px 0 rgba(255,255,255,0.35);
-  border: 1.5px solid #8b6f47;
+  display: flex; align-items: center; gap: 5px;
+  box-shadow: 0 2px 6px rgba(60,40,20,0.18), inset 0 1px 0 rgba(255,255,255,0.32);
+  border: 1px solid #8b6f47;
   cursor: pointer;
   outline: none;
   -webkit-tap-highlight-color: transparent;
@@ -3204,38 +3827,39 @@ header {
   letter-spacing: 0.02em;
   animation: signpostBob 2.6s ease-in-out infinite;
   transition: opacity 0.4s var(--ease), transform 0.3s var(--ease);
+  max-width: 28%;
 }
 .signpost-right {
-  right: 18px;
-  padding-left: 22px;
-  border-radius: 3px 14px 14px 3px;
+  right: 12px;
+  padding-left: 16px;
+  border-radius: 3px 12px 12px 3px;
 }
 .signpost-right::before {
   content: '';
   position: absolute;
-  left: -10px;
+  left: -7px;
   top: 50%;
   transform: translateY(-50%);
   width: 0; height: 0;
-  border-top: 14px solid transparent;
-  border-bottom: 14px solid transparent;
-  border-right: 10px solid #8b6f47;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-right: 7px solid #8b6f47;
 }
 .signpost-left {
-  left: 18px;
-  padding-right: 22px;
-  border-radius: 14px 3px 3px 14px;
+  left: 12px;
+  padding-right: 16px;
+  border-radius: 12px 3px 3px 12px;
 }
 .signpost-left::after {
   content: '';
   position: absolute;
-  right: -10px;
+  right: -7px;
   top: 50%;
   transform: translateY(-50%);
   width: 0; height: 0;
-  border-top: 14px solid transparent;
-  border-bottom: 14px solid transparent;
-  border-left: 10px solid #8b6f47;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-left: 7px solid #8b6f47;
 }
 .signpost:focus { outline: none; }
 .signpost:focus-visible { outline: 2px dashed var(--clay); outline-offset: 4px; }
@@ -3247,24 +3871,26 @@ header {
   opacity: 0;
   pointer-events: none;
 }
-.signpost-right.gone { transform: translate(8px, -50%); }
-.signpost-left.gone  { transform: translate(-8px, -50%); }
+.signpost-right.gone { transform: translate(8px, 0); }
+.signpost-left.gone  { transform: translate(-8px, 0); }
 @keyframes signpostBob {
-  0%, 100% { transform: translate(0, -50%); }
-  50%      { transform: translate(4px, -50%); }
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(4px, 0); }
 }
 .signpost-left {
   animation-name: signpostBobLeft;
 }
 @keyframes signpostBobLeft {
-  0%, 100% { transform: translate(0, -50%); }
-  50%      { transform: translate(-4px, -50%); }
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(-4px, 0); }
 }
-.signpost-arrow-tip { font-size: 14px; line-height: 1; }
+.signpost-arrow-tip { font-size: 12px; line-height: 1; }
 @media (max-width: 480px) {
-  .signpost { font-size: 11px; padding: 8px 14px; }
-  .signpost-right { right: 12px; padding-left: 18px; }
-  .signpost-left  { left: 12px; padding-right: 18px; }
+  .signpost { font-size: 8.5px; padding: 4px 8px; gap: 4px; max-width: 30%; bottom: 4%; }
+  .signpost-right { right: 8px; padding-left: 12px; }
+  .signpost-left  { left: 8px; padding-right: 12px; }
+  .signpost-right::before { left: -6px; border-top-width: 7px; border-bottom-width: 7px; border-right-width: 6px; }
+  .signpost-left::after  { right: -6px; border-top-width: 7px; border-bottom-width: 7px; border-left-width: 6px; }
 }
 /* Single pin on island — positioned near the pier/center of the cute graveyard */
 .pin-island { top: 58%; left: 50%; animation-delay: 0.2s; }
@@ -3341,7 +3967,8 @@ header {
   position: absolute;
   bottom: calc(100% + 12px);
   left: 50%;
-  transform: translateX(-50%) translateY(6px);
+  --preview-shift: 0px;
+  transform: translateX(calc(-50% + var(--preview-shift))) translateY(6px);
   width: 170px;
   background: var(--ink);
   color: var(--bg);
@@ -3367,15 +3994,25 @@ header {
 .pin-preview::after {
   content: '';
   position: absolute;
-  top: 100%; left: 50%;
+  top: 100%;
+  left: calc(50% - var(--preview-shift, 0px));
   transform: translateX(-50%);
   border: 7px solid transparent;
   border-top-color: var(--ink);
 }
+/* In-DOM pin-preview is hidden — portaled version is shown instead.
+   Keep the source markup for portal innerHTML cloning. */
 .pin:hover .pin-preview,
 .pin.previewing .pin-preview {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.pin-preview {
+  /* Always hidden — content used as source for portal */
+  display: block;
+  visibility: hidden;
+  position: absolute;
+  pointer-events: none;
 }
 /* Flip preview to BELOW the pin (for pins close to top edge) */
 .pin.preview-below .pin-preview {
@@ -3391,8 +4028,15 @@ header {
 }
 .pin.preview-below:hover .pin-preview,
 .pin.preview-below.previewing .pin-preview {
-  transform: translateX(-50%) translateY(0);
+  transform: translateX(calc(-50% + var(--preview-shift, 0px))) translateY(0);
 }
+
+/* Per-pin shift to keep preview inside map bounds */
+.pin-1 .pin-preview { --preview-shift: 50px; }   /* left-edge pin → shift right */
+.pin-6 .pin-preview { --preview-shift: 60px; }   /* left-edge pin → shift right */
+.pin-2 .pin-preview { --preview-shift: -50px; }  /* right-edge pin → shift left */
+.pin-4 .pin-preview { --preview-shift: -50px; }  /* right-edge pin → shift left */
+.pin-7 .pin-preview { --preview-shift: -20px; }  /* slight right → small shift left */
 
 .pin-preview-title {
   font-family: 'IBM Plex Serif', serif;
@@ -3417,21 +4061,384 @@ header {
   letter-spacing: 0.2px;
 }
 
-/* "Under Construction" sticker on SOON pins */
+/* ===== Shopping mini-game (in #room-travel) ===== */
+.shop-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--beige), transparent);
+  margin: 40px auto 28px;
+  max-width: 360px;
+}
+.shop-section {
+  text-align: center;
+  max-width: 560px;
+  margin: 0 auto 24px;
+}
+.shop-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 22px;
+  color: var(--ink);
+  margin: 0 0 6px;
+}
+.shop-sub {
+  color: var(--ink-soft);
+  font-size: 13px;
+  margin: 0 0 22px;
+  line-height: 1.6;
+}
+.shop-block { margin-bottom: 18px; }
+.shop-h4 {
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+.shop-zones, .shop-durations {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.shop-zone {
+  background: var(--bg);
+  border: 1.5px solid var(--beige);
+  border-radius: 14px;
+  padding: 12px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  min-width: 96px;
+  text-align: center;
+  transition: all 0.25s var(--ease);
+}
+.shop-zone:hover { transform: translateY(-2px); border-color: var(--clay); }
+.shop-zone.active { background: var(--cream); border-color: var(--clay); box-shadow: 0 4px 10px rgba(193,141,107,0.15); }
+.shop-zone-icon { font-size: 24px; margin-bottom: 4px; }
+.shop-zone-label { font-size: 12px; color: var(--ink); }
+.shop-dur {
+  background: var(--bg);
+  border: 1.5px solid var(--beige);
+  border-radius: 999px;
+  padding: 8px 18px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  transition: all 0.25s var(--ease);
+}
+.shop-dur:hover { border-color: var(--clay); }
+.shop-dur.active { background: var(--clay); color: var(--bg); border-color: var(--clay); }
+.shop-start-btn { margin-top: 8px; }
+.shop-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--cream);
+  border-radius: 12px;
+  padding: 10px 16px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.shop-arena {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  background: linear-gradient(180deg, #fff7ec, #fef0d8);
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1.5px solid var(--beige);
+}
+.shop-item {
+  position: absolute;
+  font-size: 32px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.15s ease;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+.shop-item:hover { transform: scale(1.15); }
+.shop-item.taken {
+  animation: shopGrab 0.5s cubic-bezier(0.4, 1.4, 0.5, 1) forwards;
+  pointer-events: none;
+}
+@keyframes shopGrab {
+  0%   { transform: scale(1); opacity: 1; }
+  50%  { transform: scale(1.5) translateY(-20px); opacity: 0.9; }
+  100% { transform: scale(0.2) translateY(-80px); opacity: 0; }
+}
+.shop-tip {
+  color: var(--ink-soft);
+  font-size: 12px;
+  margin: 12px 0 0;
+}
+.shop-result {
+  background: var(--cream);
+  border-radius: 22px;
+  padding: 32px 24px;
+  text-align: center;
+}
+.shop-result-icon { font-size: 48px; margin-bottom: 8px; }
+.shop-result-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 24px;
+  color: var(--ink);
+  margin: 0 0 12px;
+}
+.shop-result-stat {
+  font-size: 16px;
+  color: var(--ink);
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+.shop-result-mood {
+  color: var(--ink-soft);
+  font-size: 13px;
+  margin: 0 0 18px;
+  line-height: 1.6;
+}
+
+/* ===== Bookmark drawer / Saved items modal ===== */
+.bookmark-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--clay);
+  color: var(--bg);
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--bg);
+  line-height: 1;
+}
+#bookmarkOpen { position: relative; }
+.bookmark-modal {
+  position: fixed; inset: 0;
+  z-index: 10001;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+.bookmark-modal[hidden] { display: none !important; }
+.bookmark-modal.show { pointer-events: auto; }
+.bookmark-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(74, 47, 26, 0.4);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.bookmark-modal.show .bookmark-backdrop { opacity: 1; }
+.bookmark-panel {
+  position: relative;
+  z-index: 2;
+  background: var(--bg);
+  width: 100%;
+  max-width: 560px;
+  max-height: 80vh;
+  border-radius: 24px 24px 0 0;
+  padding: 24px 22px 28px;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.32, 1.05, 0.4, 1);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.18);
+  pointer-events: auto;
+}
+.bookmark-backdrop { z-index: 1; }
+.bookmark-modal.show .bookmark-panel { transform: translateY(0); }
+@media (min-width: 760px) {
+  .bookmark-modal { align-items: center; }
+  .bookmark-panel { border-radius: 20px; max-height: 76vh; }
+}
+.bookmark-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.bookmark-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 20px;
+  margin: 0;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bookmark-close {
+  background: transparent;
+  border: 1px solid var(--beige);
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 15px;
+  color: var(--ink);
+  font-weight: 600;
+  font-family: inherit;
+  pointer-events: auto;
+  position: relative;
+  z-index: 3;
+  flex-shrink: 0;
+}
+.bookmark-close:hover { background: var(--cream); }
+.bookmark-close:active { transform: scale(0.94); }
+.bookmark-sub {
+  color: var(--ink-soft);
+  font-size: 12px;
+  margin: 0 0 16px;
+  line-height: 1.6;
+}
+.bookmark-list {
+  list-style: none;
+  padding: 0; margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bookmark-item {
+  background: var(--cream);
+  border: 1px solid var(--beige);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink);
+  position: relative;
+}
+.bookmark-item-meta {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+.bookmark-item-text {
+  margin-bottom: 8px;
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.bookmark-item-actions {
+  display: flex;
+  gap: 8px;
+}
+.bookmark-item-actions button {
+  background: var(--bg);
+  border: 1px solid var(--beige);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+.bookmark-item-actions button:hover { background: var(--clay); color: var(--bg); border-color: var(--clay); }
+.bookmark-empty {
+  text-align: center;
+  padding: 28px 16px 12px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.bookmark-empty-icon { font-size: 36px; margin-bottom: 8px; }
+
+/* ===== Universal Share + Bookmark buttons (every completed activity) ===== */
+.card-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+.card-action-btn {
+  background: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--beige);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.25s var(--ease);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.card-action-btn:hover {
+  background: var(--clay);
+  color: var(--bg);
+  border-color: var(--clay);
+  transform: translateY(-1px);
+}
+.card-action-btn.saved {
+  background: var(--cream);
+  color: var(--clay);
+  border-color: var(--clay);
+}
+/* Toast notification for share/bookmark */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(74, 47, 26, 0.95);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 10000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  white-space: nowrap;
+  max-width: 90vw;
+  text-align: center;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* "Under Construction" tag on SOON pins — clean, airy, sits like a sticky note */
 .uc-badge {
   position: absolute;
-  top: -8px; right: -22px;
-  background: var(--butter);
-  color: var(--ink);
-  font-size: 9px; font-weight: 600;
-  padding: 3px 7px;
-  border-radius: 999px;
-  border: 1.5px solid var(--ink);
-  transform: rotate(8deg);
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  background: #fff8e1;
+  color: #7a5418;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 6px;
+  border: 1px solid rgba(184, 138, 44, 0.35);
   white-space: nowrap;
-  z-index: 5;
-  box-shadow: 0 2px 4px var(--shadow);
-  letter-spacing: 0.3px;
+  z-index: 6;
+  box-shadow: 0 1px 3px rgba(60,40,20,0.12);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  animation: ucBadgeBob 3.2s ease-in-out infinite;
+}
+.uc-badge::before {
+  content: '🌱';
+  font-size: 10px;
+  margin-right: 4px;
+}
+@keyframes ucBadgeBob {
+  0%, 100% { transform: translateX(-50%) rotate(-2deg) translateY(0); }
+  50%      { transform: translateX(-50%) rotate(-2deg) translateY(-2px); }
 }
 
 /* ============ ROOM OVERLAYS ============ */
@@ -3440,11 +4447,13 @@ header {
   background: var(--bg);
   z-index: 100;
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;     /* iOS momentum scrolling */
   overscroll-behavior: contain;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.6s var(--ease);
+  max-width: 100vw;
 }
 .room-overlay.active { opacity: 1; pointer-events: auto; }
 .room-content {
@@ -3452,6 +4461,9 @@ header {
   margin: 0 auto;
   padding: 100px 32px 40px;
   text-align: center;
+  overflow-x: hidden;
+  max-width: min(760px, 100vw);
+  box-sizing: border-box;
 }
 .room-eyebrow {
   display: inline-block;
@@ -3713,6 +4725,37 @@ header {
   transition: transform 0.4s var(--ease);
 }
 .deity-card:hover .deity-icon { transform: scale(1.04); }
+
+/* Placeholder for deities without art yet — CSS gradient + giant emoji */
+.deity-icon-placeholder {
+  width: 100%;
+  aspect-ratio: 1/1;
+  border-radius: 16px;
+  background: var(--ph-bg, linear-gradient(180deg, var(--cream), var(--beige)));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 84px;
+  margin-bottom: 12px;
+  box-shadow: inset 0 -4px 12px rgba(0,0,0,0.12), 0 4px 14px rgba(0,0,0,0.08);
+  transition: transform 0.4s var(--ease);
+  filter: drop-shadow(0 2px 4px rgba(255,255,255,0.35));
+  position: relative;
+  overflow: hidden;
+}
+.deity-icon-placeholder::after {
+  /* subtle "soon real art" hint */
+  content: '✦';
+  position: absolute;
+  top: 8px; right: 10px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.4);
+  filter: none;
+}
+.deity-card.deity-placeholder:hover .deity-icon-placeholder {
+  transform: scale(1.04);
+}
+@media (max-width: 480px) {
+  .deity-icon-placeholder { font-size: 60px; }
+}
 .deity-name {
   font-family: 'IBM Plex Serif', serif;
   font-size: 18px; font-weight: 500;
@@ -4252,18 +5295,125 @@ footer {
 
 /* ============ MOBILE ============ */
 @media (max-width: 640px) {
-  header { padding: 14px 18px; }
-  .brand { font-size: 16px; }
-  .map-page { padding: 90px 12px 40px; }
-  .room-content, .game-shell { padding: 90px 18px 30px; }
-  .activity-block { padding: 22px; }
+  /* Header + brand */
+  header { padding: 12px 16px; }
+  .brand { font-size: 15px; }
+
+  /* Padding tightening */
+  .map-page { padding: 84px 14px 36px; }
+  .room-content, .game-shell { padding: 80px 16px 28px; }
+  .activity-block { padding: 20px; }
+
+  /* Nav buttons go full-width column */
   .room-nav, .step-nav { flex-direction: column; gap: 10px; }
   .room-nav .nav-btn, .step-nav .nav-btn { width: 100%; justify-content: center; }
+
+  /* Misc */
   .skip { bottom: 20px; right: 20px; }
-  .uc-badge { font-size: 8px; padding: 2px 5px; right: -10px; }
+  .uc-badge { font-size: 8px; padding: 2px 7px; top: -12px; }
   .pin-svg { width: 30px; height: 42px; }
   .deity-grid { grid-template-columns: 1fr 1fr; }
   .offering-options { grid-template-columns: 1fr 1fr; }
+
+  /* Mobile body sizing only — keep font weight as-is */
+  body {
+    font-size: 14.5px;
+    line-height: 1.7;
+  }
+  /* Headlines shrink + clamp to viewport */
+  .map-headline {
+    font-size: clamp(22px, 7vw, 32px);
+    line-height: 1.3;
+    margin-bottom: 8px;
+    padding: 0 4px;
+  }
+  .map-sub { font-size: 13px; padding: 0 8px; }
+  .room-title { font-size: clamp(22px, 7vw, 30px); line-height: 1.3; padding: 0 4px; }
+  .room-subtitle { font-size: 13px; line-height: 1.65; padding: 0 8px; }
+  .room-eyebrow { font-size: 11px; letter-spacing: 0.18em; }
+  .alone-h3 { font-size: 18px; line-height: 1.4; }
+  .alone-sub { font-size: 13px; line-height: 1.65; }
+
+  /* Thai text — prevent breaking inside words/characters
+     (keep-all stops the browser from breaking Thai char-by-char) */
+  body, h1, h2, h3, h4, p, span, div, button {
+    word-break: keep-all;
+  }
+
+  /* All interactive controls — min 44px tap target */
+  button, .nav-btn, a.nav-btn, .alone-tab, .museum-tab, .vibe-btn,
+  .ambient-pill, .bedroom-track, .timer-mode, .cat-action,
+  .aest-btn, .wheel-mode-btn, .fortune-topic, .mood-btn {
+    min-height: 40px;
+  }
+  /* Small indicator dots must stay round — opt out of the 40px tap rule */
+  .exhibit-dot,
+  .color-swatch,
+  .quiz-dot,
+  .step-dot {
+    min-height: 0 !important;
+  }
+  .exhibit-dot {
+    width: 8px !important;
+    height: 8px !important;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+  }
+  .exhibit-dot.active {
+    width: 22px !important;
+    height: 8px !important;
+  }
+
+  /* Cursor-hover patterns → become touch friendly */
+  /* Pin previews: rely on long-press handler (already present) */
+  /* Hotspot tap effect — show pressed state */
+  .hotspot:active { background: var(--clay); color: var(--bg); }
+
+  /* Music toggle / lang toggle / close — bigger taps */
+  .lang-toggle, .music-toggle, .close-btn { width: 40px; height: 40px; }
+  .lang-toggle { font-size: 11px; }
+
+  /* Footer + safety banner — softer padding */
+  .safety-banner { padding: 24px 16px 18px; }
+  .safety-banner-head { font-size: 13px; }
+  .safety-banner-inner { font-size: 12px; line-height: 1.7; }
+  .safety-hotlines li, .safety-hotlines strong { font-size: 12px; }
+
+  /* Card content typography — friendlier sizing */
+  .deity-name, .vibe-btn, .ambient-pill, .nav-btn { font-size: 13px; }
+  .pin-preview-title { font-size: 13px; }
+  .pin-preview-tags { font-size: 11px; }
+
+  /* Stage padding for sub-room content */
+  .alone-content, .museum-inner { padding: 0 4px; }
+
+  /* Subroom back button */
+  .subroom-back, .island-back-top { font-size: 12px; padding: 8px 14px 8px 12px; }
+}
+
+/* Even narrower phones — extra love */
+@media (max-width: 380px) {
+  body { font-size: 14px; }
+  .map-headline { font-size: clamp(20px, 7vw, 26px); }
+  .room-title { font-size: clamp(20px, 7vw, 26px); }
+  .map-page { padding: 80px 10px 30px; }
+  .room-content { padding: 78px 12px 24px; }
+}
+
+/* Touch device — disable hover-only effects, use tap state instead */
+@media (hover: none) {
+  .pin:hover .pin-preview { opacity: 0; pointer-events: none; }
+  .pin.previewing .pin-preview { opacity: 1; pointer-events: auto; }
+  /* Hotspot hover removed on touch — only :active applies */
+  .hotspot:hover {
+    background: rgba(255,253,247,0.55);
+    color: var(--ink);
+    border-color: rgba(255,253,247,0.6);
+  }
+  .hotspot:hover .hotspot-dot {
+    background: var(--clay);
+    box-shadow: 0 0 0 3px rgba(193,141,107,0.25);
+  }
 }
 
 /* ============ LANGUAGE ============ */
@@ -4333,11 +5483,40 @@ body[data-lang="en"] [data-th] { display: none; }
           <span data-th>หยุดเพลง</span><span data-en>Pause</span>
         </button>
       </div>
+      <button class="lang-toggle" id="bookmarkOpen" aria-label="กล่องบันทึก">
+        <span style="font-size:16px;line-height:1">🔖</span>
+        <span class="bookmark-badge" id="bookmarkBadge" hidden>0</span>
+      </button>
       <button class="lang-toggle" id="langToggle">
         <span data-th>EN</span><span data-en>TH</span>
       </button>
     </div>
   </header>
+
+  <!-- Bookmark drawer (saved items list) -->
+  <div class="bookmark-modal" id="bookmarkModal" hidden>
+    <div class="bookmark-backdrop" data-close-bookmark onclick="window.__closeBookmarkModal && window.__closeBookmarkModal()"></div>
+    <div class="bookmark-panel">
+      <div class="bookmark-head">
+        <h3 class="bookmark-title">
+          🔖 <span data-th>กล่องของฉัน</span><span data-en>My collection</span>
+        </h3>
+        <button class="bookmark-close" data-close-bookmark aria-label="ปิด" type="button" onclick="window.__closeBookmarkModal && window.__closeBookmarkModal()">✕</button>
+      </div>
+      <p class="bookmark-sub">
+        <span data-th>ทุกอย่างที่เธอบันทึกไว้ — เก็บในเครื่องนี้เท่านั้น ไม่ส่งไปไหน</span>
+        <span data-en>Everything you saved — stored only on this device</span>
+      </p>
+      <ul class="bookmark-list" id="bookmarkList"></ul>
+      <div class="bookmark-empty" id="bookmarkEmpty" hidden>
+        <div class="bookmark-empty-icon">📭</div>
+        <p>
+          <span data-th>ยังไม่มีอะไรในกล่อง — ไปกดปุ่ม 🔖 ตามที่ต่างๆ ในเว็บ เพื่อเก็บคำดีๆ ไว้ที่นี่</span>
+          <span data-en>Nothing here yet — hit 🔖 on cards across the site to save your favorites</span>
+        </p>
+      </div>
+    </div>
+  </div>
 
   <!-- Background music (single audio element, src changes with track switch) -->
   <audio id="bgMusic" src="assets/audio/theme.mp3" loop preload="auto"></audio>
@@ -4390,7 +5569,7 @@ body[data-lang="en"] [data-th] { display: none; }
         </div>
       </div>
 
-      <!-- Pin 3: พิพิธพันธ์ปล่อยวางใจ (LIVE) -->
+      <!-- Pin 3: พิพิธภัณฑ์ฮีลใจ (LIVE) -->
       <div class="pin pin-3" data-room="museum" data-status="live">
         <span class="pin-pulse"></span>
         <svg class="pin-svg" viewBox="0 0 32 48" xmlns="http://www.w3.org/2000/svg">
@@ -4398,8 +5577,8 @@ body[data-lang="en"] [data-th] { display: none; }
           <circle cx="16" cy="16" r="6" fill="#FEFCF9"/>
         </svg>
         <div class="pin-preview">
-          <div class="pin-preview-title"><span data-th>พิพิธพันธ์ปล่อยวางใจ</span><span data-en>Letting Go Museum</span></div>
-          <div class="pin-preview-tags"><span data-th>ของที่ปล่อย · คำดีๆ บนผนัง</span><span data-en>Released objects · words on wall</span></div>
+          <div class="pin-preview-title"><span data-th>พิพิธภัณฑ์ฮีลใจ</span><span data-en>Heal Museum</span></div>
+          <div class="pin-preview-tags"><span data-th>พิพิธภัณฑ์ภาพฮีลใจ · คำพูดบนผนัง</span><span data-en>Museum of healing things · words on wall</span></div>
         </div>
       </div>
 
@@ -4429,16 +5608,16 @@ body[data-lang="en"] [data-th] { display: none; }
         </div>
       </div>
 
-      <!-- Pin 6: ห้องกรี๊ด (SOON) -->
-      <div class="pin pin-6" data-room="scream" data-status="soon">
+      <!-- Pin 6: ห้องระบาย (LIVE — throwing game) -->
+      <div class="pin pin-6" data-room="scream" data-status="live">
+        <span class="pin-pulse"></span>
         <svg class="pin-svg" viewBox="0 0 32 48" xmlns="http://www.w3.org/2000/svg">
-          <path d="M16 0 C7.2 0 0 7.2 0 16 C0 28 16 48 16 48 C16 48 32 28 32 16 C32 7.2 24.8 0 16 0 Z" fill="#C0B5A0"/>
+          <path d="M16 0 C7.2 0 0 7.2 0 16 C0 28 16 48 16 48 C16 48 32 28 32 16 C32 7.2 24.8 0 16 0 Z" fill="#D8523F"/>
           <circle cx="16" cy="16" r="6" fill="#FEFCF9"/>
         </svg>
-        <span class="uc-badge"><span data-th>Under Construction</span><span data-en>Under Construction</span></span>
         <div class="pin-preview">
-          <div class="pin-preview-title"><span data-th>ห้องกรี๊ด</span><span data-en>Scream Room</span></div>
-          <p class="pin-preview-coming"><span data-th>🌱 เร็วๆ นี้</span><span data-en>🌱 Coming soon</span></p>
+          <div class="pin-preview-title"><span data-th>ห้องระบาย</span><span data-en>Release Room</span></div>
+          <div class="pin-preview-tags"><span data-th>ขว้างปา · คลายเครียด · ระบายออก</span><span data-en>Throw · release · breathe</span></div>
         </div>
       </div>
 
@@ -4543,7 +5722,7 @@ body[data-lang="en"] [data-th] { display: none; }
         <p>ฮีลใจ 24/7 เป็นเว็บไซต์ที่ออกแบบมาให้ <strong>ใช้งานได้แบบไม่ต้องล็อกอิน</strong> เราเก็บข้อมูลน้อยที่สุดเท่าที่จำเป็น:</p>
         <ul>
           <li><strong>ข้อมูลการเข้าชม (Analytics):</strong> จำนวน visitors · หน้าที่เข้า · ประเทศ · browser · device type — รวบรวมผ่าน Cloudflare Web Analytics โดยไม่ใช้ cookie ไม่ระบุตัวตน</li>
-          <li><strong>ข้อมูลที่คุณกรอกใน Google Form:</strong> เมื่อคุณตอบแบบสำรวจ "คุณฮีลใจยังไง?" หรือ "ฝากคำพูดในพิพิธพันธ์" Google จะเก็บคำตอบของคุณ (อยู่ภายใต้ Google Privacy Policy)</li>
+          <li><strong>ข้อมูลที่คุณกรอกใน Google Form:</strong> เมื่อคุณตอบแบบสำรวจ "คุณฮีลใจยังไง?" หรือ "ฝากคำพูดในพิพิธภัณฑ์" Google จะเก็บคำตอบของคุณ (อยู่ภายใต้ Google Privacy Policy)</li>
           <li><strong>การตั้งค่าในเครื่อง (localStorage):</strong> เช่น aesthetic ห้องที่เลือก (cozy/loft), ข้อความที่เขียนถึงตัวเอง — เก็บไว้ในเบราเซอร์คุณเท่านั้น เราเข้าไม่ถึง</li>
         </ul>
 
@@ -4679,6 +5858,24 @@ body[data-lang="en"] [data-th] { display: none; }
           <div class="deity-power"><span data-th>ความอุดมสมบูรณ์</span><span data-en>Abundance & prosperity</span></div>
           <div class="deity-meta"><span data-th>ธูป 9 · ดอกบัว</span><span data-en>9 sticks · lotus</span></div>
         </button>
+        <button class="deity-card" data-deity="vessuwan" data-offering="water">
+          <img class="deity-icon" src="assets/images/deity-vessuwan.jpg" alt="ท้าวเวสสุวรรณ" loading="lazy">
+          <div class="deity-name"><span data-th>ท้าวเวสสุวรรณ</span><span data-en>Tao Vessuwan</span></div>
+          <div class="deity-power"><span data-th>ปกป้อง · ขจัดภัย</span><span data-en>Protection · ward off evil</span></div>
+          <div class="deity-meta"><span data-th>ธูป 9 · น้ำสะอาด</span><span data-en>9 sticks · clean water</span></div>
+        </button>
+        <button class="deity-card" data-deity="guanyin" data-offering="lotus">
+          <img class="deity-icon" src="assets/images/deity-guanyin.jpg" alt="เจ้าแม่กวนอิม" loading="lazy">
+          <div class="deity-name"><span data-th>เจ้าแม่กวนอิม</span><span data-en>Guan Yin</span></div>
+          <div class="deity-power"><span data-th>เมตตา · ปัญญา · ลูก</span><span data-en>Compassion · wisdom · children</span></div>
+          <div class="deity-meta"><span data-th>ธูป 9 · ดอกบัว/ผลไม้</span><span data-en>9 sticks · lotus/fruit</span></div>
+        </button>
+        <button class="deity-card" data-deity="thapthim" data-offering="fruit">
+          <img class="deity-icon" src="assets/images/deity-thapthim.jpg" alt="เจ้าแม่ทับทิม" loading="lazy">
+          <div class="deity-name"><span data-th>เจ้าแม่ทับทิม</span><span data-en>Chao Mae Thapthim</span></div>
+          <div class="deity-power"><span data-th>การเดินทาง · ค้าขาย · ลูกหลาน</span><span data-en>Travel · trade · family</span></div>
+          <div class="deity-meta"><span data-th>ธูป 5 · ผลไม้แดง</span><span data-en>5 sticks · red fruit</span></div>
+        </button>
       </div>
 
       <!-- Prayer type choice (appears after deity is picked) -->
@@ -4759,6 +5956,10 @@ body[data-lang="en"] [data-th] { display: none; }
             <span class="o-emoji">🍎</span>
             <span data-th>ผลไม้</span><span data-en>Fruit</span>
           </button>
+          <button class="offering-btn" data-offer="water">
+            <span class="o-emoji">💧</span>
+            <span data-th>น้ำสะอาด</span><span data-en>Clean water</span>
+          </button>
         </div>
       </div>
 
@@ -4826,10 +6027,28 @@ body[data-lang="en"] [data-th] { display: none; }
 
       <!-- ===== MINI-QUESTS (one shown based on deity, only when special) ===== -->
 
-      <!-- Sothon: vow contract -->
+      <!-- Sothon: choose vow OR just bow normally -->
       <div class="mini-quest" id="quest-sothon">
-        <div class="vow-contract">
-          <h4>📜 <span data-th>เลือกของแก้บน — เซ็นสัญญา</span><span data-en>Choose your vow — sign the contract</span></h4>
+        <!-- Step 1: pick path -->
+        <div class="vow-choice" id="vowChoice">
+          <h4 style="margin-bottom:14px">🙏 <span data-th>วันนี้จะไหว้แบบไหน?</span><span data-en>How would you like to pay respects?</span></h4>
+          <div class="vow-choice-buttons">
+            <button class="vow-path-btn" data-vow-path="simple">
+              <div class="vow-path-icon">🤍</div>
+              <div class="vow-path-title"><span data-th>ไหว้ปกติ</span><span data-en>Just bow</span></div>
+              <div class="vow-path-sub"><span data-th>ขอพรเฉยๆ ไม่ต้องบน</span><span data-en>Simply ask, no promises</span></div>
+            </button>
+            <button class="vow-path-btn" data-vow-path="vow">
+              <div class="vow-path-icon">📜</div>
+              <div class="vow-path-title"><span data-th>อยากบน</span><span data-en>Make a vow</span></div>
+              <div class="vow-path-sub"><span data-th>ขอแบบสัญญา ถ้าสมหวังจะมาแก้บน</span><span data-en>Promise an offering if it comes true</span></div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2 (only if 'vow' picked): contract -->
+        <div class="vow-contract" id="vowContract" hidden>
+          <h4>📜 <span data-th>ถ้าสมหวัง — จะแก้บนอย่างไร?</span><span data-en>If it comes true — what will you offer?</span></h4>
           <div class="vow-options" id="vowOptions">
             <label><input type="radio" name="vow" value="9eggs"><span data-th>ไข่ต้ม 9 ฟอง</span><span data-en>9 boiled eggs</span></label>
             <label><input type="radio" name="vow" value="21eggs"><span data-th>ไข่ต้ม 21 ฟอง</span><span data-en>21 boiled eggs</span></label>
@@ -4973,6 +6192,14 @@ body[data-lang="en"] [data-th] { display: none; }
       <div class="fortune-result" id="fortuneResult">
         <div class="fortune-num" id="fortuneNum"></div>
         <div id="fortuneMsg"></div>
+        <div class="card-actions">
+          <button class="card-action-btn share-btn" data-share-type="mu" type="button">
+            <span data-th>📤 แชร์เซียมซี</span><span data-en>📤 Share fortune</span>
+          </button>
+          <button class="card-action-btn bookmark-btn" data-bookmark-type="mu-fortune" type="button">
+            <span data-th>🔖 บันทึก</span><span data-en>🔖 Save</span>
+          </button>
+        </div>
       </div>
 
       <div class="step-nav">
@@ -5021,37 +6248,138 @@ body[data-lang="en"] [data-th] { display: none; }
       <span class="room-eyebrow"><span data-th>ห้องที่ 2</span><span data-en>Room 02</span></span>
       <h2 class="room-title"><span data-th>ออกไปข้างนอก</span><span data-en>Step Outside</span></h2>
       <p class="room-subtitle">
-        <span data-th>ลองหยุดจ้องจอสักครู่ — ออกไปดูโลกข้างนอก</span>
-        <span data-en>Pause from the screen — go look at the world outside</span>
+        <span data-th>หมุนวงล้อ ออกไปทำกิจกรรมที่สุ่มได้ — ใจชอบ Extrovert ห้องนี้สำหรับเธอ</span>
+        <span data-en>Spin the wheel, do whatever it lands on — this is your room, Extrovert</span>
       </p>
 
-      <div class="walk-grid">
-        <div class="walk-card">
-          <div class="walk-emoji">🚶</div>
-          <div class="walk-title"><span data-th>เดินรอบบ้าน 5 นาที</span><span data-en>Walk 5 minutes</span></div>
-          <p><span data-th>ไม่ต้องไปไหนไกล แค่ออกจากเก้าอี้ตัวนี้</span><span data-en>No need to go far — just leave this chair</span></p>
+      <!-- Mode picker — Default vs Custom -->
+      <div class="wheel-mode">
+        <button class="wheel-mode-btn active" data-wheel-mode="default">
+          🌿 <span data-th>List ทีมเลือก</span><span data-en>Curated</span>
+        </button>
+        <button class="wheel-mode-btn" data-wheel-mode="custom">
+          ✏️ <span data-th>เขียนเอง</span><span data-en>My list</span>
+        </button>
+      </div>
+
+      <!-- Custom list editor (hidden when default) -->
+      <div class="wheel-custom-editor" id="wheelCustomEditor" hidden>
+        <p class="alone-sub">
+          <span data-th>พิมพ์กิจกรรมที่อยากให้สุ่มเอง — บรรทัดละ 1 อัน (จะจำไว้ในเครื่อง)</span>
+          <span data-en>Type your activities — one per line (saved in your browser)</span>
+        </p>
+        <textarea id="wheelCustomList" class="wheel-textarea" rows="6"
+          placeholder="เช่น&#10;ไปคาเฟ่ใหม่&#10;ปั่นจักรยานเล่น&#10;โทรหาเพื่อนที่ไม่เจอนาน"></textarea>
+        <button class="nav-btn next" id="wheelCustomSave">
+          💾 <span data-th>บันทึก + ใช้ list นี้</span><span data-en>Save + use this list</span>
+        </button>
+      </div>
+
+      <!-- The wheel -->
+      <div class="wheel-stage">
+        <div class="wheel-pointer">▼</div>
+        <div class="wheel-disc-wrap">
+          <svg class="wheel-disc" id="wheelDisc" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
-        <div class="walk-card">
-          <div class="walk-emoji">☁️</div>
-          <div class="walk-title"><span data-th>มองท้องฟ้า 1 นาที</span><span data-en>Look up for 1 minute</span></div>
-          <p><span data-th>วันนี้เมฆเป็นรูปอะไร? แดดเอียงทางไหน?</span><span data-en>What shape are the clouds today?</span></p>
-        </div>
-        <div class="walk-card">
-          <div class="walk-emoji">🌳</div>
-          <div class="walk-title"><span data-th>หาต้นไม้สีเขียว</span><span data-en>Find something green</span></div>
-          <p><span data-th>เพ่งดูสัก 30 วิ — ตาคุณก็จะพักได้</span><span data-en>Stare 30 sec — your eyes will thank you</span></p>
-        </div>
-        <div class="walk-card">
-          <div class="walk-emoji">🍃</div>
-          <div class="walk-title"><span data-th>ฟังเสียงนอกบ้าน</span><span data-en>Listen outside</span></div>
-          <p><span data-th>ลม นก รถ ฝน — โลกข้างนอกยังหายใจอยู่</span><span data-en>Wind, birds, cars, rain — the world breathes</span></p>
+        <button class="nav-btn next wheel-spin-btn" id="wheelSpin">
+          🎲 <span data-th>หมุน!</span><span data-en>Spin!</span>
+        </button>
+      </div>
+
+      <!-- Result -->
+      <div class="wheel-result" id="wheelResult" hidden>
+        <div class="wheel-result-icon">✨</div>
+        <h3 class="wheel-result-title" id="wheelResultTitle"></h3>
+        <p class="wheel-result-sub">
+          <span data-th>ลองออกไปทำดูสักที่ — กลับมาเล่าให้เรา ฟัง</span>
+          <span data-en>Try it once — come back and tell us how it went</span>
+        </p>
+        <div class="wheel-result-actions">
+          <button class="nav-btn" id="wheelAgain">↻ <span data-th>หมุนใหม่</span><span data-en>Spin again</span></button>
+          <button class="nav-btn next share-btn" data-share-type="wheel">
+            📤 <span data-th>แชร์ให้เพื่อน</span><span data-en>Share</span>
+          </button>
+          <button class="card-action-btn bookmark-btn" data-bookmark-type="wheel" type="button">
+            🔖 <span data-th>บันทึก</span><span data-en>Save</span>
+          </button>
         </div>
       </div>
 
-      <p class="alt-room-note">
-        <span data-th>💡 อยากนั่งสมาธิแทน? ลองห้อง <a href="#" data-go-room="alone">"อยู่กับตัวเอง"</a> มีฝึกหายใจ 4 แบบ</span>
-        <span data-en>💡 Want to meditate instead? Try <a href="#" data-go-room="alone">"Be with yourself"</a> — 4 breathing patterns</span>
-      </p>
+      <!-- ============ SHOPPING MINI-GAME ============ -->
+      <div class="shop-divider"></div>
+      <div class="shop-section" id="shopSection">
+        <h3 class="shop-title">
+          🛍 <span data-th>ช้อปสบายใจ</span><span data-en>Calm shopping</span>
+        </h3>
+        <p class="shop-sub">
+          <span data-th>ไม่ต้องใช้เงินจริง — แค่กดเก็บของน่ารักๆ ใส่ตะกร้า ใจฟูเฉยๆ</span>
+          <span data-en>No real money — just tap cute things into a basket. Heart-fluff therapy.</span>
+        </p>
+
+        <!-- Stage 1: Setup -->
+        <div class="shop-stage shop-setup" id="shopSetup">
+          <div class="shop-block">
+            <h4 class="shop-h4"><span data-th>1. เลือกโซน</span><span data-en>1. Pick a zone</span></h4>
+            <div class="shop-zones">
+              <button class="shop-zone active" data-zone="cosmetics">
+                <div class="shop-zone-icon">💄</div>
+                <div class="shop-zone-label"><span data-th>เครื่องสำอาง</span><span data-en>Cosmetics</span></div>
+              </button>
+              <button class="shop-zone" data-zone="snacks">
+                <div class="shop-zone-icon">🍪</div>
+                <div class="shop-zone-label"><span data-th>ขนม</span><span data-en>Snacks</span></div>
+              </button>
+              <button class="shop-zone" data-zone="plants">
+                <div class="shop-zone-icon">🪴</div>
+                <div class="shop-zone-label"><span data-th>ต้นไม้</span><span data-en>Plants</span></div>
+              </button>
+            </div>
+          </div>
+          <div class="shop-block">
+            <h4 class="shop-h4"><span data-th>2. เลือกเวลา</span><span data-en>2. Pick a time</span></h4>
+            <div class="shop-durations">
+              <button class="shop-dur" data-dur="15">15s</button>
+              <button class="shop-dur active" data-dur="30">30s</button>
+              <button class="shop-dur" data-dur="60">60s</button>
+            </div>
+          </div>
+          <button class="nav-btn next shop-start-btn" id="shopStart">
+            🎀 <span data-th>เริ่มช้อป!</span><span data-en>Start shopping!</span>
+          </button>
+        </div>
+
+        <!-- Stage 2: Play -->
+        <div class="shop-stage shop-play" id="shopPlay" hidden>
+          <div class="shop-hud">
+            <div class="shop-timer">⏱ <span id="shopTimer">30</span>s</div>
+            <div class="shop-counter">🛒 <span id="shopCount">0</span></div>
+          </div>
+          <div class="shop-arena" id="shopArena"></div>
+          <p class="shop-tip">
+            <span data-th>แตะของที่ชอบ — เก็บใส่ตะกร้า</span>
+            <span data-en>Tap what you like — into the basket</span>
+          </p>
+        </div>
+
+        <!-- Stage 3: Result -->
+        <div class="shop-stage shop-result" id="shopResult" hidden>
+          <div class="shop-result-icon">🛍✨</div>
+          <h3 class="shop-result-title">
+            <span data-th>ช้อปจบ!</span><span data-en>Shopping done!</span>
+          </h3>
+          <p class="shop-result-stat" id="shopResultStat"></p>
+          <p class="shop-result-mood" id="shopResultMood"></p>
+          <div class="card-actions">
+            <button class="card-action-btn" id="shopAgain">↻ <span data-th>ช้อปอีก</span><span data-en>Shop again</span></button>
+            <button class="card-action-btn share-btn" data-share-type="shop" type="button">
+              📤 <span data-th>แชร์</span><span data-en>Share</span>
+            </button>
+            <button class="card-action-btn bookmark-btn" data-bookmark-type="shop" type="button">
+              🔖 <span data-th>บันทึก</span><span data-en>Save</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
       <nav class="room-nav room-nav-simple">
         <button class="nav-btn map" data-back-map>← <span data-th>กลับแผนที่</span><span data-en>Back to map</span></button>
@@ -5060,16 +6388,16 @@ body[data-lang="en"] [data-th] { display: none; }
   </div>
 </div>
 
-<!-- ============ ROOM: พิพิธพันธ์ปล่อยวางใจ — Art Gallery ============ -->
+<!-- ============ ROOM: พิพิธภัณฑ์ฮีลใจ — Art Gallery ============ -->
 <div class="room-overlay" id="room-museum">
   <button class="close-btn" data-close>✕</button>
   <div class="room-content">
     <div class="museum-inner">
       <button class="subroom-back" data-subroom-back>
-        ← <span data-th>กลับเข้าพิพิธพันธ์</span><span data-en>Back to museum</span>
+        ← <span data-th>กลับเข้าพิพิธภัณฑ์</span><span data-en>Back to museum</span>
       </button>
-      <span class="room-eyebrow"><span data-th>ห้องที่ 3 · พิพิธพันธ์ปล่อยวางใจ</span><span data-en>Room 03 · Letting Go Museum</span></span>
-      <h2 class="room-title"><span data-th>พิพิธพันธ์ปล่อยวางใจ</span><span data-en>The Letting Go Museum</span></h2>
+      <span class="room-eyebrow"><span data-th>ห้องที่ 3 · พิพิธภัณฑ์ฮีลใจ</span><span data-en>Room 03 · Heal Museum</span></span>
+      <h2 class="room-title"><span data-th>พิพิธภัณฑ์ฮีลใจ</span><span data-en>The Heal Museum</span></h2>
       <p class="room-subtitle">
         <span data-th>นิทรรศการของจริง — ของที่เคยอุ้มไว้ และคำที่เคยช่วยให้ใครคนหนึ่งเดินต่อ</span>
         <span data-en>An exhibition of things once held tight, and words that helped someone move forward.</span>
@@ -5077,10 +6405,10 @@ body[data-lang="en"] [data-th] { display: none; }
 
       <!-- Illustrated museum with clickable hotspots (2 zones) -->
       <div class="room-stage room-stage-museum">
-        <img class="room-illustration" src="assets/images/room-museum.jpg" alt="พิพิธพันธ์ไว้วางใจ"/>
+        <img class="room-illustration" src="assets/images/room-museum.jpg" alt="พิพิธภัณฑ์ฮีลใจ"/>
         <button class="hotspot" data-mpane="objects">
           <span class="hotspot-dot"></span>
-          <span class="hotspot-label" data-th>📦 ของจัดแสดง</span><span class="hotspot-label" data-en>📦 Exhibits</span>
+          <span class="hotspot-label" data-th>📦 พิพิธภัณฑ์ภาพฮีลใจ</span><span class="hotspot-label" data-en>📦 Museum of healing things</span>
         </button>
         <button class="hotspot" data-mpane="words">
           <span class="hotspot-dot"></span>
@@ -5094,8 +6422,16 @@ body[data-lang="en"] [data-th] { display: none; }
         <button class="museum-tab" data-pane="words"></button>
       </div>
 
-      <!-- Pane 1: Exhibits -->
+      <!-- Pane 1: Exhibits — horizontal slide -->
       <div class="gallery-pane active" id="pane-objects">
+        <div class="exhibit-nav">
+          <button class="exhibit-nav-btn" id="exhibitPrev" aria-label="ก่อนหน้า">←</button>
+          <div class="exhibit-nav-dots" id="exhibitDots"></div>
+          <button class="exhibit-nav-btn" id="exhibitNext" aria-label="ถัดไป">→</button>
+          <button class="exhibit-auto-toggle on" id="exhibitAutoToggle">
+            <span data-th>⏸ หยุดเลื่อน</span><span data-en>⏸ Pause</span>
+          </button>
+        </div>
         <div class="exhibits" id="exhibitsGrid"></div>
 
         <div class="submit-cta">
@@ -5114,9 +6450,9 @@ body[data-lang="en"] [data-th] { display: none; }
         </div>
       </div>
 
-      <!-- Pane 2: Words -->
+      <!-- Pane 2: Words — reuse .exhibits layout (proven safe on mobile) -->
       <div class="gallery-pane" id="pane-words">
-        <div class="exhibits" id="wordsGrid"></div>
+        <div class="exhibits words-as-exhibits" id="wordsGrid"></div>
 
         <div class="submit-cta">
           <div class="submit-cta-icon">💌</div>
@@ -5226,7 +6562,7 @@ body[data-lang="en"] [data-th] { display: none; }
         <span data-en>Our team will read and review within 1–2 days.<br>You're brave for letting go ✨</span>
       </p>
       <button class="submit-cta-btn" data-submit-close style="margin-top:20px">
-        <span data-th>กลับไปดูพิพิธพันธ์</span><span data-en>Back to museum</span>
+        <span data-th>กลับไปดูพิพิธภัณฑ์</span><span data-en>Back to museum</span>
       </button>
     </div>
   </div>
@@ -5451,11 +6787,23 @@ body[data-lang="en"] [data-th] { display: none; }
               <button class="ambient-pill" data-ambient="ocean" data-src="assets/audio/ocean.mp3">
                 🌊 <span data-th>ทะเล</span><span data-en>Ocean</span>
               </button>
+              <button class="ambient-pill" data-ambient="forest" data-src="assets/audio/forest.mp3">
+                🌳 <span data-th>ป่า</span><span data-en>Forest</span>
+              </button>
+              <button class="ambient-pill" data-ambient="waterfall" data-src="assets/audio/waterfall.mp3">
+                💧 <span data-th>น้ำตก</span><span data-en>Waterfall</span>
+              </button>
+              <button class="ambient-pill" data-ambient="underwater" data-src="assets/audio/underwater.mp3">
+                🐚 <span data-th>ใต้น้ำ</span><span data-en>Underwater</span>
+              </button>
               <button class="ambient-pill" data-ambient="garden" data-src="assets/audio/garden.mp3">
                 🌿 <span data-th>สวน</span><span data-en>Garden</span>
               </button>
               <button class="ambient-pill" data-ambient="birds" data-src="assets/audio/birds.mp3">
                 🐦 <span data-th>นก</span><span data-en>Birds</span>
+              </button>
+              <button class="ambient-pill" data-ambient="deepsleep" data-src="assets/audio/deep-sleep.mp3">
+                🌙 <span data-th>หลับลึก</span><span data-en>Deep sleep</span>
               </button>
             </div>
           </div>
@@ -5480,6 +6828,19 @@ body[data-lang="en"] [data-th] { display: none; }
           <span data-th>เลือกสีที่ใจชอบ แล้วแตะที่กลีบดอก — ไม่มีถูกผิด ไม่มีหมดเวลา</span>
           <span data-en>Pick a color, tap a petal — no right or wrong, no clock</span>
         </p>
+
+        <!-- Difficulty levels -->
+        <div class="color-levels">
+          <button class="color-level-btn" data-level="easy">
+            🌷 <span data-th>ง่าย</span><span data-en>Easy</span>
+          </button>
+          <button class="color-level-btn active" data-level="medium">
+            🌸 <span data-th>กลาง</span><span data-en>Medium</span>
+          </button>
+          <button class="color-level-btn" data-level="hard">
+            ❀ <span data-th>ยาก</span><span data-en>Hard</span>
+          </button>
+        </div>
 
         <div class="color-stage">
           <svg class="color-canvas" id="colorCanvas" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-label="ดอกไม้ระบายสี">
@@ -5528,7 +6889,13 @@ body[data-lang="en"] [data-th] { display: none; }
 
           <div class="color-actions">
             <button class="nav-btn" id="colorReset">↻ <span data-th>ล้างทั้งหมด</span><span data-en>Clear all</span></button>
-            <button class="nav-btn next" id="colorSave">💾 <span data-th>เก็บภาพ</span><span data-en>Save</span></button>
+            <button class="nav-btn next" id="colorSave">💾 <span data-th>เก็บภาพ</span><span data-en>Save image</span></button>
+            <button class="card-action-btn share-btn" data-share-type="coloring" type="button">
+              📤 <span data-th>แชร์</span><span data-en>Share</span>
+            </button>
+            <button class="card-action-btn bookmark-btn" data-bookmark-type="coloring" type="button">
+              🔖 <span data-th>บันทึก</span><span data-en>Save</span>
+            </button>
           </div>
         </div>
       </div>
@@ -5733,9 +7100,17 @@ body[data-lang="en"] [data-th] { display: none; }
           <div class="fortune-num-room" id="fortuneNumRoom"></div>
           <div class="fortune-headline" id="fortuneHeadline"></div>
           <p class="fortune-msg-room" id="fortuneMsgRoom"></p>
-          <button class="nav-btn map" id="fortuneAgain">
-            ↻ <span data-th>หยิบใหม่</span><span data-en>Draw again</span>
-          </button>
+          <div class="fortune-actions">
+            <button class="nav-btn" id="fortuneAgain">
+              ↻ <span data-th>หยิบใหม่</span><span data-en>Draw again</span>
+            </button>
+            <button class="nav-btn next share-btn" data-share-type="fortune">
+              📤 <span data-th>แชร์</span><span data-en>Share</span>
+            </button>
+            <button class="card-action-btn bookmark-btn" data-bookmark-type="community-fortune" type="button">
+              🔖 <span data-th>บันทึก</span><span data-en>Save</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -5851,6 +7226,141 @@ body[data-lang="en"] [data-th] { display: none; }
         <button class="nav-btn map" data-back-map>← <span data-th>กลับแผนที่</span><span data-en>Back to map</span></button>
       </nav>
     </div>
+  </div>
+</div>
+
+<!-- ============ ROOM 6: ห้องระบาย — Throwing game (release stress, HealJai vibe) ============ -->
+<div class="room-overlay" id="room-scream">
+  <button class="close-btn" data-close>✕</button>
+  <div class="room-content">
+    <div class="release-inner" id="releaseInner">
+
+      <!-- Stage 1: Setup -->
+      <div class="release-stage" id="releaseSetup">
+        <span class="room-eyebrow"><span data-th>ห้องที่ 6</span><span data-en>Room 06</span></span>
+        <h2 class="room-title"><span data-th>ห้องระบาย</span><span data-en>The Release Room</span></h2>
+        <p class="room-subtitle">
+          <span data-th>ของในใจที่อึดอัด — ลองปามันออกมาดู ไม่ทำร้ายใคร · ไม่ทำลายของจริง · แค่ระบาย</span>
+          <span data-en>What's stuck inside — try throwing it out. Hurts no one, breaks nothing real. Just release.</span>
+        </p>
+
+        <div class="release-section">
+          <h4 class="release-h4"><span data-th>1. เลือกฉาก</span><span data-en>1. Pick a place</span></h4>
+          <div class="release-places" id="releasePlaces">
+            <button class="release-place active" data-place="office">
+              <div class="release-place-icon">🏢</div>
+              <div class="release-place-label"><span data-th>ออฟฟิศ</span><span data-en>Office</span></div>
+              <div class="release-place-sub"><span data-th>กระดาษ · จอ · ปริ้นเตอร์</span><span data-en>Paper · screen · printer</span></div>
+            </button>
+            <button class="release-place" data-place="kitchen">
+              <div class="release-place-icon">🍽</div>
+              <div class="release-place-label"><span data-th>ครัวที่บ้าน</span><span data-en>Kitchen</span></div>
+              <div class="release-place-sub"><span data-th>จาน · ชาม · ช้อน</span><span data-en>Plates · bowls · spoons</span></div>
+            </button>
+            <button class="release-place" data-place="bedroom">
+              <div class="release-place-icon">🛏</div>
+              <div class="release-place-label"><span data-th>ห้องนอน</span><span data-en>Bedroom</span></div>
+              <div class="release-place-sub"><span data-th>หมอน · ตุ๊กตา · นาฬิกาปลุก</span><span data-en>Pillows · plushies · alarm clock</span></div>
+            </button>
+          </div>
+        </div>
+
+        <div class="release-section">
+          <h4 class="release-h4"><span data-th>2. เลือกเวลา</span><span data-en>2. Pick duration</span></h4>
+          <div class="release-times" id="releaseTimes">
+            <button class="release-time active" data-time="15">15 <span data-th>วินาที</span><span data-en>sec</span></button>
+            <button class="release-time" data-time="30">30 <span data-th>วินาที</span><span data-en>sec</span></button>
+            <button class="release-time" data-time="60">60 <span data-th>วินาที</span><span data-en>sec</span></button>
+          </div>
+        </div>
+
+        <button class="nav-btn next release-start-btn" id="releaseStart">
+          🎯 <span data-th>เริ่มปา!</span><span data-en>Start throwing!</span>
+        </button>
+
+        <!-- Leaderboard -->
+        <div class="release-leaderboard" id="releaseLeaderboard">
+          <h4 class="release-h4">🏆 <span data-th>ผู้ระบายเก่ง (สถิติของเครื่องนี้)</span><span data-en>Top releasers (this device)</span></h4>
+          <ol class="leaderboard-list" id="leaderboardList"></ol>
+          <p class="leaderboard-empty" id="leaderboardEmpty" hidden>
+            <span data-th>ยังไม่มีใครเล่น — เริ่มเป็นคนแรก!</span><span data-en>No one yet — be the first!</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Stage 2: Game play -->
+      <div class="release-stage" id="releasePlay" hidden>
+        <div class="release-hud">
+          <div class="release-counter">
+            <div class="counter-label"><span data-th>ปาแล้ว</span><span data-en>Thrown</span></div>
+            <div class="counter-value" id="throwCount">0</div>
+          </div>
+          <div class="release-counter">
+            <div class="counter-label"><span data-th>เหลือเวลา</span><span data-en>Time left</span></div>
+            <div class="counter-value" id="throwTime">--</div>
+          </div>
+        </div>
+        <div class="release-scene" id="releaseScene">
+          <div class="scene-hint">
+            <span data-th>👆 แตะที่ใดก็ได้บนฉาก — ปาให้ปลดปล่อย</span>
+            <span data-en>👆 Tap anywhere on the scene — throw to release</span>
+          </div>
+        </div>
+        <button class="nav-btn release-stop-btn" id="releaseStop">
+          ⏸ <span data-th>หยุดก่อน</span><span data-en>Stop early</span>
+        </button>
+      </div>
+
+      <!-- Stage 3: Result -->
+      <div class="release-stage" id="releaseResult" hidden>
+        <div class="release-result-icon">🤍</div>
+        <h2 class="room-title release-result-title">
+          <span data-th>เธอปาออกไปทั้งหมด <strong id="resultTotal">0</strong> อัน</span>
+          <span data-en>You released <strong id="resultTotalEn">0</strong> things</span>
+        </h2>
+        <div class="release-breakdown" id="releaseBreakdown"></div>
+        <p class="release-question">
+          <span data-th>สบายใจขึ้นบ้างไหม?</span>
+          <span data-en>Feeling lighter?</span>
+        </p>
+        <div class="release-yesno">
+          <button class="nav-btn" id="releaseStillHeavy">
+            <span data-th>ยังหนัก ไปปาต่อ</span><span data-en>Still heavy — keep going</span>
+          </button>
+          <button class="nav-btn next" id="releaseDone">
+            🤍 <span data-th>เบาขึ้นแล้ว</span><span data-en>Yes, lighter</span>
+          </button>
+        </div>
+
+        <!-- Name entry for leaderboard -->
+        <div class="release-name-entry" id="releaseNameEntry" hidden>
+          <p class="alone-sub"><span data-th>บันทึกสถิติด้วยชื่อเล่น (ไม่ระบุตัวตน):</span><span data-en>Save score with a nickname (anonymous):</span></p>
+          <div class="release-name-row">
+            <input type="text" id="releaseNameInput" maxlength="20" placeholder="ชื่อเล่นของคุณ"/>
+            <button class="nav-btn next" id="releaseSaveScore">
+              💾 <span data-th>บันทึก</span><span data-en>Save</span>
+            </button>
+          </div>
+          <button class="nav-btn release-skip-save" id="releaseSkipSave">
+            <span data-th>ข้าม</span><span data-en>Skip</span>
+          </button>
+        </div>
+
+        <div class="release-result-share">
+          <button class="nav-btn next share-btn" data-share-type="release">
+            📤 <span data-th>แชร์ผลลัพธ์</span><span data-en>Share result</span>
+          </button>
+          <button class="card-action-btn bookmark-btn" data-bookmark-type="release" type="button">
+            🔖 <span data-th>บันทึก</span><span data-en>Save</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <nav class="room-nav room-nav-simple">
+      <button class="nav-btn map" data-back-map>← <span data-th>กลับแผนที่</span><span data-en>Back to map</span></button>
+    </nav>
   </div>
 </div>
 
@@ -6028,6 +7538,66 @@ body[data-lang="en"] [data-th] { display: none; }
   soonModal.addEventListener('click', e => { if (e.target === soonModal) closeSoon(); });
 
   // ============ PINS — click + mobile long-press preview ============
+  // ===== Pin preview portal — float above map clipping =====
+  let portalEl = null;
+  let portalCurrentPin = null;
+  function ensurePortal() {
+    if (portalEl) return portalEl;
+    portalEl = document.createElement('div');
+    portalEl.className = 'pin-preview-portal';
+    document.body.appendChild(portalEl);
+    return portalEl;
+  }
+  function showPortalPreview(pin) {
+    if (portalCurrentPin === pin) return;
+    portalCurrentPin = pin;
+    const src = pin.querySelector('.pin-preview');
+    if (!src) return;
+    const p = ensurePortal();
+    p.innerHTML = src.innerHTML;
+    // Measure pin position
+    const pinRect = pin.getBoundingClientRect();
+    const portalWidth = 170;
+    // Default: place above pin
+    let top = pinRect.top - 10;
+    let left = pinRect.left + pinRect.width / 2 - portalWidth / 2;
+    let arrowClass = 'arrow-down';
+    // Clamp horizontally within viewport (8px margin)
+    const margin = 8;
+    if (left < margin) left = margin;
+    if (left + portalWidth > window.innerWidth - margin) {
+      left = window.innerWidth - portalWidth - margin;
+    }
+    // If preview would go above viewport top, flip to below pin
+    p.style.left = left + 'px';
+    p.style.top = top + 'px';
+    p.classList.remove('arrow-up', 'arrow-down');
+    p.classList.add(arrowClass);
+    // After layout, measure portal height to decide flip
+    requestAnimationFrame(() => {
+      const ph = p.offsetHeight;
+      if (top - ph < 10) {
+        // Flip below
+        p.style.top = (pinRect.bottom + 16) + 'px';
+        p.classList.remove('arrow-down');
+        p.classList.add('arrow-up');
+      } else {
+        p.style.top = (top - ph) + 'px';
+      }
+      // Position arrow at pin's horizontal center relative to portal
+      const arrowLeft = pinRect.left + pinRect.width / 2 - parseFloat(p.style.left);
+      p.style.setProperty('--arrow-left', arrowLeft + 'px');
+    });
+    p.classList.add('show');
+  }
+  function hidePortalPreview() {
+    portalCurrentPin = null;
+    if (portalEl) portalEl.classList.remove('show');
+  }
+  // Hide portal on scroll/resize/swipe (pin position changes)
+  window.addEventListener('scroll', hidePortalPreview, { passive: true });
+  window.addEventListener('resize', hidePortalPreview);
+
   const LONGPRESS_MS = 380;
   document.querySelectorAll('.pin').forEach(pin => {
     let lpTimer = null;
@@ -6036,11 +7606,19 @@ body[data-lang="en"] [data-th] { display: none; }
 
     function endPreview(delay) {
       if (delay) {
-        setTimeout(() => pin.classList.remove('previewing'), delay);
+        setTimeout(() => {
+          pin.classList.remove('previewing');
+          if (portalCurrentPin === pin) hidePortalPreview();
+        }, delay);
       } else {
         pin.classList.remove('previewing');
+        if (portalCurrentPin === pin) hidePortalPreview();
       }
     }
+
+    // Desktop hover → portal preview
+    pin.addEventListener('mouseenter', () => showPortalPreview(pin));
+    pin.addEventListener('mouseleave', () => hidePortalPreview());
 
     // Long-press start
     pin.addEventListener('touchstart', e => {
@@ -6050,6 +7628,7 @@ body[data-lang="en"] [data-th] { display: none; }
       lpTimer = setTimeout(() => {
         suppressClick = true;
         pin.classList.add('previewing');
+        showPortalPreview(pin);
       }, LONGPRESS_MS);
     }, { passive: true });
 
@@ -6296,6 +7875,9 @@ body[data-lang="en"] [data-th] { display: none; }
       document.querySelectorAll('#room-museum .gallery-pane').forEach(p =>
         p.classList.toggle('active', p.id === 'pane-objects'));
     }
+    if (roomId === 'scream' && typeof window.resetRelease === 'function') {
+      window.resetRelease();
+    }
     if (roomId === 'island') {
       if (typeof window.resetMemento === 'function') window.resetMemento();
       // Lazy-load + play island bg video only when room opens
@@ -6343,6 +7925,10 @@ body[data-lang="en"] [data-th] { display: none; }
     // Stop island bg video when leaving (saves CPU/battery)
     const ibv = document.getElementById('islandBgVideo');
     if (ibv && !ibv.paused) ibv.pause();
+    // Stop museum auto-play if running
+    if (typeof stopExhibitAuto === 'function') stopExhibitAuto();
+    // Reset shopping mini-game state (timer/spawn intervals)
+    if (typeof window.resetShop === 'function') window.resetShop();
   }
   document.querySelectorAll('[data-close], [data-back-map]').forEach(btn =>
     btn.addEventListener('click', closeAllRooms)
@@ -6376,11 +7962,11 @@ body[data-lang="en"] [data-th] { display: none; }
       incense: 3,
       ritualEmoji: '🥚',
       ritual: {
-        th: 'ขอพรเรื่องสำคัญ — ถ้าได้สมหวัง อย่าลืมมาแก้บนด้วยไข่ต้ม (จำนวนตามที่บนไว้)',
+        th: 'ขอพรเรื่องสำคัญ — ถ้าได้สมหวัง อย่าลืมมาแก้บนตามที่สัญญาไว้',
         en: 'Make a serious wish — if granted, return with boiled eggs (the number you vowed)',
       },
       placeholder: {
-        th: 'ขออะไรกับหลวงพ่อ... และถ้าสมหวัง จะมาแก้บนยังไง',
+        th: 'ขออะไรกับหลวงพ่อ... และถ้าสมหวัง จะแก้บนอย่างไร',
         en: 'What you wish for, and how you\'ll return to fulfill the vow',
       },
     },
@@ -6448,6 +8034,54 @@ body[data-lang="en"] [data-th] { display: none; }
         en: 'Where in your life you wish abundance to flow...',
       },
     },
+    vessuwan: {
+      img: 'assets/images/deity-vessuwan.jpg',
+      name: { th: 'ท้าวเวสสุวรรณ', en: 'Tao Vessuwan' },
+      power: { th: 'ปกป้อง · ขจัดภัย', en: 'Protection · ward off evil' },
+      offering: 'water',
+      incense: 9,
+      ritualEmoji: '🛡',
+      ritual: {
+        th: 'พิเศษ: บอกความกลัวออกมา — ขอท้าวเวสสุวรรณช่วยปกป้องจากภัยร้าย เจ้ากรรมนายเวร',
+        en: 'Special: speak out what scares you — ask Tao Vessuwan to protect you from harm',
+      },
+      placeholder: {
+        th: 'สิ่งที่คุณกลัว หรืออยากให้ปกป้องตัวเองจาก...',
+        en: 'What you fear, or what you want protection from...',
+      },
+    },
+    guanyin: {
+      img: 'assets/images/deity-guanyin.jpg',
+      name: { th: 'เจ้าแม่กวนอิม', en: 'Guan Yin' },
+      power: { th: 'เมตตา · ปัญญา · ลูก', en: 'Compassion · wisdom · children' },
+      offering: 'lotus',
+      incense: 9,
+      ritualEmoji: '💗',
+      ritual: {
+        th: 'พิเศษ: กราบ 9 ครั้ง พร้อมขอความเมตตาให้ตัวเองและคนรอบข้าง',
+        en: 'Special: bow 9 times, asking for compassion for yourself and others',
+      },
+      placeholder: {
+        th: 'อยากให้ใครได้รับความเมตตา — ตัวเองก็ได้นะ...',
+        en: 'Who needs compassion today — including yourself...',
+      },
+    },
+    thapthim: {
+      img: 'assets/images/deity-thapthim.jpg',
+      name: { th: 'เจ้าแม่ทับทิม', en: 'Chao Mae Thapthim' },
+      power: { th: 'การเดินทาง · ค้าขาย · ลูกหลาน', en: 'Travel · trade · family' },
+      offering: 'fruit',
+      incense: 5,
+      ritualEmoji: '🍎',
+      ritual: {
+        th: 'พิเศษ: วางผลไม้สีแดง (ทับทิม/แอปเปิ้ล) ที่แท่น — ขอเรื่องเดินทาง การค้า หรือครอบครัว',
+        en: 'Special: place red fruit at altar — ask for safe travels, trade, or family',
+      },
+      placeholder: {
+        th: 'เรื่องเดินทาง / ครอบครัว / กิจการ ที่อยากให้คุ้มครอง...',
+        en: 'Travel / family / business you wish protected...',
+      },
+    },
   };
 
   // Special prayer schedules — when each deity's "ไหว้แบบพิเศษ" unlocks
@@ -6458,6 +8092,9 @@ body[data-lang="en"] [data-th] { display: none; }
     brahma:   { days: [0, 2], dayLabelTh: 'อาทิตย์ / อังคาร', dayLabelEn: 'Sun / Tue' },
     ganesha:  { days: [2], dayLabelTh: 'อังคาร', dayLabelEn: 'Tuesday' },
     lakshmi:  { days: [5], dayLabelTh: 'ศุกร์', dayLabelEn: 'Friday' },
+    vessuwan: { days: [2, 6], dayLabelTh: 'อังคาร / เสาร์', dayLabelEn: 'Tue / Sat' },
+    guanyin:  { days: [3, 4], dayLabelTh: 'พุธ / พฤหัสบดี', dayLabelEn: 'Wed / Thu' },
+    thapthim: { days: [5, 6], dayLabelTh: 'ศุกร์ / เสาร์', dayLabelEn: 'Fri / Sat' },
   };
 
   function isSpecialAvailable(deityKey) {
@@ -6584,15 +8221,19 @@ body[data-lang="en"] [data-th] { display: none; }
 
     if (n === 4 && game.deityKey && game.prayerType === 'special') {
       banner.classList.remove('hidden');
-      // Show the deity's mini-quest, hide the standard prayer card
       const quest = document.getElementById('quest-' + game.deityKey);
-      if (quest) quest.classList.add('active');
-      prayerCard.style.display = 'none';
-      // Reset quest state
-      resetMiniQuests();
-      // Update release button text
-      releaseBtn.innerHTML = '<span data-th>เสร็จพิธี → ไปต่อ</span><span data-en>Ritual complete → Next</span> ✨';
-      releaseBtn.disabled = true;
+      if (quest) {
+        // Has a unique mini-quest — show it, hide prayer card
+        quest.classList.add('active');
+        prayerCard.style.display = 'none';
+        resetMiniQuests();
+        releaseBtn.innerHTML = '<span data-th>เสร็จพิธี → ไปต่อ</span><span data-en>Ritual complete → Next</span> ✨';
+        releaseBtn.disabled = true;
+      } else {
+        // No unique mini-quest (new deity) — fall back to prayer card with ritual banner shown
+        prayerCard.style.display = '';
+        releaseBtn.innerHTML = '<span data-th>เสร็จพิธี → ไปต่อ</span><span data-en>Ritual complete → Next</span> ✨';
+      }
     } else if (n === 4) {
       banner.classList.add('hidden');
       prayerCard.style.display = '';
@@ -6628,19 +8269,39 @@ body[data-lang="en"] [data-th] { display: none; }
       const data = DEITIES[key];
       game.correctOffer = data.offering;
 
-      // Update offering stage with selected deity image
+      // Update offering stage with selected deity image (or placeholder)
       const offeringImg = document.getElementById('offeringDeity');
-      offeringImg.src = data.img;
+      if (data.img) {
+        offeringImg.src = data.img;
+        offeringImg.style.display = '';
+      } else {
+        // Use SVG data-URI with emoji as fallback for placeholder deities
+        const phEmoji = data.placeholderEmoji || '🙏';
+        offeringImg.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#c1a07a"/><text x="100" y="135" font-size="120" text-anchor="middle">${phEmoji}</text></svg>`
+        );
+      }
       offeringImg.alt = data.name.th;
       offeringImg.hidden = false;
 
       // Set deity background overlay
       const bg = document.getElementById('deityBgOverlay');
-      bg.style.backgroundImage = 'url(' + data.img + ')';
+      if (data.img) {
+        bg.style.backgroundImage = 'url(' + data.img + ')';
+      } else {
+        bg.style.backgroundImage = data.placeholderBg || 'linear-gradient(180deg, var(--cream), var(--beige))';
+      }
       bg.classList.add('show');
 
       // Populate deity info banner
-      document.getElementById('deityInfoImg').src = data.img;
+      const infoImg = document.getElementById('deityInfoImg');
+      if (data.img) {
+        infoImg.src = data.img;
+      } else {
+        infoImg.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#c1a07a"/><text x="100" y="135" font-size="120" text-anchor="middle">${data.placeholderEmoji || '🙏'}</text></svg>`
+        );
+      }
       const lang = body.dataset.lang;
       document.getElementById('deityInfoName').textContent = data.name[lang];
       document.getElementById('deityInfoPower').textContent = data.power[lang];
@@ -6766,6 +8427,11 @@ body[data-lang="en"] [data-th] { display: none; }
     document.getElementById('vowStamp').classList.remove('show');
     document.getElementById('vowSign').disabled = true;
     document.getElementById('vowSign').style.display = '';
+    // Reset vow choice → show choice screen first
+    const vChoice = document.getElementById('vowChoice');
+    const vContract = document.getElementById('vowContract');
+    if (vChoice) vChoice.hidden = false;
+    if (vContract) vContract.hidden = true;
     // Trimurti
     document.getElementById('trimurtiName').value = '';
     document.getElementById('trimurtiName').disabled = false;
@@ -6788,6 +8454,22 @@ body[data-lang="en"] [data-th] { display: none; }
     game.lakshmiCoinPicked = false;
   }
 
+  // Sothon: pick path (simple bow vs vow) then optionally contract
+  document.querySelectorAll('.vow-path-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const path = btn.dataset.vowPath;
+      const vChoice = document.getElementById('vowChoice');
+      const vContract = document.getElementById('vowContract');
+      vChoice.hidden = true;
+      if (path === 'vow') {
+        vContract.hidden = false;
+      } else {
+        // Simple bow — just mark as done immediately
+        vContract.hidden = true;
+        setTimeout(markQuestDone, 400);
+      }
+    });
+  });
   // Sothon: vow contract
   document.querySelectorAll('input[name="vow"]').forEach(r => {
     r.addEventListener('change', () => {
@@ -6882,6 +8564,294 @@ body[data-lang="en"] [data-th] { display: none; }
       '<span data-th>ทรัพย์กำลังเดินทางมา ✨</span><span data-en>Prosperity is on its way ✨</span>';
     setTimeout(markQuestDone, 1200);
   });
+
+  // ============================================================
+  // WHEEL of activities (ออกไปข้างนอก) — Default list + Custom
+  // ============================================================
+  (function initWheel() {
+    const disc = document.getElementById('wheelDisc');
+    const spinBtn = document.getElementById('wheelSpin');
+    const result = document.getElementById('wheelResult');
+    const resultTitle = document.getElementById('wheelResultTitle');
+    const againBtn = document.getElementById('wheelAgain');
+    const modeBtns = document.querySelectorAll('.wheel-mode-btn');
+    const customEditor = document.getElementById('wheelCustomEditor');
+    const customTextarea = document.getElementById('wheelCustomList');
+    const customSaveBtn = document.getElementById('wheelCustomSave');
+    if (!disc || !spinBtn) return;
+
+    const DEFAULT_ACTIVITIES = [
+      'เดินรอบบ้าน 5 นาที',
+      'มองท้องฟ้า 1 นาที',
+      'หาต้นไม้เขียวเพ่งดู',
+      'ไปคาเฟ่ใหม่',
+      'ถ่ายรูป 3 อย่างที่สวย',
+      'ปั่นจักรยานเล่น',
+      'เดินซูเปอร์เปลี่ยนทาง',
+      'ซื้อไอติมให้ตัวเอง',
+      'โทรหาเพื่อนเก่า',
+      'ไปสวนสาธารณะใกล้ๆ',
+      'กินข้าวร้านใหม่',
+      'ไปร้านหนังสือมือสอง',
+    ];
+    const WHEEL_COLORS = ['#f4b6a6','#e8a87c','#c1a07a','#a8c4a2','#cce0bc','#a8c4d8','#d8b4d8','#f4d6a6'];
+    let activities = DEFAULT_ACTIVITIES.slice();
+    let currentRotation = 0;
+    let spinning = false;
+
+    function getCustom() {
+      try { return JSON.parse(localStorage.getItem('wheelCustom') || '[]'); }
+      catch (_) { return []; }
+    }
+    function saveCustom(arr) {
+      localStorage.setItem('wheelCustom', JSON.stringify(arr));
+    }
+
+    function drawWheel() {
+      disc.innerHTML = '';
+      const n = activities.length;
+      if (n === 0) {
+        disc.innerHTML = '<circle cx="200" cy="200" r="195" fill="#fefcf9" stroke="#c19a6c" stroke-width="2"/><text x="200" y="205" text-anchor="middle" fill="#8b6f47" font-size="16">ยังไม่มีรายการ</text>';
+        return;
+      }
+      const sliceAngle = 360 / n;
+      const cx = 200, cy = 200, r = 195;
+      for (let i = 0; i < n; i++) {
+        const startA = (i * sliceAngle - 90) * Math.PI / 180;
+        const endA = ((i + 1) * sliceAngle - 90) * Math.PI / 180;
+        const x1 = cx + r * Math.cos(startA);
+        const y1 = cy + r * Math.sin(startA);
+        const x2 = cx + r * Math.cos(endA);
+        const y2 = cy + r * Math.sin(endA);
+        const largeArc = sliceAngle > 180 ? 1 : 0;
+        const path = `M${cx} ${cy} L${x1} ${y1} A${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+        const slice = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        slice.setAttribute('d', path);
+        slice.setAttribute('fill', WHEEL_COLORS[i % WHEEL_COLORS.length]);
+        slice.setAttribute('stroke', '#fff');
+        slice.setAttribute('stroke-width', '2');
+        disc.appendChild(slice);
+
+        // Label — radial text reading from near-center toward outer edge.
+        // Always start from center (uniform position across all slices) and rotate
+        // so the text "spokes out" along the slice's midline.
+        const midAngleDeg = i * sliceAngle + sliceAngle/2 - 90;
+        const midAngleRad = midAngleDeg * Math.PI / 180;
+        const innerR = 32;
+        const lx = cx + innerR * Math.cos(midAngleRad);
+        const ly = cy + innerR * Math.sin(midAngleRad);
+        // Auto-fit font size: try to fit text within available radial length (~155px)
+        const raw = activities[i];
+        const maxLen = 155;
+        // Approx Thai char ≈ 0.55 × fontSize, so size = maxLen / (chars * 0.55)
+        let fontSize = Math.min(14, Math.max(8, Math.floor(maxLen / (raw.length * 0.6))));
+        if (n > 10 && fontSize > 11) fontSize = 11;
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', lx);
+        text.setAttribute('y', ly);
+        text.setAttribute('fill', '#4a2f1a');
+        text.setAttribute('font-size', fontSize);
+        text.setAttribute('font-weight', '600');
+        text.setAttribute('text-anchor', 'start');
+        text.setAttribute('dominant-baseline', 'middle');
+        text.setAttribute('transform', `rotate(${midAngleDeg} ${lx} ${ly})`);
+        text.textContent = raw;
+        disc.appendChild(text);
+      }
+      // Center pivot
+      const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', 20);
+      c.setAttribute('fill', '#fff');
+      c.setAttribute('stroke', '#c19a6c');
+      c.setAttribute('stroke-width', '2');
+      disc.appendChild(c);
+    }
+
+    function spin() {
+      if (spinning || activities.length === 0) return;
+      spinning = true;
+      result.hidden = true;
+      const n = activities.length;
+      const winnerIdx = Math.floor(Math.random() * n);
+      // Target rotation: pointer at top, so we rotate so winner slice midpoint is at top
+      const sliceAngle = 360 / n;
+      const targetDeg = 360 - (winnerIdx * sliceAngle + sliceAngle/2);
+      // Add multiple full turns
+      const turns = 5 + Math.random() * 2;
+      currentRotation += turns * 360 + (targetDeg - (currentRotation % 360));
+      disc.style.transform = `rotate(${currentRotation}deg)`;
+
+      setTimeout(() => {
+        resultTitle.textContent = activities[winnerIdx];
+        result.hidden = false;
+        spinning = false;
+        // Save the picked activity for sharing
+        window._wheelLastWin = activities[winnerIdx];
+      }, 4600);
+    }
+
+    modeBtns.forEach(b => {
+      b.addEventListener('click', () => {
+        modeBtns.forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        const mode = b.dataset.wheelMode;
+        if (mode === 'custom') {
+          customEditor.hidden = false;
+          customTextarea.value = getCustom().join('\n');
+        } else {
+          customEditor.hidden = true;
+          activities = DEFAULT_ACTIVITIES.slice();
+          drawWheel();
+        }
+      });
+    });
+
+    customSaveBtn && customSaveBtn.addEventListener('click', () => {
+      const lines = customTextarea.value.split('\n').map(s => s.trim()).filter(Boolean);
+      if (lines.length < 2) {
+        alert('ใส่อย่างน้อย 2 กิจกรรมเลยนะ');
+        return;
+      }
+      saveCustom(lines);
+      activities = lines;
+      drawWheel();
+      customEditor.hidden = true;
+    });
+
+    spinBtn.addEventListener('click', spin);
+    againBtn && againBtn.addEventListener('click', () => {
+      result.hidden = true;
+    });
+
+    // Initial draw
+    drawWheel();
+  })();
+
+  // ============================================================
+  // SHOPPING mini-game (in #room-travel) — tap items into basket
+  // ============================================================
+  (function initShop() {
+    const setup = document.getElementById('shopSetup');
+    const play = document.getElementById('shopPlay');
+    const result = document.getElementById('shopResult');
+    const arena = document.getElementById('shopArena');
+    const startBtn = document.getElementById('shopStart');
+    const againBtn = document.getElementById('shopAgain');
+    const timerEl = document.getElementById('shopTimer');
+    const countEl = document.getElementById('shopCount');
+    const statEl = document.getElementById('shopResultStat');
+    const moodEl = document.getElementById('shopResultMood');
+    if (!setup || !play || !result || !arena) return;
+
+    const ZONE_ITEMS = {
+      cosmetics: ['💄','💅','💋','🧴','🪞','💍','👛','🕶','🎀','💎'],
+      snacks:    ['🍪','🍩','🧁','🍰','🍫','🍬','🍭','🍡','🍮','🥐'],
+      plants:    ['🪴','🌱','🌿','🌵','🍀','🌷','🌸','🌻','🌹','🪻'],
+    };
+    const ZONE_LABEL_TH = { cosmetics:'เครื่องสำอาง', snacks:'ขนม', plants:'ต้นไม้' };
+
+    let zone = 'cosmetics';
+    let duration = 30;
+    let collected = 0;
+    let timerId = null;
+    let spawnId = null;
+    let timeLeft = 0;
+
+    document.querySelectorAll('.shop-zone').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('.shop-zone').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        zone = b.dataset.zone;
+      });
+    });
+    document.querySelectorAll('.shop-dur').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('.shop-dur').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        duration = parseInt(b.dataset.dur, 10);
+      });
+    });
+
+    function spawnItem() {
+      const items = ZONE_ITEMS[zone];
+      const it = document.createElement('div');
+      it.className = 'shop-item';
+      it.textContent = items[Math.floor(Math.random() * items.length)];
+      const arenaW = arena.clientWidth;
+      const arenaH = arena.clientHeight;
+      it.style.left = (Math.random() * (arenaW - 40)) + 'px';
+      it.style.top  = (Math.random() * (arenaH - 40)) + 'px';
+      it.addEventListener('click', () => {
+        if (it.classList.contains('taken')) return;
+        it.classList.add('taken');
+        collected++;
+        countEl.textContent = collected;
+        // remove after animation
+        setTimeout(() => it.remove(), 500);
+      });
+      arena.appendChild(it);
+      // auto-remove uncollected items after 4s to avoid clutter
+      setTimeout(() => { if (!it.classList.contains('taken')) it.remove(); }, 4200);
+    }
+
+    function startGame() {
+      collected = 0;
+      timeLeft = duration;
+      countEl.textContent = '0';
+      timerEl.textContent = duration;
+      arena.innerHTML = '';
+      setup.hidden = true;
+      result.hidden = true;
+      play.hidden = false;
+
+      // Initial burst
+      for (let i = 0; i < 5; i++) spawnItem();
+      // Steady spawn — every ~700ms
+      spawnId = setInterval(spawnItem, 700);
+      timerId = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = timeLeft;
+        if (timeLeft <= 0) endGame();
+      }, 1000);
+    }
+
+    function endGame() {
+      clearInterval(timerId);
+      clearInterval(spawnId);
+      timerId = null; spawnId = null;
+      play.hidden = true;
+      // Stat + mood
+      const zLabel = ZONE_LABEL_TH[zone] || zone;
+      statEl.textContent = 'ช้อป ' + zLabel + ' ไป ' + collected + ' ชิ้น ใน ' + duration + ' วินาที';
+      let mood;
+      if (collected === 0) mood = 'ครั้งหน้าลองดูใหม่นะ — ไม่ต้องรีบ 🌿';
+      else if (collected < 5) mood = 'ค่อยๆ เลือก — ก็โอเคนะ 🌸';
+      else if (collected < 15) mood = 'ใจฟูขึ้นมาบ้างไหม? 💗';
+      else mood = 'ตะกร้าเต็มเลย! ใจอิ่มสุดๆ ✨';
+      moodEl.textContent = mood;
+      // Set share/bookmark payload
+      window._shopLastResult = 'ช้อป ' + zLabel + ' ' + collected + ' ชิ้น ใน ' + duration + 'วิ ในห้องช้อปสบายใจของฮีลใจ 24/7 — ' + mood;
+      result.hidden = false;
+    }
+
+    startBtn.addEventListener('click', startGame);
+    againBtn.addEventListener('click', () => {
+      setup.hidden = false;
+      result.hidden = true;
+      play.hidden = true;
+    });
+
+    // Reset when room closes
+    window.resetShop = function() {
+      clearInterval(timerId);
+      clearInterval(spawnId);
+      timerId = null; spawnId = null;
+      arena.innerHTML = '';
+      setup.hidden = false;
+      play.hidden = true;
+      result.hidden = true;
+    };
+  })();
 
   // ============================================================
   // GARDEN / SIT room (ออกไปข้างนอก) — multi-pattern breathing
@@ -7053,6 +9023,12 @@ body[data-lang="en"] [data-th] { display: none; }
       fortuneNum.textContent = '#' + (idx + 1);
       fortuneMsg.textContent = MU_FORTUNES[lang][idx];
       fortuneResult.classList.add('show');
+      // Store for share + bookmark
+      const fortuneText = (lang === 'th'
+        ? 'เซียมซี #' + (idx + 1) + ' จากห้องมู — ' + MU_FORTUNES.th[idx]
+        : 'Fortune #' + (idx + 1) + ' from the Mu room — ' + MU_FORTUNES.en[idx]);
+      window._muLastBlessing = fortuneText;
+      window._muLastFortuneIdx = idx;
       document.querySelector('[data-step="5"] .step-next').disabled = false;
     }, 700);
   });
@@ -7137,82 +9113,82 @@ body[data-lang="en"] [data-th] { display: none; }
     },
   ];
 
-  // === Words data — real quotes from survey responses (anonymized) ===
+  // === Words data — real quotes from survey responses (anonymized: occupation + age only) ===
   const WORDS = [
     {
       th: 'เหนื่อยนักก็พักนิ่งๆ ดูความรู้สึกของเราไปเรื่อยๆ',
-      en: 'When you\'re really tired, rest still — and just watch your feelings drift by.',
-      author: '— หญิง อายุ 65 · ภูเก็ต',
+      en: "When you're really tired, rest still — and just watch your feelings drift by.",
+      author: '— ข้าราชการบำนาญ · 65',
     },
     {
       th: 'ทุกปัญหาแก้ได้ที่ตัวเรา — สิ่งศักดิ์สิทธิ์เป็นเพียงตัวช่วยให้สบายใจขึ้น',
       en: 'Every problem is solved within ourselves — the sacred just helps us feel better.',
-      author: '— Ambivert · กทม.',
+      author: '— พนักงานเอกชน · 33',
     },
     {
       th: 'มันเป็นเช่นนั้นเอง! ทุกอย่างไม่แน่',
       en: 'It is what it is! Nothing is certain.',
-      author: '— หญิง อายุ 62 · ปริญญาเอก',
+      author: '— ว่างงาน · 62',
     },
     {
       th: 'ตั้งสติอยู่กับปัจจุบัน ในที่สุดจะเกิดปัญญาแก้ปัญหาต่างๆ ได้เอง',
       en: 'Stay present with yourself — wisdom to solve will arise on its own.',
-      author: '— ชาย อายุ 65 · ข้าราชการบำนาญ',
+      author: '— ข้าราชการบำนาญ · 65',
     },
     {
       th: 'โลกเปลี่ยนแปลงเร็ว วุ่นวาย ต้องรักตัวเองให้เป็น ให้กำลังใจตัวเองบ้าง',
       en: 'The world changes fast and gets chaotic — learn to love yourself, cheer yourself on.',
-      author: '— ชาย อายุ 52 · Freelance',
+      author: '— Freelance · 52',
     },
     {
       th: 'ชีวิตมันสั้น ไปหาของอร่อยกินกันเถอะ!',
-      en: 'Life\'s short — let\'s go find something delicious to eat!',
-      author: '— anon · กทม.',
+      en: "Life's short — let's go find something delicious to eat!",
+      author: '— พนักงานบริษัท · 31',
     },
     {
       th: 'เชื่อว่าชีวิตเราจะมีสิ่งดีๆ เกิดขึ้นได้ ถึงวันนี้จะเป็น bad day แต่วันต่อไปมันจะต้องดีขึ้นจ้า',
       en: "I believe good things still come. Today might be a bad day — but tomorrow will be better.",
-      author: '— หญิง อายุ 31 · พนักงานบริษัท',
+      author: '— พนักงานบริษัท · 31',
     },
     {
       th: 'ชีวิตจะมีทางออกของมันเสมอ วางใจได้เลย',
       en: 'Life always finds a way out. You can trust that.',
-      author: '— หญิง · กทม.',
+      author: '— เจ้าของกิจการ · 32',
     },
     {
       th: 'เราไม่มีทางรู้หรอกว่าเราเข้มแข็งได้แค่ไหน จนมันเป็นทางเลือกสุดท้ายที่เรามี — พวกเราเก่งนะ',
       en: "We never know how strong we are until being strong is the only choice. We're brave.",
-      author: '— หญิง · Introvert · กทม.',
+      author: '— พนักงานเอกชน · 32',
     },
     {
       th: 'ในเวลาที่ยังหายใจอยู่ อย่างน้อยก็ต้องพยายามใช้ชีวิตให้ดี ให้มีความสุขนะ',
-      en: 'While we\'re still breathing, at least try to live well — to be happy.',
-      author: '— หญิง อายุ 32 · พนง.ออฟฟิศ',
+      en: "While we're still breathing, at least try to live well — to be happy.",
+      author: '— พนง.ออฟฟิศ · 32',
     },
     {
       th: 'Manage expectation ตัวเองให้เป็น — หัดช่างแม่งบ่อยๆ',
       en: 'Learn to manage your own expectations — practice letting things go.',
-      author: '— หญิง · Introvert · กทม.',
+      author: '— พนง.ออฟฟิศ · 32',
     },
     {
       th: 'บางวันอาจจะเหนื่อยหรือยากไปบ้าง แต่ก็อยากให้เธอยังอยู่ข้างตัวเอง ใจดีกับตัวเอง',
       en: 'Some days are heavy. I just hope you stay on your own side — be kind to yourself.',
-      author: '— anon ส่งให้คุณ (´｡• ᵕ •｡`)',
+      author: '— Subtitle editor · 32',
     },
     {
       th: 'รักตัวเองให้มากๆ โลกนี้ยังมีสิ่งน่ารักเต็มไปหมดให้เราได้พบเจอ :)',
       en: "Love yourself plenty — the world still has so many lovely things waiting :)",
-      author: '— หญิง อายุ 30 · สมุทรปราการ',
+      author: '— Freelance · 30',
     },
     {
       th: 'เดี๋ยวพรุ่งนี้มันก็ดีขึ้น ถ้าไม่ดีขึ้นก็รอวันต่อๆ ไป มันจะมีวันที่ดีเอง งุงิ คริคริ ⭐',
       en: 'Tomorrow will be better. If not, the day after. A good day will come ⭐',
-      author: '— anon',
+      author: '— Video Editor · 32',
     },
     {
       th: 'กินข้าวให้อิ่ม ฟังเพลงที่ชอบ ดูเมะเรื่องโปรด รักตัวเองในแบบตัวเองนะ',
       en: 'Eat full, play your favorite songs, watch your favorite anime — love yourself, your way.',
-      author: '— หญิง อายุ 24 · กรุงเทพ',
+      author: '— พนักงานบริษัท · 22',
     },
   ];
 
@@ -7247,7 +9223,123 @@ body[data-lang="en"] [data-th] { display: none; }
     grid.querySelectorAll('.exhibit').forEach(el => {
       el.addEventListener('click', () => openExhibit(el.dataset.exhibitId));
     });
+
+    // Build dots indicator
+    const dots = document.getElementById('exhibitDots');
+    if (dots) {
+      dots.innerHTML = '';
+      EXHIBITS.forEach((_, i) => {
+        const d = document.createElement('button');
+        d.className = 'exhibit-dot' + (i === 0 ? ' active' : '');
+        d.dataset.idx = i;
+        d.addEventListener('click', () => scrollToExhibit(i));
+        dots.appendChild(d);
+      });
+    }
   }
+
+  // ===== Exhibits horizontal slide nav + auto-advance =====
+  let exhibitCurrentIdx = 0;
+  let exhibitAutoTimer = null;
+  let exhibitAutoOn = true;
+  function scrollToExhibit(idx) {
+    const grid = document.getElementById('exhibitsGrid');
+    const items = grid.querySelectorAll('.exhibit');
+    if (!items[idx]) return;
+    exhibitCurrentIdx = idx;
+    items[idx].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    document.querySelectorAll('.exhibit-dot').forEach((d, i) =>
+      d.classList.toggle('active', i === idx));
+  }
+  function nextExhibit() {
+    const items = document.querySelectorAll('#exhibitsGrid .exhibit');
+    if (!items.length) return;
+    scrollToExhibit((exhibitCurrentIdx + 1) % items.length);
+  }
+  function prevExhibit() {
+    const items = document.querySelectorAll('#exhibitsGrid .exhibit');
+    if (!items.length) return;
+    scrollToExhibit((exhibitCurrentIdx - 1 + items.length) % items.length);
+  }
+  function startExhibitAuto() {
+    stopExhibitAuto();
+    exhibitAutoTimer = setInterval(nextExhibit, 4500);
+  }
+  function stopExhibitAuto() {
+    if (exhibitAutoTimer) clearInterval(exhibitAutoTimer);
+    exhibitAutoTimer = null;
+  }
+  const ePrev = document.getElementById('exhibitPrev');
+  const eNext = document.getElementById('exhibitNext');
+  const eAuto = document.getElementById('exhibitAutoToggle');
+  if (ePrev) ePrev.addEventListener('click', () => { prevExhibit(); if (exhibitAutoOn) startExhibitAuto(); });
+  if (eNext) eNext.addEventListener('click', () => { nextExhibit(); if (exhibitAutoOn) startExhibitAuto(); });
+  if (eAuto) eAuto.addEventListener('click', () => {
+    exhibitAutoOn = !exhibitAutoOn;
+    eAuto.classList.toggle('on', exhibitAutoOn);
+    if (exhibitAutoOn) {
+      eAuto.innerHTML = '<span data-th>⏸ หยุดเลื่อน</span><span data-en>⏸ Pause</span>';
+      startExhibitAuto();
+    } else {
+      eAuto.innerHTML = '<span data-th>▶ เล่นต่อ</span><span data-en>▶ Play</span>';
+      stopExhibitAuto();
+    }
+    // Re-apply lang
+    const lang = body.dataset.lang || 'th';
+    eAuto.querySelectorAll('[data-th]').forEach(s => s.style.display = lang === 'th' ? '' : 'none');
+    eAuto.querySelectorAll('[data-en]').forEach(s => s.style.display = lang === 'en' ? '' : 'none');
+  });
+  // ===== Mac dock-style focus scaling =====
+  function updateExhibitDock() {
+    const grid = document.getElementById('exhibitsGrid');
+    if (!grid) return;
+    const items = grid.querySelectorAll('.exhibit');
+    if (!items.length) return;
+    const gridRect = grid.getBoundingClientRect();
+    const center = gridRect.left + gridRect.width / 2;
+    const reach = gridRect.width * 0.55;
+    items.forEach(item => {
+      const r = item.getBoundingClientRect();
+      const itemCenter = r.left + r.width / 2;
+      const dist = Math.abs(center - itemCenter);
+      const norm = Math.min(dist / reach, 1);
+      const scale = (1 - norm * 0.30).toFixed(3);
+      const opacity = (1 - norm * 0.55).toFixed(2);
+      item.style.setProperty('--dock-scale', scale);
+      item.style.setProperty('--dock-opacity', opacity);
+      item.style.zIndex = String(Math.round(40 - norm * 35));
+    });
+  }
+  let dockRaf = null;
+  function scheduleExhibitDock() {
+    if (dockRaf) return;
+    dockRaf = requestAnimationFrame(() => {
+      updateExhibitDock();
+      dockRaf = null;
+    });
+  }
+
+  // Pause auto when user scrolls manually + recompute dock
+  const exGrid = document.getElementById('exhibitsGrid');
+  if (exGrid) {
+    let scrollPauseTimer = null;
+    exGrid.addEventListener('scroll', () => {
+      scheduleExhibitDock();
+      if (!exhibitAutoOn) return;
+      stopExhibitAuto();
+      clearTimeout(scrollPauseTimer);
+      scrollPauseTimer = setTimeout(() => {
+        if (exhibitAutoOn) startExhibitAuto();
+      }, 3000);
+    }, { passive: true });
+  }
+  window.addEventListener('resize', scheduleExhibitDock);
+  // Initial layout pass after render
+  setTimeout(updateExhibitDock, 300);
+  setTimeout(updateExhibitDock, 900);
+
+  // Auto-play now starts/stops based on museum subroom state
+  // (see switchMuseumPane + exitMuseumSubroom below)
 
   // Render words gallery
   function renderWords() {
@@ -7492,11 +9584,23 @@ body[data-lang="en"] [data-th] { display: none; }
       const overlay = document.getElementById('room-museum');
       if (overlay) overlay.scrollTop = 0;
     }
+    // Start auto-play only when on objects pane; stop otherwise
+    if (target === 'objects') {
+      // Reset to first item + recompute dock + start auto after layout
+      setTimeout(() => {
+        scrollToExhibit(0);
+        updateExhibitDock();
+        if (exhibitAutoOn) startExhibitAuto();
+      }, 350);
+    } else {
+      stopExhibitAuto();
+    }
   }
   function exitMuseumSubroom() {
     if (museumInner) museumInner.classList.remove('subroom-active');
     const overlay = document.getElementById('room-museum');
     if (overlay) overlay.scrollTop = 0;
+    stopExhibitAuto();
   }
   document.querySelectorAll('.museum-tab').forEach(tab => {
     tab.addEventListener('click', () => switchMuseumPane(tab.dataset.pane, true));
@@ -7532,12 +9636,84 @@ body[data-lang="en"] [data-th] { display: none; }
       });
     });
 
-    // Fill SVG region on click
-    canvas.querySelectorAll('.cz').forEach(el => {
-      el.addEventListener('click', () => {
-        el.setAttribute('fill', currentColor);
+    // ---- Mandala SVG content per difficulty ----
+    function petalPath(d, rotate) {
+      return '<path class="cz" d="' + d + '" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(' + rotate + ' 200 200)"/>';
+    }
+    function buildEasy() {
+      // 8 zones total — chunky simple flower
+      let svg = '<circle class="cz" cx="200" cy="200" r="195" fill="#ffffff" stroke="#c19a6c" stroke-width="2"/>';
+      // 5 large petals
+      const petalD = 'M200 35 C 250 90, 250 150, 200 175 C 150 150, 150 90, 200 35 Z';
+      for (let i = 0; i < 5; i++) svg += petalPath(petalD, i * 72);
+      svg += '<circle class="cz" cx="200" cy="200" r="40" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5"/>';
+      svg += '<circle class="cz" cx="200" cy="200" r="18" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5"/>';
+      return svg;
+    }
+    function buildMedium() {
+      // ~19 zones — original
+      let svg = '<circle class="cz" cx="200" cy="200" r="195" fill="#ffffff" stroke="#c19a6c" stroke-width="2"/>';
+      const outerD = 'M200 30 C 230 60, 230 110, 200 130 C 170 110, 170 60, 200 30 Z';
+      for (let i = 0; i < 8; i++) svg += petalPath(outerD, i * 45);
+      const innerD = 'M200 130 C 220 150, 220 180, 200 195 C 180 180, 180 150, 200 130 Z';
+      for (let i = 0; i < 8; i++) svg += petalPath(innerD, 22.5 + i * 45);
+      svg += '<circle class="cz" cx="200" cy="200" r="42" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5"/>';
+      svg += '<circle class="cz" cx="200" cy="200" r="18" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5"/>';
+      return svg;
+    }
+    function buildHard() {
+      // ~45 zones — intricate, pixel-density feel
+      let svg = '<circle class="cz" cx="200" cy="200" r="195" fill="#ffffff" stroke="#c19a6c" stroke-width="2"/>';
+      // 12 outer slim petals
+      const outerD = 'M200 25 C 218 60, 218 110, 200 125 C 182 110, 182 60, 200 25 Z';
+      for (let i = 0; i < 12; i++) svg += petalPath(outerD, i * 30);
+      // 12 mid petals
+      const midD = 'M200 110 C 215 130, 215 160, 200 178 C 185 160, 185 130, 200 110 Z';
+      for (let i = 0; i < 12; i++) svg += petalPath(midD, 15 + i * 30);
+      // 8 inner small petals
+      const innerD = 'M200 155 C 210 168, 210 185, 200 193 C 190 185, 190 168, 200 155 Z';
+      for (let i = 0; i < 8; i++) svg += petalPath(innerD, i * 45);
+      // 8 dots around center as detail rings
+      for (let i = 0; i < 8; i++) {
+        const a = (i * 45) * Math.PI / 180;
+        const cx = 200 + Math.cos(a) * 78;
+        const cy = 200 + Math.sin(a) * 78;
+        svg += '<circle class="cz" cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="7" fill="#ffffff" stroke="#8b6f47" stroke-width="1.2"/>';
+      }
+      svg += '<circle class="cz" cx="200" cy="200" r="36" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5"/>';
+      svg += '<circle class="cz" cx="200" cy="200" r="22" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5"/>';
+      svg += '<circle class="cz" cx="200" cy="200" r="10" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5"/>';
+      return svg;
+    }
+    const BUILDERS = { easy: buildEasy, medium: buildMedium, hard: buildHard };
+
+    function bindClicks() {
+      canvas.querySelectorAll('.cz').forEach(el => {
+        el.addEventListener('click', () => {
+          el.setAttribute('fill', currentColor);
+          // Track for share/bookmark — count filled regions
+          const all = canvas.querySelectorAll('.cz');
+          let filled = 0;
+          all.forEach(c => { if (c.getAttribute('fill') !== '#ffffff') filled++; });
+          window._coloringLastDesc =
+            'ฉันระบายดอกไม้ในห้องนอนของฮีลใจ 24/7 (' + filled + '/' + all.length + ' ส่วน) — ใจสงบดีจัง 🌸';
+        });
       });
+    }
+
+    function setLevel(level) {
+      const fn = BUILDERS[level] || BUILDERS.medium;
+      canvas.innerHTML = fn();
+      bindClicks();
+      document.querySelectorAll('.color-level-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.level === level);
+      });
+    }
+    document.querySelectorAll('.color-level-btn').forEach(b => {
+      b.addEventListener('click', () => setLevel(b.dataset.level));
     });
+    // Initial bind on existing HTML mandala
+    bindClicks();
 
     // Reset — restore all to white
     resetBtn.addEventListener('click', () => {
@@ -7836,6 +10012,222 @@ body[data-lang="en"] [data-th] { display: none; }
     render();
   })();
 
+  // ============ Toast notification (used by share + bookmark) ============
+  let _toastEl = null;
+  let _toastTimer = null;
+  function showToast(msg, ms) {
+    if (!_toastEl) {
+      _toastEl = document.createElement('div');
+      _toastEl.className = 'toast';
+      document.body.appendChild(_toastEl);
+    }
+    _toastEl.textContent = msg;
+    _toastEl.classList.add('show');
+    if (_toastTimer) clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => _toastEl.classList.remove('show'), ms || 2200);
+  }
+
+  // ============ Generic share button (Web Share API + clipboard fallback) ============
+  function shareContent(title, text) {
+    const url = window.location.href.split('#')[0];
+    const fullText = text + '\n\n— จากเว็บ ฮีลใจ 24/7\n' + url;
+    if (navigator.share) {
+      navigator.share({ title, text: fullText, url }).then(() => {
+        showToast('แชร์เรียบร้อย 💗');
+      }).catch(() => {});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(fullText).then(() => {
+        showToast('คัดลอกไปคลิปบอร์ดแล้ว 💗 ไปแปะแชร์ได้เลย', 3000);
+      }).catch(() => {
+        prompt('คัดลอกข้อความนี้ไปแชร์:', fullText);
+      });
+    } else {
+      prompt('คัดลอกข้อความนี้ไปแชร์:', fullText);
+    }
+  }
+
+  // ============ Bookmark / Save system ============
+  const BOOKMARK_KEY = 'healjai_bookmarks_v1';
+  function loadBookmarks() {
+    try { return JSON.parse(localStorage.getItem(BOOKMARK_KEY) || '[]'); }
+    catch { return []; }
+  }
+  function saveBookmarks(arr) {
+    try { localStorage.setItem(BOOKMARK_KEY, JSON.stringify(arr)); } catch {}
+  }
+  function addBookmark(type, text, meta) {
+    const all = loadBookmarks();
+    const item = {
+      id: Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      type: type,
+      text: text,
+      meta: meta || '',
+      ts: new Date().toISOString(),
+    };
+    all.unshift(item);
+    if (all.length > 100) all.length = 100; // cap
+    saveBookmarks(all);
+    return item;
+  }
+  function removeBookmark(id) {
+    const all = loadBookmarks().filter(x => x.id !== id);
+    saveBookmarks(all);
+  }
+  function getBookmarkText(type) {
+    if (type === 'mu-fortune') return window._muLastBlessing || '';
+    if (type === 'mu-blessing') return window._muLastBlessing || 'พรจากห้องมู';
+    if (type === 'wheel') return window._wheelLastWin ? ('กิจกรรมจากวงล้อ: ' + window._wheelLastWin) : '';
+    if (type === 'community-fortune') return window._fortuneLastText || '';
+    if (type === 'release') return window._releaseLastResult || '';
+    if (type === 'coloring') return window._coloringLastDesc || 'งานระบายสีที่ฉันทำในห้องนอน';
+    if (type === 'tarot') return window._tarotLastDesc || 'ไพ่ที่ฉันเปิดในห้องชุมชน';
+    if (type === 'shop') return window._shopLastResult || '';
+    return '';
+  }
+  document.addEventListener('click', (e) => {
+    const bk = e.target.closest('.bookmark-btn');
+    if (!bk) return;
+    e.preventDefault();
+    const type = bk.dataset.bookmarkType;
+    const text = getBookmarkText(type);
+    if (!text) { showToast('ยังไม่มีข้อความให้บันทึก'); return; }
+    addBookmark(type, text);
+    bk.classList.add('saved');
+    bk.querySelectorAll('[data-th]').forEach(s => s.textContent = '✓ บันทึกแล้ว');
+    bk.querySelectorAll('[data-en]').forEach(s => s.textContent = '✓ Saved');
+    showToast('บันทึกในกล่องของฉันแล้ว 🔖');
+    updateBookmarkBadge();
+    setTimeout(() => {
+      bk.classList.remove('saved');
+      bk.querySelectorAll('[data-th]').forEach(s => s.textContent = '🔖 บันทึก');
+      bk.querySelectorAll('[data-en]').forEach(s => s.textContent = '🔖 Save');
+    }, 3500);
+  });
+
+  // Bookmark drawer — open / render / delete / share
+  function typeLabel(t) {
+    return ({
+      'mu-fortune': 'เซียมซีห้องมู',
+      'mu-blessing': 'พรห้องมู',
+      'wheel': 'วงล้อกิจกรรม',
+      'community-fortune': 'ไพ่ห้องชุมชน',
+      'release': 'ห้องระบาย',
+      'coloring': 'ระบายดอกไม้',
+      'tarot': 'ไพ่ทาโรต์',
+    })[t] || 'บันทึก';
+  }
+  function renderBookmarkList() {
+    const ul = document.getElementById('bookmarkList');
+    const empty = document.getElementById('bookmarkEmpty');
+    if (!ul || !empty) return;
+    const items = loadBookmarks();
+    ul.innerHTML = '';
+    if (!items.length) {
+      empty.hidden = false;
+      return;
+    }
+    empty.hidden = true;
+    items.forEach(it => {
+      const li = document.createElement('li');
+      li.className = 'bookmark-item';
+      const date = new Date(it.ts);
+      const dateStr = date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+      li.innerHTML =
+        '<div class="bookmark-item-meta">' + typeLabel(it.type) + ' · ' + dateStr + '</div>' +
+        '<div class="bookmark-item-text"></div>' +
+        '<div class="bookmark-item-actions">' +
+          '<button data-bm-share="' + it.id + '">📤 แชร์</button>' +
+          '<button data-bm-del="' + it.id + '">🗑 ลบ</button>' +
+        '</div>';
+      li.querySelector('.bookmark-item-text').textContent = it.text;
+      ul.appendChild(li);
+    });
+  }
+  function updateBookmarkBadge() {
+    const badge = document.getElementById('bookmarkBadge');
+    if (!badge) return;
+    const n = loadBookmarks().length;
+    if (n === 0) { badge.hidden = true; return; }
+    badge.hidden = false;
+    badge.textContent = n > 99 ? '99+' : String(n);
+  }
+  const bmModal = document.getElementById('bookmarkModal');
+  const bmOpen = document.getElementById('bookmarkOpen');
+  function closeBookmarkModal() {
+    if (!bmModal) return;
+    bmModal.classList.remove('show');
+    setTimeout(() => { bmModal.hidden = true; }, 350);
+    body.style.overflow = '';
+  }
+  // Expose globally so inline onclick attributes can call it (defensive fallback)
+  window.__closeBookmarkModal = closeBookmarkModal;
+  if (bmOpen && bmModal) {
+    bmOpen.addEventListener('click', () => {
+      renderBookmarkList();
+      bmModal.hidden = false;
+      requestAnimationFrame(() => bmModal.classList.add('show'));
+      body.style.overflow = 'hidden';
+    });
+    // Delegated handler for all clicks inside bookmark modal — close + delete + share
+    bmModal.addEventListener('click', (e) => {
+      if (e.target.closest('[data-close-bookmark]')) {
+        closeBookmarkModal();
+        return;
+      }
+      const del = e.target.closest('[data-bm-del]');
+      const sh = e.target.closest('[data-bm-share]');
+      if (del) {
+        removeBookmark(del.dataset.bmDel);
+        renderBookmarkList();
+        updateBookmarkBadge();
+        showToast('ลบแล้ว');
+      } else if (sh) {
+        const item = loadBookmarks().find(x => x.id === sh.dataset.bmShare);
+        if (item) shareContent('จากกล่องของฉัน · ฮีลใจ 24/7', item.text);
+      }
+    });
+    // Escape key also closes
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !bmModal.hidden && bmModal.classList.contains('show')) {
+        closeBookmarkModal();
+      }
+    });
+  }
+  updateBookmarkBadge();
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.share-btn');
+    if (!btn) return;
+    e.preventDefault();
+    const type = btn.dataset.shareType;
+    let title = 'ฮีลใจ 24/7';
+    let text = '';
+    if (type === 'wheel') {
+      text = 'วงล้อสุ่มกิจกรรมให้ฉัน: ' + (window._wheelLastWin || 'ออกไปข้างนอกกันเถอะ');
+      title = 'วันนี้ออกไปทำอะไรดี?';
+    } else if (type === 'fortune') {
+      text = window._fortuneLastText || 'มาดูดวงในเว็บฮีลใจ 24/7 กันเถอะ';
+      title = 'คำใบ้จากเซียมซีวันนี้';
+    } else if (type === 'mu') {
+      text = window._muLastBlessing || 'ไหว้พระสบายใจ ฮีลใจ 24/7';
+      title = 'พรจากห้องมู';
+    } else if (type === 'release') {
+      text = window._releaseLastResult || 'ฉันระบายของไปที่ห้องระบายของฮีลใจ 24/7 — ใจเบาขึ้นเยอะ 🤍';
+      title = 'ผลห้องระบาย';
+    } else if (type === 'coloring') {
+      text = window._coloringLastDesc || 'ฉันเพิ่งระบายดอกไม้ในห้องนอนของฮีลใจ 24/7 ใจสงบดีจัง 🌸';
+      title = 'งานระบายสีของฉัน';
+    } else if (type === 'tarot') {
+      text = window._tarotLastDesc || 'ไพ่ที่ฉันเปิดในห้องชุมชน — ฮีลใจ 24/7';
+      title = 'ไพ่ของฉันวันนี้';
+    } else if (type === 'shop') {
+      text = window._shopLastResult || 'ฉันช้อปในห้องช้อปสบายใจของฮีลใจ 24/7 ใจฟู 🛍✨';
+      title = 'ช้อปสบายใจ';
+    } else {
+      text = 'ฮีลใจ 24/7 — เว็บฮีลใจสำหรับคนเมือง';
+    }
+    shareContent(title, text);
+  });
+
   // ============ Privacy Policy modal ============
   const privacyModal = document.getElementById('privacyModal');
   document.querySelectorAll('[data-open-privacy]').forEach(b => {
@@ -7910,10 +10302,10 @@ body[data-lang="en"] [data-th] { display: none; }
       pet:   { img: 'cat-belly.jpg', particle: '🤍', count: 6, sound: 'purr',
                th: '🤍 เพื่อนตัวน้อยตัวนิ่ม สุขใจมาก — เธอด้วยนะ',
                en: '🤍 Soft little friend, happy and loved — you too.' },
-      feed:  { img: 'cat-eat.jpg', particle: '🐟', count: 4, sound: null,
+      feed:  { img: 'cat-eat.jpg', particle: '🐟', count: 4, sound: 'crunch',
                th: '🍽 อิ่มท้องแล้ว ไปหาคุณข้าวให้ตัวเองด้วยนะ',
                en: '🍽 Belly full. Don\'t forget to feed yourself too.' },
-      play:  { img: 'cat-play.jpg', particle: '🎵', count: 5, sound: null,
+      play:  { img: 'cat-play.jpg', particle: '🎵', count: 5, sound: 'jingle',
                th: '🧶 เล่นกับใครสักคนทำให้ใจเบาขึ้น แม้แค่ 5 นาที',
                en: '🧶 Even 5 minutes of play lightens the heart.' },
       watch: { img: 'cat-sleep.jpg', particle: '💤', count: 3, sound: 'purr',
@@ -8012,6 +10404,53 @@ body[data-lang="en"] [data-th] { display: none; }
       purrTimeoutId = setTimeout(() => { purrTimeoutId = null; }, durationMs);
     }
 
+    // ----- Crunch (feed) — short bursts of filtered noise -----
+    function playCrunch() {
+      const ctx = ensureAudioCtx();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      for (let k = 0; k < 4; k++) {
+        const t0 = now + k * 0.18;
+        const buf = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        const filt = ctx.createBiquadFilter();
+        filt.type = 'bandpass';
+        filt.frequency.value = 1800 + Math.random() * 600;
+        filt.Q.value = 1.4;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0, t0);
+        g.gain.linearRampToValueAtTime(0.08, t0 + 0.005);
+        g.gain.linearRampToValueAtTime(0, t0 + 0.08);
+        src.connect(filt); filt.connect(g); g.connect(ctx.destination);
+        src.start(t0);
+        src.stop(t0 + 0.1);
+      }
+    }
+
+    // ----- Jingle (play) — soft bell-like chime -----
+    function playJingle() {
+      const ctx = ensureAudioCtx();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const notes = [880, 1175, 988];
+      notes.forEach((freq, k) => {
+        const t0 = now + k * 0.12;
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0, t0);
+        g.gain.linearRampToValueAtTime(0.10, t0 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.5);
+        osc.connect(g); g.connect(ctx.destination);
+        osc.start(t0);
+        osc.stop(t0 + 0.55);
+      });
+    }
+
     // ----- Trigger an action (button click) — sets new base pose -----
     function triggerAction(action) {
       const state = CAT_STATES[action];
@@ -8029,7 +10468,14 @@ body[data-lang="en"] [data-th] { display: none; }
       });
 
       spawnParticles(state.particle, state.count);
-      if (state.sound === 'purr') playPurr(2000);
+      if (state.sound === 'purr')   playPurr(2000);
+      if (state.sound === 'crunch') playCrunch();
+      if (state.sound === 'jingle') playJingle();
+      // Subtle wiggle reaction on every action
+      catImg.classList.remove('wiggle');
+      // force reflow so animation restarts
+      void catImg.offsetWidth;
+      catImg.classList.add('wiggle');
 
       catImg.classList.add('swapping');
       catMsg.classList.add('swapping');
@@ -8131,6 +10577,278 @@ body[data-lang="en"] [data-th] { display: none; }
         'เพื่อนตัวน้อยรอเธออยู่ — ลองลูบหัว ลูบหลัง หรือจิ้มพุงดูสิ',
         'Your little companion is here — try petting head, back, or belly'
       );
+    };
+  })();
+
+  // ============================================================
+  // ห้องระบาย — Throwing game (release stress, HealJai vibe)
+  // ============================================================
+  (function initReleaseRoom() {
+    const setup = document.getElementById('releaseSetup');
+    const play = document.getElementById('releasePlay');
+    const result = document.getElementById('releaseResult');
+    if (!setup) return;
+
+    const ITEMS = {
+      office:  [
+        { e: '📄', name_th: 'กระดาษ', name_en: 'paper' },
+        { e: '📎', name_th: 'คลิป', name_en: 'paper clip' },
+        { e: '📌', name_th: 'หมุด', name_en: 'pin' },
+        { e: '✏️', name_th: 'ดินสอ', name_en: 'pencil' },
+        { e: '🖨', name_th: 'ปริ้นเตอร์', name_en: 'printer' },
+        { e: '💻', name_th: 'แล็ปท็อป', name_en: 'laptop' },
+        { e: '☕', name_th: 'แก้วกาแฟ', name_en: 'coffee mug' },
+        { e: '🗂', name_th: 'แฟ้ม', name_en: 'folder' },
+      ],
+      kitchen: [
+        { e: '🍽', name_th: 'จาน', name_en: 'plate' },
+        { e: '🥣', name_th: 'ชาม', name_en: 'bowl' },
+        { e: '🥄', name_th: 'ช้อน', name_en: 'spoon' },
+        { e: '🍴', name_th: 'ส้อม', name_en: 'fork' },
+        { e: '🥢', name_th: 'ตะเกียบ', name_en: 'chopsticks' },
+        { e: '🥃', name_th: 'แก้ว', name_en: 'glass' },
+        { e: '🍳', name_th: 'กระทะ', name_en: 'pan' },
+        { e: '🧂', name_th: 'ขวดเกลือ', name_en: 'salt' },
+      ],
+      bedroom: [
+        { e: '🛏', name_th: 'หมอน', name_en: 'pillow' },
+        { e: '🧸', name_th: 'ตุ๊กตาหมี', name_en: 'plush bear' },
+        { e: '⏰', name_th: 'นาฬิกาปลุก', name_en: 'alarm clock' },
+        { e: '📚', name_th: 'หนังสือ', name_en: 'book' },
+        { e: '📱', name_th: 'มือถือเก่า', name_en: 'old phone' },
+        { e: '🕯', name_th: 'เทียน', name_en: 'candle' },
+        { e: '🪞', name_th: 'กระจก', name_en: 'mirror' },
+        { e: '🧦', name_th: 'ถุงเท้าข้างเดียว', name_en: 'lone sock' },
+      ],
+    };
+    const PLACE_LABELS = {
+      office: { th: 'ออฟฟิศ', en: 'Office' },
+      kitchen: { th: 'ครัวที่บ้าน', en: 'Kitchen' },
+      bedroom: { th: 'ห้องนอน', en: 'Bedroom' },
+    };
+    const SPLASHES = ['💥', '✨', '💨', '🌬', '💫'];
+
+    let currentPlace = 'office';
+    let currentTime = 15;
+    let throwCount = 0;
+    let breakdown = {};
+    let timeLeft = 0;
+    let gameTimer = null;
+    let timeInterval = null;
+
+    function show(stage) {
+      setup.hidden = stage !== 'setup';
+      play.hidden  = stage !== 'play';
+      result.hidden = stage !== 'result';
+      const overlay = document.getElementById('room-scream');
+      if (overlay) overlay.scrollTop = 0;
+    }
+
+    // Setup pickers
+    document.querySelectorAll('.release-place').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('.release-place').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        currentPlace = b.dataset.place;
+      });
+    });
+    document.querySelectorAll('.release-time').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('.release-time').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        currentTime = parseInt(b.dataset.time, 10);
+      });
+    });
+
+    // Start game
+    document.getElementById('releaseStart').addEventListener('click', startGame);
+
+    function startGame() {
+      throwCount = 0;
+      breakdown = {};
+      timeLeft = currentTime;
+      const scene = document.getElementById('releaseScene');
+      scene.className = 'release-scene scene-' + currentPlace;
+      scene.classList.remove('played');
+      scene.innerHTML = '<div class="scene-hint"><span data-th>👆 แตะที่ใดก็ได้บนฉาก — ปาให้ปลดปล่อย</span><span data-en>👆 Tap anywhere on the scene — throw to release</span></div>';
+      document.getElementById('throwCount').textContent = '0';
+      document.getElementById('throwTime').textContent = fmtTimeSec(timeLeft);
+      show('play');
+      // Re-apply lang on the freshly rendered scene-hint
+      const lang = body.dataset.lang || 'th';
+      scene.querySelectorAll('[data-th]').forEach(s => s.style.display = lang === 'th' ? '' : 'none');
+      scene.querySelectorAll('[data-en]').forEach(s => s.style.display = lang === 'en' ? '' : 'none');
+
+      timeInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('throwTime').textContent = fmtTimeSec(timeLeft);
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function fmtTimeSec(s) {
+      const sec = Math.max(0, s);
+      if (sec < 60) return sec + 'วิ';
+      return Math.floor(sec/60) + ':' + (sec%60).toString().padStart(2,'0');
+    }
+
+    // Scene tap = throw an item
+    document.getElementById('releaseScene').addEventListener('click', (e) => {
+      if (timeLeft <= 0) return;
+      const scene = e.currentTarget;
+      scene.classList.add('played');
+      const rect = scene.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const items = ITEMS[currentPlace];
+      const item = items[Math.floor(Math.random() * items.length)];
+
+      // Create thrown item element
+      const el = document.createElement('div');
+      el.className = 'thrown-item';
+      el.textContent = item.e;
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      scene.appendChild(el);
+
+      // Splash at landing
+      setTimeout(() => {
+        const splash = document.createElement('div');
+        splash.className = 'throw-splash';
+        splash.textContent = SPLASHES[Math.floor(Math.random() * SPLASHES.length)];
+        splash.style.left = (x + (Math.random()-0.5)*30) + 'px';
+        splash.style.top  = (y - 60) + 'px';
+        scene.appendChild(splash);
+        setTimeout(() => splash.remove(), 700);
+      }, 650);
+
+      // Cleanup after animation
+      setTimeout(() => el.remove(), 1000);
+
+      // Update counter
+      throwCount++;
+      document.getElementById('throwCount').textContent = throwCount;
+      breakdown[item.name_th] = breakdown[item.name_th] || { count: 0, e: item.e, name_en: item.name_en };
+      breakdown[item.name_th].count++;
+
+      // Soft vibration on mobile
+      if (navigator.vibrate) navigator.vibrate(15);
+    });
+
+    document.getElementById('releaseStop').addEventListener('click', endGame);
+
+    function endGame() {
+      if (timeInterval) clearInterval(timeInterval);
+      timeInterval = null;
+      timeLeft = 0;
+      // Build result
+      document.getElementById('resultTotal').textContent = throwCount;
+      document.getElementById('resultTotalEn').textContent = throwCount;
+      const grid = document.getElementById('releaseBreakdown');
+      const lang = body.dataset.lang || 'th';
+      const rows = Object.entries(breakdown)
+        .sort((a, b) => b[1].count - a[1].count)
+        .map(([name, d]) => `
+          <div class="breakdown-row">
+            <span>${d.e} ${lang === 'th' ? name : d.name_en}</span>
+            <span class="br-count">× ${d.count}</span>
+          </div>
+        `).join('');
+      grid.innerHTML = rows || '<p class="breakdown-row"><em>—</em></p>';
+
+      // Save for share button
+      window._releaseLastResult = `ฉันระบายของไป ${throwCount} ชิ้นในห้องระบาย (${PLACE_LABELS[currentPlace].th}) ใจเบาขึ้นเยอะ 🤍`;
+
+      show('result');
+      // hide name entry initially
+      document.getElementById('releaseNameEntry').hidden = true;
+    }
+
+    // "Still heavy" → restart same settings
+    document.getElementById('releaseStillHeavy').addEventListener('click', startGame);
+
+    // "Feeling lighter" → show name entry for leaderboard
+    document.getElementById('releaseDone').addEventListener('click', () => {
+      document.getElementById('releaseNameEntry').hidden = false;
+      document.getElementById('releaseDone').style.display = 'none';
+      document.getElementById('releaseStillHeavy').style.display = 'none';
+      // scroll to name entry
+      document.getElementById('releaseNameEntry').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // Save score
+    document.getElementById('releaseSaveScore').addEventListener('click', () => {
+      const name = document.getElementById('releaseNameInput').value.trim() || 'ไม่ระบุ';
+      saveScore(name, throwCount, currentPlace, currentTime);
+      finishResult();
+    });
+    document.getElementById('releaseSkipSave').addEventListener('click', finishResult);
+
+    function finishResult() {
+      // Reset for next time
+      document.getElementById('releaseNameEntry').hidden = true;
+      document.getElementById('releaseDone').style.display = '';
+      document.getElementById('releaseStillHeavy').style.display = '';
+      // Return to setup
+      show('setup');
+      renderLeaderboard();
+    }
+
+    // ===== Leaderboard via localStorage =====
+    const LB_KEY = 'throwLeaderboard';
+    function getLB() {
+      try { return JSON.parse(localStorage.getItem(LB_KEY) || '[]'); }
+      catch (_) { return []; }
+    }
+    function saveScore(name, score, place, time) {
+      const lb = getLB();
+      lb.push({ name, score, place, time, date: new Date().toISOString().split('T')[0] });
+      lb.sort((a, b) => b.score - a.score);
+      localStorage.setItem(LB_KEY, JSON.stringify(lb.slice(0, 10)));
+    }
+    function renderLeaderboard() {
+      const list = document.getElementById('leaderboardList');
+      const empty = document.getElementById('leaderboardEmpty');
+      const lb = getLB();
+      if (!lb.length) {
+        list.innerHTML = '';
+        empty.hidden = false;
+        return;
+      }
+      empty.hidden = true;
+      const lang = body.dataset.lang || 'th';
+      list.innerHTML = lb.map((s, i) => {
+        const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+        const placeLabel = PLACE_LABELS[s.place] ? PLACE_LABELS[s.place][lang] : s.place;
+        return `
+          <li>
+            <span class="lb-rank ${rankClass}">${i + 1}</span>
+            <span class="lb-name">${escapeHtml(s.name)}</span>
+            <span class="lb-meta">${placeLabel} · ${s.time}${lang === 'th' ? 'วิ' : 's'}</span>
+            <span class="lb-score">${s.score}</span>
+          </li>
+        `;
+      }).join('');
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/[<>&"]/g, c => ({ '<':'&lt;', '>':'&gt;', '&':'&amp;', '"':'&quot;' }[c]));
+    }
+
+    // Initial render
+    renderLeaderboard();
+
+    // Reset when room opens
+    window.resetRelease = function() {
+      if (timeInterval) clearInterval(timeInterval);
+      timeInterval = null;
+      throwCount = 0;
+      breakdown = {};
+      timeLeft = 0;
+      show('setup');
+      renderLeaderboard();
     };
   })();
 
@@ -8805,6 +11523,8 @@ body[data-lang="en"] [data-th] { display: none; }
       document.getElementById('fortuneMsgRoom').innerHTML =
         '<span data-th>' + f.th + '</span><span data-en>' + f.en + '</span>';
       document.getElementById('fortuneResultRoom').classList.add('show');
+      // Save for share button
+      window._fortuneLastText = '✦ ' + f.head_th + '\n' + f.th;
     }, 650);
   }
   function resetFortune() {
