@@ -5608,16 +5608,16 @@ body[data-lang="en"] [data-th] { display: none; }
         </div>
       </div>
 
-      <!-- Pin 6: ห้องระบาย (LIVE — throwing game) -->
-      <div class="pin pin-6" data-room="scream" data-status="live">
-        <span class="pin-pulse"></span>
+      <!-- Pin 6: ห้องระบาย (SOON — ปิดปรับปรุง) -->
+      <div class="pin pin-6" data-room="scream" data-status="soon">
         <svg class="pin-svg" viewBox="0 0 32 48" xmlns="http://www.w3.org/2000/svg">
-          <path d="M16 0 C7.2 0 0 7.2 0 16 C0 28 16 48 16 48 C16 48 32 28 32 16 C32 7.2 24.8 0 16 0 Z" fill="#D8523F"/>
+          <path d="M16 0 C7.2 0 0 7.2 0 16 C0 28 16 48 16 48 C16 48 32 28 32 16 C32 7.2 24.8 0 16 0 Z" fill="#C0B5A0"/>
           <circle cx="16" cy="16" r="6" fill="#FEFCF9"/>
         </svg>
+        <span class="uc-badge"><span data-th>Under Construction</span><span data-en>Under Construction</span></span>
         <div class="pin-preview">
           <div class="pin-preview-title"><span data-th>ห้องระบาย</span><span data-en>Release Room</span></div>
-          <div class="pin-preview-tags"><span data-th>ขว้างปา · คลายเครียด · ระบายออก</span><span data-en>Throw · release · breathe</span></div>
+          <p class="pin-preview-coming"><span data-th>🌱 ปิดปรับปรุง</span><span data-en>🌱 Under renovation</span></p>
         </div>
       </div>
 
@@ -7511,8 +7511,8 @@ body[data-lang="en"] [data-th] { display: none; }
   // ============ COMING SOON ============
   const SOON_INFO = {
     scream: {
-      th: { title: 'ห้องกรี๊ด', msg: 'พื้นที่สำหรับปล่อยอารมณ์เต็มที่กำลังถูกสร้าง — รอเปิดในเร็วๆ นี้ 🌱' },
-      en: { title: 'Scream Room', msg: 'A space to let it all out is being built — opening soon 🌱' },
+      th: { title: 'ห้องระบาย', msg: 'พื้นที่ระบายของในใจกำลังปรับปรุง — เรากำลังหาวิธีที่ฮีลใจกว่าให้นะ 🌱' },
+      en: { title: 'Release Room', msg: 'The release space is being reworked — we\'re crafting a gentler way to let it out 🌱' },
     },
     sponsor: {
       th: { title: 'ร้านไว้ใจ', msg: 'พื้นที่สนับสนุนโครงการกำลังถูกเตรียม — รอเปิดในเร็วๆ นี้ 🌱' },
