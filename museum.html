@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ฮีลใจ 24/7 — Heal 24/7</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+
+<!-- =========================================================
+     CLOUDFLARE WEB ANALYTICS — Privacy-friendly, cookie-free
+     SETUP:
+     1) Go to https://www.cloudflare.com/web-analytics/ → sign up (free)
+     2) Add your site (e.g. healjai247.netlify.app or your own domain)
+     3) Copy the <script> snippet Cloudflare gives you
+     4) REPLACE the placeholder line below with that snippet
+        — it will look like:
+        <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token":"YOUR_REAL_TOKEN"}'></script>
+     ========================================================= -->
+<!-- <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token":"PASTE_YOUR_TOKEN_HERE"}'></script> -->
+
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body data-lang="th" data-page="museum">
+<div class="main visible" id="main">
+  <header>
+    <div class="brand">
+      <span class="heart">♥</span>
+      <span data-th>ฮีลใจ 24/7</span>
+      <span data-en>Heal 24/7</span>
+    </div>
+    <div class="header-actions">
+      <button class="music-toggle" id="musicToggle" aria-label="Music menu">
+        <span class="music-icon-pulse">♪</span>
+      </button>
+      <!-- Music dropdown menu -->
+      <div class="music-menu" id="musicMenu">
+        <div class="music-menu-title">
+          <span data-th>เลือกเพลง</span><span data-en>Choose track</span>
+        </div>
+        <button class="track-btn active" data-track="1" data-src="assets/audio/theme.mp3">
+          <span class="track-dot"></span>
+          <span>Land of Smiles</span>
+          <span class="track-meta">main</span>
+        </button>
+        <button class="track-btn" data-track="2" data-src="assets/audio/morning-heart.mp3">
+          <span class="track-dot"></span>
+          <span>Morning Heart</span>
+        </button>
+        <button class="track-btn" data-track="3" data-src="assets/audio/rainy-window.mp3">
+          <span class="track-dot"></span>
+          <span>Rainy Window</span>
+        </button>
+        <button class="track-btn" data-track="4" data-src="assets/audio/temple-at-dusk.mp3">
+          <span class="track-dot"></span>
+          <span>Temple at Dusk</span>
+        </button>
+        <button class="track-btn pause-btn" id="pauseTrack">
+          <span>⏸</span>
+          <span data-th>หยุดเพลง</span><span data-en>Pause</span>
+        </button>
+      </div>
+      <button class="lang-toggle" id="bookmarkOpen" aria-label="กล่องบันทึก">
+        <span style="font-size:16px;line-height:1">🔖</span>
+        <span class="bookmark-badge" id="bookmarkBadge" hidden>0</span>
+      </button>
+      <button class="lang-toggle" id="langToggle">
+        <span data-th>EN</span><span data-en>TH</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Bookmark drawer (saved items list) -->
+  <div class="bookmark-modal" id="bookmarkModal" hidden>
+    <div class="bookmark-backdrop" data-close-bookmark onclick="window.__closeBookmarkModal && window.__closeBookmarkModal()"></div>
+    <div class="bookmark-panel">
+      <div class="bookmark-head">
+        <h3 class="bookmark-title">
+          🔖 <span data-th>กล่องของฉัน</span><span data-en>My collection</span>
+        </h3>
+        <button class="bookmark-close" data-close-bookmark aria-label="ปิด" type="button" onclick="window.__closeBookmarkModal && window.__closeBookmarkModal()">✕</button>
+      </div>
+      <p class="bookmark-sub">
+        <span data-th>ทุกอย่างที่เธอบันทึกไว้ — เก็บในเครื่องนี้เท่านั้น ไม่ส่งไปไหน</span>
+        <span data-en>Everything you saved — stored only on this device</span>
+      </p>
+      <ul class="bookmark-list" id="bookmarkList"></ul>
+      <div class="bookmark-empty" id="bookmarkEmpty" hidden>
+        <div class="bookmark-empty-icon">📭</div>
+        <p>
+          <span data-th>ยังไม่มีอะไรในกล่อง — ไปกดปุ่ม 🔖 ตามที่ต่างๆ ในเว็บ เพื่อเก็บคำดีๆ ไว้ที่นี่</span>
+          <span data-en>Nothing here yet — hit 🔖 on cards across the site to save your favorites</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Background music (single audio element, src changes with track switch) -->
+  <audio id="bgMusic" src="assets/audio/theme.mp3" loop preload="auto"></audio>
+
+  <footer>
+    <span data-th>© 2026 ฮีลใจ 24/7 — สำหรับคนเมืองที่อยากมีที่ฮีลใจ</span>
+    <span data-en>© 2026 Heal 24/7 — for everyone who needs a place to come back to</span>
+    <br>
+    <button class="footer-link" data-open-privacy>
+      <span data-th>นโยบายความเป็นส่วนตัว (PDPA)</span><span data-en>Privacy Policy (PDPA)</span>
+    </button>
+  </footer>
+
+  <!-- Privacy Policy modal -->
+  <div class="privacy-modal" id="privacyModal">
+    <div class="privacy-card">
+      <button class="privacy-close" data-close-privacy aria-label="ปิด">✕</button>
+      <h2 class="privacy-title">
+        <span data-th>นโยบายความเป็นส่วนตัว</span><span data-en>Privacy Policy</span>
+      </h2>
+      <p class="privacy-updated">
+        <span data-th>อัพเดทล่าสุด: 15 พฤษภาคม 2569</span><span data-en>Last updated: 15 May 2026</span>
+      </p>
+
+      <div class="privacy-body" data-th>
+        <h3>1. เราเก็บข้อมูลอะไร</h3>
+        <p>ฮีลใจ 24/7 เป็นเว็บไซต์ที่ออกแบบมาให้ <strong>ใช้งานได้แบบไม่ต้องล็อกอิน</strong> เราเก็บข้อมูลน้อยที่สุดเท่าที่จำเป็น:</p>
+        <ul>
+          <li><strong>ข้อมูลการเข้าชม (Analytics):</strong> จำนวน visitors · หน้าที่เข้า · ประเทศ · browser · device type — รวบรวมผ่าน Cloudflare Web Analytics โดยไม่ใช้ cookie ไม่ระบุตัวตน</li>
+          <li><strong>ข้อมูลที่คุณกรอกใน Google Form:</strong> เมื่อคุณตอบแบบสำรวจ "คุณฮีลใจยังไง?" หรือ "ฝากคำพูดในพิพิธภัณฑ์" Google จะเก็บคำตอบของคุณ (อยู่ภายใต้ Google Privacy Policy)</li>
+          <li><strong>การตั้งค่าในเครื่อง (localStorage):</strong> เช่น aesthetic ห้องที่เลือก (cozy/loft), ข้อความที่เขียนถึงตัวเอง — เก็บไว้ในเบราเซอร์คุณเท่านั้น เราเข้าไม่ถึง</li>
+        </ul>
+
+        <h3>2. เราไม่ทำอะไรกับข้อมูล</h3>
+        <ul>
+          <li>เราไม่ขายข้อมูลคุณให้ third party</li>
+          <li>เราไม่ใช้ cookie tracking ข้ามเว็บ</li>
+          <li>เราไม่เก็บ IP address หรือข้อมูลระบุตัวบุคคล</li>
+          <li>ข้อความที่คุณเขียนถึงตัวเองอยู่ในเบราเซอร์คุณคนเดียว ไม่ส่งไปไหน</li>
+        </ul>
+
+        <h3>3. สิทธิ์ของคุณ (PDPA)</h3>
+        <p>ภายใต้พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA) คุณมีสิทธิ์:</p>
+        <ul>
+          <li>เข้าถึงข้อมูลที่เราเก็บเกี่ยวกับคุณ</li>
+          <li>ขอให้ลบข้อมูลของคุณออก</li>
+          <li>ถอนความยินยอม</li>
+          <li>ร้องเรียนต่อสำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล</li>
+        </ul>
+
+        <h3>4. ข้อจำกัด</h3>
+        <p>ฮีลใจ 24/7 เป็นพื้นที่ฮีลใจเบื้องต้น <strong>ไม่ใช่บริการจิตวิทยาวิชาชีพ</strong> ถ้าคุณอยู่ในวิกฤต โปรดติดต่อ <strong>1323</strong> (สายด่วนสุขภาพจิต 24 ชม.) หรือ <strong>1667</strong> (สะมาริตันส์)</p>
+
+        <h3>5. ติดต่อเรา</h3>
+        <p>ถ้ามีข้อสงสัยเรื่องข้อมูลส่วนบุคคล ส่งอีเมลถึง <strong>sandotnim.jako@gmail.com</strong></p>
+      </div>
+
+      <div class="privacy-body" data-en>
+        <h3>1. What we collect</h3>
+        <p>Heal 24/7 is designed to work <strong>without requiring login</strong>. We collect the bare minimum:</p>
+        <ul>
+          <li><strong>Visit analytics:</strong> visitor count, pages viewed, country, browser, device type — via Cloudflare Web Analytics, no cookies, anonymous.</li>
+          <li><strong>Google Form submissions:</strong> when you fill out the "How do you heal?" survey or submit words for the museum wall, Google stores your responses (under Google's Privacy Policy).</li>
+          <li><strong>Local browser storage:</strong> aesthetic preference (cozy/loft), your private journal entries — stored only in your browser. We cannot access these.</li>
+        </ul>
+
+        <h3>2. What we never do</h3>
+        <ul>
+          <li>We don't sell your data to third parties</li>
+          <li>We don't use cross-site tracking cookies</li>
+          <li>We don't store IP addresses or personal identifiers</li>
+          <li>Your journal entries stay in your browser only — they never leave your device</li>
+        </ul>
+
+        <h3>3. Your rights (PDPA)</h3>
+        <p>Under Thailand's Personal Data Protection Act (PDPA, 2019), you have the right to:</p>
+        <ul>
+          <li>Access data we hold about you</li>
+          <li>Request data deletion</li>
+          <li>Withdraw consent</li>
+          <li>File a complaint with the Personal Data Protection Committee</li>
+        </ul>
+
+        <h3>4. Limitations</h3>
+        <p>Heal 24/7 is a gentle everyday-healing space, <strong>not a professional psychology service</strong>. If you're in crisis, please contact <strong>1323</strong> (Mental Health Hotline, 24/7) or <strong>1667</strong> (Samaritans).</p>
+
+        <h3>5. Contact</h3>
+        <p>For privacy questions, email <strong>sandotnim.jako@gmail.com</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="room-overlay active" id="room-museum">
+  <a class="close-btn" href="index.html" aria-label="Back to map">✕</a>
+  <div class="room-content">
+    <div class="museum-inner">
+      <button class="subroom-back" data-subroom-back>
+        ← <span data-th>กลับเข้าพิพิธภัณฑ์</span><span data-en>Back to museum</span>
+      </button>
+      <span class="room-eyebrow"><span data-th>ห้องที่ 3 · พิพิธภัณฑ์ฮีลใจ</span><span data-en>Room 03 · Heal Museum</span></span>
+      <h2 class="room-title"><span data-th>พิพิธภัณฑ์ฮีลใจ</span><span data-en>The Heal Museum</span></h2>
+      <p class="room-subtitle">
+        <span data-th>นิทรรศการของจริง — ของที่เคยอุ้มไว้ และคำที่เคยช่วยให้ใครคนหนึ่งเดินต่อ</span>
+        <span data-en>An exhibition of things once held tight, and words that helped someone move forward.</span>
+      </p>
+
+      <!-- Illustrated museum with clickable hotspots (2 zones) -->
+      <div class="room-stage room-stage-museum">
+        <img class="room-illustration" src="assets/images/room-museum.jpg" alt="พิพิธภัณฑ์ฮีลใจ"/>
+        <button class="hotspot" data-mpane="objects">
+          <span class="hotspot-dot"></span>
+          <span class="hotspot-label" data-th>📦 พิพิธภัณฑ์ภาพฮีลใจ</span><span class="hotspot-label" data-en>📦 Museum of healing things</span>
+        </button>
+        <button class="hotspot" data-mpane="words">
+          <span class="hotspot-dot"></span>
+          <span class="hotspot-label" data-th>💌 คำพูดบนผนัง</span><span class="hotspot-label" data-en>💌 Wall of words</span>
+        </button>
+      </div>
+
+      <!-- Tabs removed — hotspots on illustration are the only navigation. -->
+      <div class="museum-tabs" hidden aria-hidden="true">
+        <button class="museum-tab active" data-pane="objects"></button>
+        <button class="museum-tab" data-pane="words"></button>
+      </div>
+
+      <!-- Pane 1: Exhibits — horizontal slide -->
+      <div class="gallery-pane active" id="pane-objects">
+        <div class="exhibit-nav">
+          <button class="exhibit-nav-btn" id="exhibitPrev" aria-label="ก่อนหน้า">←</button>
+          <div class="exhibit-nav-dots" id="exhibitDots"></div>
+          <button class="exhibit-nav-btn" id="exhibitNext" aria-label="ถัดไป">→</button>
+          <button class="exhibit-auto-toggle on" id="exhibitAutoToggle">
+            <span data-th>⏸ หยุดเลื่อน</span><span data-en>⏸ Pause</span>
+          </button>
+        </div>
+        <div class="exhibits" id="exhibitsGrid"></div>
+
+        <div class="submit-cta">
+          <div class="submit-cta-icon">📦</div>
+          <div class="submit-cta-title">
+            <span data-th>มีของที่อยากให้จัดแสดง?</span>
+            <span data-en>Have something to exhibit?</span>
+          </div>
+          <div class="submit-cta-sub">
+            <span data-th>ส่งรูป + เรื่องของคุณ — ภัณฑารักษ์จะคัดมาแสดง 1-2 วัน</span>
+            <span data-en>Submit a photo + story — the curator selects within 1–2 days</span>
+          </div>
+          <button class="submit-cta-btn" data-submit-type="object">
+            <span data-th>ส่งของของฉัน</span><span data-en>Submit yours</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Pane 2: Words — reuse .exhibits layout (proven safe on mobile) -->
+      <div class="gallery-pane" id="pane-words">
+        <div class="exhibits words-as-exhibits" id="wordsGrid"></div>
+
+        <div class="submit-cta">
+          <div class="submit-cta-icon">💌</div>
+          <div class="submit-cta-title">
+            <span data-th>มีคำที่อยากฝากไว้บนผนัง?</span>
+            <span data-en>Have words to leave on the wall?</span>
+          </div>
+          <div class="submit-cta-sub">
+            <span data-th>คำที่อยากบอกใครสักคน · ความหวัง · คำขอบคุณ — ทีมงานจะคัดมาขึ้นแสดง (ไม่ระบุตัวตน)</span>
+            <span data-en>Words for someone, hope, thanks — we curate and post anonymously.</span>
+          </div>
+          <a class="submit-cta-btn"
+             href="https://docs.google.com/forms/d/e/1FAIpQLSf603ePmxbR1QFI_-UKHj1adzbsxxaQySrP4KWzd-HG_rMYWA/viewform"
+             target="_blank" rel="noopener">
+            ✉️ <span data-th>ฝากคำของฉัน</span><span data-en>Leave my words</span>
+          </a>
+        </div>
+      </div>
+
+      <nav class="room-nav room-nav-simple">
+        <a class="nav-btn map" href="index.html">← <span data-th>กลับแผนที่</span><span data-en>Back to map</span></a>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<!-- Exhibit detail modal (shows full story when a frame is clicked) -->
+<div class="exhibit-modal" id="exhibitModal">
+  <div class="exhibit-detail">
+    <button class="exhibit-detail-close" data-exhibit-close aria-label="Close">✕</button>
+    <div class="exhibit-detail-frame">
+      <div class="exhibit-detail-mat">
+        <img class="exhibit-detail-photo" id="exhibitDetailPhoto" src="" alt="">
+      </div>
+    </div>
+    <div class="exhibit-detail-body">
+      <div class="exhibit-detail-eyebrow" id="exhibitDetailEyebrow"></div>
+      <h3 class="exhibit-detail-title" id="exhibitDetailTitle"></h3>
+      <div class="exhibit-detail-meta" id="exhibitDetailMeta"></div>
+      <p class="exhibit-detail-story" id="exhibitDetailStory"></p>
+      <div class="exhibit-detail-author" id="exhibitDetailAuthor"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SUBMIT MODAL (museum) ============ -->
+<div class="submit-modal" id="submitModal">
+  <div class="submit-card">
+    <button class="close-btn" data-submit-close style="position:absolute;top:14px;right:14px;width:36px;height:36px;font-size:14px">✕</button>
+
+    <!-- Form view -->
+    <div id="submitForm">
+      <h3 id="submitTitle">
+        <span data-th>ฝากของของคุณ</span><span data-en>Submit yours</span>
+      </h3>
+      <p class="sub">
+        <span data-th>ทีมงานจะอ่านและคัดมาขึ้นโชว์ภายใน 1-2 วัน — ไม่ใช่ทุกชิ้นจะได้ขึ้น แต่เราอ่านทุกชิ้นจริงๆ</span>
+        <span data-en>The team reads and curates within 1–2 days — not all submissions go up, but we read every one.</span>
+      </p>
+
+      <!-- Photo upload (only for objects) -->
+      <div class="form-group" id="photoGroup">
+        <label><span data-th>รูปภาพของของชิ้นนั้น</span><span data-en>Photo of the item</span></label>
+        <div class="upload-zone" id="uploadZone">
+          📷 <span id="uploadText">
+            <span data-th>คลิกเพื่อเลือกรูป (jpg/png ไม่เกิน 5MB)</span>
+            <span data-en>Click to choose a photo (jpg/png, ≤ 5MB)</span>
+          </span>
+        </div>
+        <input type="file" id="photoInput" accept="image/*" style="display:none">
+      </div>
+
+      <div class="form-group">
+        <label><span data-th>หัวข้อสั้นๆ</span><span data-en>A short title</span></label>
+        <input type="text" id="titleInput" maxlength="60" placeholder="เช่น แหวนของยาย / A short title">
+      </div>
+
+      <div class="form-group">
+        <label><span data-th>เรื่องราว — เคยติดยังไง ปล่อยได้ยังไง</span><span data-en>The story — what you held, how you released</span></label>
+        <textarea id="storyInput" maxlength="500" placeholder="เล่าให้ฟังหน่อย..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label><span data-th>ลายเซ็น (เช่น S, 28 หรือไม่ใส่ก็ได้)</span><span data-en>Signature (e.g., S, 28 — optional)</span></label>
+        <input type="text" id="signInput" maxlength="20" placeholder="— ตัวอักษรเดียว + อายุ">
+      </div>
+
+      <div class="submit-btns">
+        <button class="btn-cancel" data-submit-close>
+          <span data-th>ยกเลิก</span><span data-en>Cancel</span>
+        </button>
+        <button class="btn-submit" id="submitGo">
+          <span data-th>ส่งให้ทีมงาน</span><span data-en>Send to team</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Success view -->
+    <div class="submit-success" id="submitSuccess">
+      <div class="submit-success-icon">🌱</div>
+      <h3>
+        <span data-th>ขอบคุณที่ฝากไว้</span>
+        <span data-en>Thank you for sharing</span>
+      </h3>
+      <p style="color:var(--ink-soft);font-size:14px;margin-top:10px;line-height:1.6">
+        <span data-th>ทีมงานจะอ่านและพิจารณาภายใน 1-2 วัน<br>คุณเก่งมากที่กล้าปล่อย ✨</span>
+        <span data-en>Our team will read and review within 1–2 days.<br>You're brave for letting go ✨</span>
+      </p>
+      <button class="submit-cta-btn" data-submit-close style="margin-top:20px">
+        <span data-th>กลับไปดูพิพิธภัณฑ์</span><span data-en>Back to museum</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ROOM: อยู่กับตัวเอง ============ -->
+
+
+<script defer src="assets/js/common.js"></script>
+<script defer src="assets/js/museum.js"></script>
+</body>
+</html>

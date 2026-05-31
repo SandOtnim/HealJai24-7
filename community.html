@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ฮีลใจ 24/7 — Heal 24/7</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+
+<!-- =========================================================
+     CLOUDFLARE WEB ANALYTICS — Privacy-friendly, cookie-free
+     SETUP:
+     1) Go to https://www.cloudflare.com/web-analytics/ → sign up (free)
+     2) Add your site (e.g. healjai247.netlify.app or your own domain)
+     3) Copy the <script> snippet Cloudflare gives you
+     4) REPLACE the placeholder line below with that snippet
+        — it will look like:
+        <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token":"YOUR_REAL_TOKEN"}'></script>
+     ========================================================= -->
+<!-- <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token":"PASTE_YOUR_TOKEN_HERE"}'></script> -->
+
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body data-lang="th" data-page="community">
+<div class="main visible" id="main">
+  <header>
+    <div class="brand">
+      <span class="heart">♥</span>
+      <span data-th>ฮีลใจ 24/7</span>
+      <span data-en>Heal 24/7</span>
+    </div>
+    <div class="header-actions">
+      <button class="music-toggle" id="musicToggle" aria-label="Music menu">
+        <span class="music-icon-pulse">♪</span>
+      </button>
+      <!-- Music dropdown menu -->
+      <div class="music-menu" id="musicMenu">
+        <div class="music-menu-title">
+          <span data-th>เลือกเพลง</span><span data-en>Choose track</span>
+        </div>
+        <button class="track-btn active" data-track="1" data-src="assets/audio/theme.mp3">
+          <span class="track-dot"></span>
+          <span>Land of Smiles</span>
+          <span class="track-meta">main</span>
+        </button>
+        <button class="track-btn" data-track="2" data-src="assets/audio/morning-heart.mp3">
+          <span class="track-dot"></span>
+          <span>Morning Heart</span>
+        </button>
+        <button class="track-btn" data-track="3" data-src="assets/audio/rainy-window.mp3">
+          <span class="track-dot"></span>
+          <span>Rainy Window</span>
+        </button>
+        <button class="track-btn" data-track="4" data-src="assets/audio/temple-at-dusk.mp3">
+          <span class="track-dot"></span>
+          <span>Temple at Dusk</span>
+        </button>
+        <button class="track-btn pause-btn" id="pauseTrack">
+          <span>⏸</span>
+          <span data-th>หยุดเพลง</span><span data-en>Pause</span>
+        </button>
+      </div>
+      <button class="lang-toggle" id="bookmarkOpen" aria-label="กล่องบันทึก">
+        <span style="font-size:16px;line-height:1">🔖</span>
+        <span class="bookmark-badge" id="bookmarkBadge" hidden>0</span>
+      </button>
+      <button class="lang-toggle" id="langToggle">
+        <span data-th>EN</span><span data-en>TH</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Bookmark drawer (saved items list) -->
+  <div class="bookmark-modal" id="bookmarkModal" hidden>
+    <div class="bookmark-backdrop" data-close-bookmark onclick="window.__closeBookmarkModal && window.__closeBookmarkModal()"></div>
+    <div class="bookmark-panel">
+      <div class="bookmark-head">
+        <h3 class="bookmark-title">
+          🔖 <span data-th>กล่องของฉัน</span><span data-en>My collection</span>
+        </h3>
+        <button class="bookmark-close" data-close-bookmark aria-label="ปิด" type="button" onclick="window.__closeBookmarkModal && window.__closeBookmarkModal()">✕</button>
+      </div>
+      <p class="bookmark-sub">
+        <span data-th>ทุกอย่างที่เธอบันทึกไว้ — เก็บในเครื่องนี้เท่านั้น ไม่ส่งไปไหน</span>
+        <span data-en>Everything you saved — stored only on this device</span>
+      </p>
+      <ul class="bookmark-list" id="bookmarkList"></ul>
+      <div class="bookmark-empty" id="bookmarkEmpty" hidden>
+        <div class="bookmark-empty-icon">📭</div>
+        <p>
+          <span data-th>ยังไม่มีอะไรในกล่อง — ไปกดปุ่ม 🔖 ตามที่ต่างๆ ในเว็บ เพื่อเก็บคำดีๆ ไว้ที่นี่</span>
+          <span data-en>Nothing here yet — hit 🔖 on cards across the site to save your favorites</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Background music (single audio element, src changes with track switch) -->
+  <audio id="bgMusic" src="assets/audio/theme.mp3" loop preload="auto"></audio>
+
+  <footer>
+    <span data-th>© 2026 ฮีลใจ 24/7 — สำหรับคนเมืองที่อยากมีที่ฮีลใจ</span>
+    <span data-en>© 2026 Heal 24/7 — for everyone who needs a place to come back to</span>
+    <br>
+    <button class="footer-link" data-open-privacy>
+      <span data-th>นโยบายความเป็นส่วนตัว (PDPA)</span><span data-en>Privacy Policy (PDPA)</span>
+    </button>
+  </footer>
+
+  <!-- Privacy Policy modal -->
+  <div class="privacy-modal" id="privacyModal">
+    <div class="privacy-card">
+      <button class="privacy-close" data-close-privacy aria-label="ปิด">✕</button>
+      <h2 class="privacy-title">
+        <span data-th>นโยบายความเป็นส่วนตัว</span><span data-en>Privacy Policy</span>
+      </h2>
+      <p class="privacy-updated">
+        <span data-th>อัพเดทล่าสุด: 15 พฤษภาคม 2569</span><span data-en>Last updated: 15 May 2026</span>
+      </p>
+
+      <div class="privacy-body" data-th>
+        <h3>1. เราเก็บข้อมูลอะไร</h3>
+        <p>ฮีลใจ 24/7 เป็นเว็บไซต์ที่ออกแบบมาให้ <strong>ใช้งานได้แบบไม่ต้องล็อกอิน</strong> เราเก็บข้อมูลน้อยที่สุดเท่าที่จำเป็น:</p>
+        <ul>
+          <li><strong>ข้อมูลการเข้าชม (Analytics):</strong> จำนวน visitors · หน้าที่เข้า · ประเทศ · browser · device type — รวบรวมผ่าน Cloudflare Web Analytics โดยไม่ใช้ cookie ไม่ระบุตัวตน</li>
+          <li><strong>ข้อมูลที่คุณกรอกใน Google Form:</strong> เมื่อคุณตอบแบบสำรวจ "คุณฮีลใจยังไง?" หรือ "ฝากคำพูดในพิพิธภัณฑ์" Google จะเก็บคำตอบของคุณ (อยู่ภายใต้ Google Privacy Policy)</li>
+          <li><strong>การตั้งค่าในเครื่อง (localStorage):</strong> เช่น aesthetic ห้องที่เลือก (cozy/loft), ข้อความที่เขียนถึงตัวเอง — เก็บไว้ในเบราเซอร์คุณเท่านั้น เราเข้าไม่ถึง</li>
+        </ul>
+
+        <h3>2. เราไม่ทำอะไรกับข้อมูล</h3>
+        <ul>
+          <li>เราไม่ขายข้อมูลคุณให้ third party</li>
+          <li>เราไม่ใช้ cookie tracking ข้ามเว็บ</li>
+          <li>เราไม่เก็บ IP address หรือข้อมูลระบุตัวบุคคล</li>
+          <li>ข้อความที่คุณเขียนถึงตัวเองอยู่ในเบราเซอร์คุณคนเดียว ไม่ส่งไปไหน</li>
+        </ul>
+
+        <h3>3. สิทธิ์ของคุณ (PDPA)</h3>
+        <p>ภายใต้พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA) คุณมีสิทธิ์:</p>
+        <ul>
+          <li>เข้าถึงข้อมูลที่เราเก็บเกี่ยวกับคุณ</li>
+          <li>ขอให้ลบข้อมูลของคุณออก</li>
+          <li>ถอนความยินยอม</li>
+          <li>ร้องเรียนต่อสำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล</li>
+        </ul>
+
+        <h3>4. ข้อจำกัด</h3>
+        <p>ฮีลใจ 24/7 เป็นพื้นที่ฮีลใจเบื้องต้น <strong>ไม่ใช่บริการจิตวิทยาวิชาชีพ</strong> ถ้าคุณอยู่ในวิกฤต โปรดติดต่อ <strong>1323</strong> (สายด่วนสุขภาพจิต 24 ชม.) หรือ <strong>1667</strong> (สะมาริตันส์)</p>
+
+        <h3>5. ติดต่อเรา</h3>
+        <p>ถ้ามีข้อสงสัยเรื่องข้อมูลส่วนบุคคล ส่งอีเมลถึง <strong>sandotnim.jako@gmail.com</strong></p>
+      </div>
+
+      <div class="privacy-body" data-en>
+        <h3>1. What we collect</h3>
+        <p>Heal 24/7 is designed to work <strong>without requiring login</strong>. We collect the bare minimum:</p>
+        <ul>
+          <li><strong>Visit analytics:</strong> visitor count, pages viewed, country, browser, device type — via Cloudflare Web Analytics, no cookies, anonymous.</li>
+          <li><strong>Google Form submissions:</strong> when you fill out the "How do you heal?" survey or submit words for the museum wall, Google stores your responses (under Google's Privacy Policy).</li>
+          <li><strong>Local browser storage:</strong> aesthetic preference (cozy/loft), your private journal entries — stored only in your browser. We cannot access these.</li>
+        </ul>
+
+        <h3>2. What we never do</h3>
+        <ul>
+          <li>We don't sell your data to third parties</li>
+          <li>We don't use cross-site tracking cookies</li>
+          <li>We don't store IP addresses or personal identifiers</li>
+          <li>Your journal entries stay in your browser only — they never leave your device</li>
+        </ul>
+
+        <h3>3. Your rights (PDPA)</h3>
+        <p>Under Thailand's Personal Data Protection Act (PDPA, 2019), you have the right to:</p>
+        <ul>
+          <li>Access data we hold about you</li>
+          <li>Request data deletion</li>
+          <li>Withdraw consent</li>
+          <li>File a complaint with the Personal Data Protection Committee</li>
+        </ul>
+
+        <h3>4. Limitations</h3>
+        <p>Heal 24/7 is a gentle everyday-healing space, <strong>not a professional psychology service</strong>. If you're in crisis, please contact <strong>1323</strong> (Mental Health Hotline, 24/7) or <strong>1667</strong> (Samaritans).</p>
+
+        <h3>5. Contact</h3>
+        <p>For privacy questions, email <strong>sandotnim.jako@gmail.com</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="room-overlay active" id="room-community">
+  <a class="close-btn" href="index.html" aria-label="Back to map">✕</a>
+  <div class="community-room">
+    <div class="community-bg" id="communityBg"></div>
+
+    <div class="community-content">
+      <span class="room-eyebrow"><span data-th>ห้องที่ 5</span><span data-en>Room 05</span></span>
+      <h2 class="room-title"><span data-th>ชุมชนฮีลใจ</span><span data-en>Healing Community</span></h2>
+      <p class="room-subtitle">
+        <span data-th>มาดูดวง · มานั่งทำงาน · มาเล่นแบบทดสอบ</span>
+        <span data-en>Read a fortune · co-work · take a quiz</span>
+      </p>
+
+      <!-- Disclaimer: this is NOT a therapy space -->
+      <div class="community-disclaimer">
+        <span class="community-disclaimer-icon">💭</span>
+        <p>
+          <span data-th>ที่นี่เป็นพื้นที่คุยกันแบบเพื่อน — ไม่ใช่ห้องบำบัด ไม่ใช่ที่ปรึกษามืออาชีพ ทุกคนที่นี่ก็มีวันที่ใจหนัก ไม่ต้องเข้มแข็ง ไม่ต้องเปรียบเทียบ · ถ้าใจหนักมากจริงๆ แนะนำให้โทร <strong>1323</strong> (สายด่วนสุขภาพจิต 24 ชม.)</span>
+          <span data-en>This is a friend-like conversation space — not therapy, not professional advice. Everyone here has heavy days. You don't have to be strong or compare yourself. · If you're really struggling, please call <strong>1323</strong> (Mental Health Hotline, 24/7).</span>
+        </p>
+      </div>
+
+      <div class="alone-tabs">
+        <button class="alone-tab active" data-cpane="lofi">🪴 <span data-th>โต๊ะทำงาน</span><span data-en>Work desk</span></button>
+        <button class="alone-tab" data-cpane="quiz">🧠 <span data-th>แบบทดสอบ</span><span data-en>Quiz</span></button>
+        <button class="alone-tab" data-cpane="fortune">🔮 <span data-th>ดูดวง</span><span data-en>Fortune</span></button>
+        <button class="alone-tab" data-cpane="chat">💬 <span data-th>คุยกัน</span><span data-en>Chat</span></button>
+        <button class="alone-tab" data-cpane="movies">🎬 <span data-th>หนัง/ซีรี่ส์</span><span data-en>Films</span></button>
+        <button class="alone-tab" data-cpane="articles">📚 <span data-th>บทความ</span><span data-en>Articles</span></button>
+      </div>
+
+      <!-- Pane: Cozy work desk -->
+      <div class="alone-pane active" id="cpane-lofi">
+        <h3 class="alone-h3"><span data-th>โต๊ะทำงานสบายๆ</span><span data-en>Cozy work desk</span></h3>
+        <p class="alone-sub">
+          <span data-th>เลือกบรรยากาศ + เพลง LO-Fi + เทคนิคจับเวลา แล้วลุยงานยาวๆ</span>
+          <span data-en>Pick a vibe + LO-Fi track + a timing technique, then settle in</span>
+        </p>
+
+        <div class="lofi-vibes">
+          <button class="vibe-btn active" data-vibe="cafe">☕ <span data-th>คาเฟ่อบอุ่น</span><span data-en>Warm cafe</span></button>
+          <button class="vibe-btn" data-vibe="rain">🌧 <span data-th>ฝนนอกหน้าต่าง</span><span data-en>Rainy window</span></button>
+          <button class="vibe-btn" data-vibe="night">🌙 <span data-th>ดึกๆ คนเดียว</span><span data-en>Late night alone</span></button>
+        </div>
+
+        <div class="lofi-tracks">
+          <button class="bedroom-track active" data-bd-src="assets/audio/morning-heart.mp3">Morning Heart</button>
+          <button class="bedroom-track" data-bd-src="assets/audio/rainy-window.mp3">Rainy Window</button>
+          <button class="bedroom-track" data-bd-src="assets/audio/theme.mp3">Land of Smiles</button>
+          <button class="bedroom-track" data-bd-src="assets/audio/temple-at-dusk.mp3">Temple at Dusk</button>
+        </div>
+
+        <!-- Timer mode picker -->
+        <div class="timer-modes">
+          <div class="timer-modes-label">
+            <span data-th>เทคนิคจับเวลา</span><span data-en>Timing technique</span>
+          </div>
+          <div class="timer-mode-grid">
+            <button class="timer-mode active" data-mode="flow" data-work="0" data-break="0">
+              <div class="tm-name">🌊 Flowtime</div>
+              <div class="tm-desc"><span data-th>นับขึ้น · พักเมื่อพร้อม</span><span data-en>Count up · break when ready</span></div>
+            </button>
+            <button class="timer-mode" data-mode="pomo25" data-work="25" data-break="5">
+              <div class="tm-name">🍅 Pomodoro</div>
+              <div class="tm-desc"><span data-th>25 ทำ · 5 พัก · คลาสสิก</span><span data-en>25 work · 5 break · classic</span></div>
+            </button>
+            <button class="timer-mode" data-mode="pomo50" data-work="50" data-break="10">
+              <div class="tm-name">🌿 Pomodoro Long</div>
+              <div class="tm-desc"><span data-th>50 ทำ · 10 พัก · โฟกัสยาว</span><span data-en>50 work · 10 break · deep focus</span></div>
+            </button>
+            <button class="timer-mode" data-mode="ultra" data-work="90" data-break="20">
+              <div class="tm-name">💗 Ultradian 90/20</div>
+              <div class="tm-desc"><span data-th>ตามจังหวะร่างกาย</span><span data-en>Body's natural rhythm</span></div>
+            </button>
+          </div>
+        </div>
+
+        <div class="lofi-timer-box">
+          <div class="lofi-phase" id="lofiPhase">
+            <span data-th>พร้อมเริ่มแล้ว</span><span data-en>Ready</span>
+          </div>
+          <div class="timer-display" id="lofiTimer">00:00</div>
+          <div class="lofi-cycle" id="lofiCycle"></div>
+          <div class="lofi-actions">
+            <button class="nav-btn next" id="lofiStart">
+              ▶ <span data-th>เริ่มเซสชั่น</span><span data-en>Start</span>
+            </button>
+            <button class="nav-btn map" id="lofiStop">
+              ⏸ <span data-th>หยุด/รีเซ็ต</span><span data-en>Stop/Reset</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ Pane: Quiz — ใจคุณเป็นแบบไหน ============ -->
+      <div class="alone-pane" id="cpane-quiz">
+        <h3 class="alone-h3"><span data-th>ใจคุณเป็นแบบไหนวันนี้?</span><span data-en>What kind of heart today?</span></h3>
+        <p class="alone-sub">
+          <span data-th>5 ข้อ ใช้เวลาไม่ถึงนาที</span>
+          <span data-en>5 questions, under a minute</span>
+        </p>
+        <div class="quiz-stage">
+          <!-- Quiz intro -->
+          <div class="quiz-screen quiz-intro active" id="quizIntro">
+            <div style="font-size:42px;margin-bottom:14px">💗</div>
+            <p style="color:var(--ink-soft);font-size:14px;margin-bottom:20px;line-height:1.6">
+              <span data-th>ฟังเสียงข้างในใจคุณ — เลือกคำตอบที่ตรงใจที่สุดในวันนี้</span>
+              <span data-en>Listen to your inner voice — pick what fits today</span>
+            </p>
+            <button class="nav-btn next" id="quizStart">
+              <span data-th>เริ่มทำ</span><span data-en>Start</span> →
+            </button>
+          </div>
+
+          <!-- Quiz questions container -->
+          <div class="quiz-screen" id="quizQuestions">
+            <div class="quiz-progress">
+              <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quizProgressFill"></div></div>
+              <div class="quiz-progress-text" id="quizProgressText">1 / 5</div>
+            </div>
+            <h4 class="quiz-q-text" id="quizQText"></h4>
+            <div class="quiz-choices" id="quizChoices"></div>
+          </div>
+
+          <!-- Quiz result -->
+          <div class="quiz-screen" id="quizResult">
+            <div class="quiz-result-icon" id="quizResultIcon"></div>
+            <h4 class="quiz-result-title" id="quizResultTitle"></h4>
+            <p class="quiz-result-desc" id="quizResultDesc"></p>
+            <div class="quiz-result-actions">
+              <button class="nav-btn map" id="quizRetry">
+                ↻ <span data-th>ทำใหม่</span><span data-en>Try again</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ Pane: Fortune — เซียมซี ============ -->
+      <div class="alone-pane" id="cpane-fortune">
+        <h3 class="alone-h3"><span data-th>ไพ่ทาโร่ · ฮีลใจ</span><span data-en>Tarot · Heart Reading</span></h3>
+        <p class="alone-sub">
+          <span data-th>เลือกหัวข้อ แล้วหยิบไพ่ใบที่ใจคุณเรียก</span>
+          <span data-en>Pick a topic, then draw the card your heart calls</span>
+        </p>
+
+        <!-- Topic chooser -->
+        <div class="fortune-topics" id="fortuneTopics">
+          <button class="fortune-topic" data-topic="love">💗 <span data-th>ความรัก</span><span data-en>Love</span></button>
+          <button class="fortune-topic" data-topic="work">💼 <span data-th>การงาน</span><span data-en>Work</span></button>
+          <button class="fortune-topic" data-topic="money">💰 <span data-th>การเงิน</span><span data-en>Money</span></button>
+          <button class="fortune-topic" data-topic="health">🌿 <span data-th>สุขภาพ</span><span data-en>Health</span></button>
+          <button class="fortune-topic" data-topic="heart">🤍 <span data-th>เรื่องใจ</span><span data-en>Heart</span></button>
+        </div>
+
+        <!-- Tarot deck stage -->
+        <div class="tarot-stage">
+          <p class="fortune-instr" id="fortuneInstr">
+            <span data-th>เลือกหัวข้อก่อน แล้วหยิบไพ่ใบที่ใช่</span>
+            <span data-en>Pick a topic first, then choose your card</span>
+          </p>
+          <div class="tarot-deck disabled" id="tarotDeck"></div>
+        </div>
+
+        <div class="fortune-result-room" id="fortuneResultRoom">
+          <div class="fortune-num-room" id="fortuneNumRoom"></div>
+          <div class="fortune-headline" id="fortuneHeadline"></div>
+          <p class="fortune-msg-room" id="fortuneMsgRoom"></p>
+          <div class="fortune-actions">
+            <button class="nav-btn" id="fortuneAgain">
+              ↻ <span data-th>หยิบใหม่</span><span data-en>Draw again</span>
+            </button>
+            <button class="nav-btn next share-btn" data-share-type="fortune">
+              📤 <span data-th>แชร์</span><span data-en>Share</span>
+            </button>
+            <button class="card-action-btn bookmark-btn" data-bookmark-type="community-fortune" type="button">
+              🔖 <span data-th>บันทึก</span><span data-en>Save</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ Pane: Chat — Discord widget mockup ============ -->
+      <div class="alone-pane" id="cpane-chat">
+        <h3 class="alone-h3"><span data-th>คุยกัน · เสียงจริงจากคนจริง</span><span data-en>Talk together · real voices</span></h3>
+        <p class="alone-sub">
+          <span data-th>บางครั้งใจต้องการแค่คนฟัง — ที่นี่ไม่ใช่ AI แต่เป็นคนจริงที่กำลังฮีลเหมือนเรา</span>
+          <span data-en>Sometimes the heart just needs to be heard — these are real people, not AI.</span>
+        </p>
+
+        <!-- Discord-style mockup -->
+        <div class="discord-mockup">
+          <div class="discord-header">
+            <div class="discord-server">
+              <div class="discord-server-icon">💗</div>
+              <div>
+                <div class="discord-server-name">ฮีลใจ 24/7 community</div>
+                <div class="discord-server-meta">
+                  <span class="discord-dot"></span>
+                  <span data-th>238 คนกำลังคุยกัน</span><span data-en>238 chatting now</span>
+                </div>
+              </div>
+            </div>
+            <div class="discord-channels-label">
+              <span data-th>ห้องคุย</span><span data-en>Channels</span>
+            </div>
+          </div>
+
+          <div class="discord-channels">
+            <div class="discord-channel"># ฝากใจ</div>
+            <div class="discord-channel"># ระบายได้</div>
+            <div class="discord-channel"># ฮีลร่วมกัน</div>
+            <div class="discord-channel"># ขอกำลังใจ</div>
+          </div>
+
+          <div class="discord-messages">
+            <div class="discord-msg">
+              <div class="discord-avatar" style="background:#e8b4a6">🌱</div>
+              <div class="discord-msg-body">
+                <div class="discord-msg-head"><span class="discord-name">น้องต้นไม้</span><span class="discord-time">2 นาที</span></div>
+                <div class="discord-msg-text">วันนี้เหนื่อยมาก ใครพอจะแบ่งกำลังใจให้หน่อย 🥺</div>
+              </div>
+            </div>
+            <div class="discord-msg">
+              <div class="discord-avatar" style="background:#c4d4b8">🍃</div>
+              <div class="discord-msg-body">
+                <div class="discord-msg-head"><span class="discord-name">ใบไม้ปลิว</span><span class="discord-time">1 นาที</span></div>
+                <div class="discord-msg-text">กอดเลย 🤗 วันนี้มาถึงได้ก็เก่งแล้วนะ</div>
+              </div>
+            </div>
+            <div class="discord-msg">
+              <div class="discord-avatar" style="background:#d4a574">🌅</div>
+              <div class="discord-msg-body">
+                <div class="discord-msg-head"><span class="discord-name">พระอาทิตย์ตก</span><span class="discord-time">1 นาที</span></div>
+                <div class="discord-msg-text">+1 อยู่ตรงนี้ด้วยกันนะ ไม่ต้องรีบหาย</div>
+              </div>
+            </div>
+            <div class="discord-msg discord-msg-typing">
+              <div class="discord-avatar" style="background:#a8c4d8">💧</div>
+              <div class="discord-msg-body">
+                <span class="discord-typing-name">หยาดน้ำ</span>
+                <span class="discord-typing">
+                  <span class="dt-dot"></span><span class="dt-dot"></span><span class="dt-dot"></span>
+                  <span data-th>กำลังพิมพ์…</span><span data-en>typing…</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="discord-coming-soon">
+            <span class="discord-cs-icon">🚧</span>
+            <div>
+              <div class="discord-cs-title">
+                <span data-th>กำลังจะเปิด — Coming Soon</span>
+                <span data-en>Coming soon</span>
+              </div>
+              <div class="discord-cs-sub">
+                <span data-th>ห้องคุย Discord จริง · ปลอดภัย · ดูแลโดยทีมงาน</span>
+                <span data-en>Real Discord rooms · safe space · moderated</span>
+              </div>
+            </div>
+          </div>
+
+          <a class="discord-cta" href="#" onclick="alert('ห้องคุย Discord จะเปิดให้เข้าจริงเมื่อเว็บ launch — รอเปิดประตูในเร็วๆ นี้ 💗'); return false;">
+            <span data-th>แจ้งฉันเมื่อเปิด</span><span data-en>Notify me when ready</span> →
+          </a>
+        </div>
+      </div>
+
+      <!-- ============ Pane: Movies — film/series picker by mood ============ -->
+      <div class="alone-pane" id="cpane-movies">
+        <h3 class="alone-h3"><span data-th>หนัง/ซีรี่ส์/อนิเมะ ตามอารมณ์</span><span data-en>Films by mood</span></h3>
+        <p class="alone-sub">
+          <span data-th>วิธีฮีลที่คนตอบแบบสำรวจทำมากที่สุด — เลือกตาม mood วันนี้</span>
+          <span data-en>The #1 healing method from our survey — pick by today's mood</span>
+        </p>
+        <div class="movie-mood-grid" id="movieMoodGrid"></div>
+        <div class="movie-results" id="movieResults" hidden></div>
+      </div>
+
+      <!-- ============ Pane: Articles — basic mental-health knowledge ============ -->
+      <div class="alone-pane" id="cpane-articles">
+        <h3 class="alone-h3"><span data-th>บทความฮีลใจเบื้องต้น</span><span data-en>Gentle healing reads</span></h3>
+        <p class="alone-sub">
+          <span data-th>ความรู้พื้นฐานจากผู้เชี่ยวชาญ — ไม่ใช่การบำบัด แค่ทำความเข้าใจใจตัวเอง</span>
+          <span data-en>Basics from therapists — not therapy, just understanding your own heart</span>
+        </p>
+        <div class="article-list" id="articleList"></div>
+      </div>
+
+      <nav class="room-nav room-nav-simple">
+        <a class="nav-btn map" href="index.html">← <span data-th>กลับแผนที่</span><span data-en>Back to map</span></a>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ROOM 6: ห้องระบาย — Throwing game (release stress, HealJai vibe) ============ -->
+
+
+<script defer src="assets/js/common.js"></script>
+<script defer src="assets/js/community.js"></script>
+</body>
+</html>

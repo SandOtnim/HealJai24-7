@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ฮีลใจ 24/7 — Heal 24/7</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+
+<!-- =========================================================
+     CLOUDFLARE WEB ANALYTICS — Privacy-friendly, cookie-free
+     SETUP:
+     1) Go to https://www.cloudflare.com/web-analytics/ → sign up (free)
+     2) Add your site (e.g. healjai247.netlify.app or your own domain)
+     3) Copy the <script> snippet Cloudflare gives you
+     4) REPLACE the placeholder line below with that snippet
+        — it will look like:
+        <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token":"YOUR_REAL_TOKEN"}'></script>
+     ========================================================= -->
+<!-- <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token":"PASTE_YOUR_TOKEN_HERE"}'></script> -->
+
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body data-lang="th" data-page="travel">
+<div class="main visible" id="main">
+  <header>
+    <div class="brand">
+      <span class="heart">♥</span>
+      <span data-th>ฮีลใจ 24/7</span>
+      <span data-en>Heal 24/7</span>
+    </div>
+    <div class="header-actions">
+      <button class="music-toggle" id="musicToggle" aria-label="Music menu">
+        <span class="music-icon-pulse">♪</span>
+      </button>
+      <!-- Music dropdown menu -->
+      <div class="music-menu" id="musicMenu">
+        <div class="music-menu-title">
+          <span data-th>เลือกเพลง</span><span data-en>Choose track</span>
+        </div>
+        <button class="track-btn active" data-track="1" data-src="assets/audio/theme.mp3">
+          <span class="track-dot"></span>
+          <span>Land of Smiles</span>
+          <span class="track-meta">main</span>
+        </button>
+        <button class="track-btn" data-track="2" data-src="assets/audio/morning-heart.mp3">
+          <span class="track-dot"></span>
+          <span>Morning Heart</span>
+        </button>
+        <button class="track-btn" data-track="3" data-src="assets/audio/rainy-window.mp3">
+          <span class="track-dot"></span>
+          <span>Rainy Window</span>
+        </button>
+        <button class="track-btn" data-track="4" data-src="assets/audio/temple-at-dusk.mp3">
+          <span class="track-dot"></span>
+          <span>Temple at Dusk</span>
+        </button>
+        <button class="track-btn pause-btn" id="pauseTrack">
+          <span>⏸</span>
+          <span data-th>หยุดเพลง</span><span data-en>Pause</span>
+        </button>
+      </div>
+      <button class="lang-toggle" id="bookmarkOpen" aria-label="กล่องบันทึก">
+        <span style="font-size:16px;line-height:1">🔖</span>
+        <span class="bookmark-badge" id="bookmarkBadge" hidden>0</span>
+      </button>
+      <button class="lang-toggle" id="langToggle">
+        <span data-th>EN</span><span data-en>TH</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Bookmark drawer (saved items list) -->
+  <div class="bookmark-modal" id="bookmarkModal" hidden>
+    <div class="bookmark-backdrop" data-close-bookmark onclick="window.__closeBookmarkModal && window.__closeBookmarkModal()"></div>
+    <div class="bookmark-panel">
+      <div class="bookmark-head">
+        <h3 class="bookmark-title">
+          🔖 <span data-th>กล่องของฉัน</span><span data-en>My collection</span>
+        </h3>
+        <button class="bookmark-close" data-close-bookmark aria-label="ปิด" type="button" onclick="window.__closeBookmarkModal && window.__closeBookmarkModal()">✕</button>
+      </div>
+      <p class="bookmark-sub">
+        <span data-th>ทุกอย่างที่เธอบันทึกไว้ — เก็บในเครื่องนี้เท่านั้น ไม่ส่งไปไหน</span>
+        <span data-en>Everything you saved — stored only on this device</span>
+      </p>
+      <ul class="bookmark-list" id="bookmarkList"></ul>
+      <div class="bookmark-empty" id="bookmarkEmpty" hidden>
+        <div class="bookmark-empty-icon">📭</div>
+        <p>
+          <span data-th>ยังไม่มีอะไรในกล่อง — ไปกดปุ่ม 🔖 ตามที่ต่างๆ ในเว็บ เพื่อเก็บคำดีๆ ไว้ที่นี่</span>
+          <span data-en>Nothing here yet — hit 🔖 on cards across the site to save your favorites</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Background music (single audio element, src changes with track switch) -->
+  <audio id="bgMusic" src="assets/audio/theme.mp3" loop preload="auto"></audio>
+
+  <footer>
+    <span data-th>© 2026 ฮีลใจ 24/7 — สำหรับคนเมืองที่อยากมีที่ฮีลใจ</span>
+    <span data-en>© 2026 Heal 24/7 — for everyone who needs a place to come back to</span>
+    <br>
+    <button class="footer-link" data-open-privacy>
+      <span data-th>นโยบายความเป็นส่วนตัว (PDPA)</span><span data-en>Privacy Policy (PDPA)</span>
+    </button>
+  </footer>
+
+  <!-- Privacy Policy modal -->
+  <div class="privacy-modal" id="privacyModal">
+    <div class="privacy-card">
+      <button class="privacy-close" data-close-privacy aria-label="ปิด">✕</button>
+      <h2 class="privacy-title">
+        <span data-th>นโยบายความเป็นส่วนตัว</span><span data-en>Privacy Policy</span>
+      </h2>
+      <p class="privacy-updated">
+        <span data-th>อัพเดทล่าสุด: 15 พฤษภาคม 2569</span><span data-en>Last updated: 15 May 2026</span>
+      </p>
+
+      <div class="privacy-body" data-th>
+        <h3>1. เราเก็บข้อมูลอะไร</h3>
+        <p>ฮีลใจ 24/7 เป็นเว็บไซต์ที่ออกแบบมาให้ <strong>ใช้งานได้แบบไม่ต้องล็อกอิน</strong> เราเก็บข้อมูลน้อยที่สุดเท่าที่จำเป็น:</p>
+        <ul>
+          <li><strong>ข้อมูลการเข้าชม (Analytics):</strong> จำนวน visitors · หน้าที่เข้า · ประเทศ · browser · device type — รวบรวมผ่าน Cloudflare Web Analytics โดยไม่ใช้ cookie ไม่ระบุตัวตน</li>
+          <li><strong>ข้อมูลที่คุณกรอกใน Google Form:</strong> เมื่อคุณตอบแบบสำรวจ "คุณฮีลใจยังไง?" หรือ "ฝากคำพูดในพิพิธภัณฑ์" Google จะเก็บคำตอบของคุณ (อยู่ภายใต้ Google Privacy Policy)</li>
+          <li><strong>การตั้งค่าในเครื่อง (localStorage):</strong> เช่น aesthetic ห้องที่เลือก (cozy/loft), ข้อความที่เขียนถึงตัวเอง — เก็บไว้ในเบราเซอร์คุณเท่านั้น เราเข้าไม่ถึง</li>
+        </ul>
+
+        <h3>2. เราไม่ทำอะไรกับข้อมูล</h3>
+        <ul>
+          <li>เราไม่ขายข้อมูลคุณให้ third party</li>
+          <li>เราไม่ใช้ cookie tracking ข้ามเว็บ</li>
+          <li>เราไม่เก็บ IP address หรือข้อมูลระบุตัวบุคคล</li>
+          <li>ข้อความที่คุณเขียนถึงตัวเองอยู่ในเบราเซอร์คุณคนเดียว ไม่ส่งไปไหน</li>
+        </ul>
+
+        <h3>3. สิทธิ์ของคุณ (PDPA)</h3>
+        <p>ภายใต้พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA) คุณมีสิทธิ์:</p>
+        <ul>
+          <li>เข้าถึงข้อมูลที่เราเก็บเกี่ยวกับคุณ</li>
+          <li>ขอให้ลบข้อมูลของคุณออก</li>
+          <li>ถอนความยินยอม</li>
+          <li>ร้องเรียนต่อสำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล</li>
+        </ul>
+
+        <h3>4. ข้อจำกัด</h3>
+        <p>ฮีลใจ 24/7 เป็นพื้นที่ฮีลใจเบื้องต้น <strong>ไม่ใช่บริการจิตวิทยาวิชาชีพ</strong> ถ้าคุณอยู่ในวิกฤต โปรดติดต่อ <strong>1323</strong> (สายด่วนสุขภาพจิต 24 ชม.) หรือ <strong>1667</strong> (สะมาริตันส์)</p>
+
+        <h3>5. ติดต่อเรา</h3>
+        <p>ถ้ามีข้อสงสัยเรื่องข้อมูลส่วนบุคคล ส่งอีเมลถึง <strong>sandotnim.jako@gmail.com</strong></p>
+      </div>
+
+      <div class="privacy-body" data-en>
+        <h3>1. What we collect</h3>
+        <p>Heal 24/7 is designed to work <strong>without requiring login</strong>. We collect the bare minimum:</p>
+        <ul>
+          <li><strong>Visit analytics:</strong> visitor count, pages viewed, country, browser, device type — via Cloudflare Web Analytics, no cookies, anonymous.</li>
+          <li><strong>Google Form submissions:</strong> when you fill out the "How do you heal?" survey or submit words for the museum wall, Google stores your responses (under Google's Privacy Policy).</li>
+          <li><strong>Local browser storage:</strong> aesthetic preference (cozy/loft), your private journal entries — stored only in your browser. We cannot access these.</li>
+        </ul>
+
+        <h3>2. What we never do</h3>
+        <ul>
+          <li>We don't sell your data to third parties</li>
+          <li>We don't use cross-site tracking cookies</li>
+          <li>We don't store IP addresses or personal identifiers</li>
+          <li>Your journal entries stay in your browser only — they never leave your device</li>
+        </ul>
+
+        <h3>3. Your rights (PDPA)</h3>
+        <p>Under Thailand's Personal Data Protection Act (PDPA, 2019), you have the right to:</p>
+        <ul>
+          <li>Access data we hold about you</li>
+          <li>Request data deletion</li>
+          <li>Withdraw consent</li>
+          <li>File a complaint with the Personal Data Protection Committee</li>
+        </ul>
+
+        <h3>4. Limitations</h3>
+        <p>Heal 24/7 is a gentle everyday-healing space, <strong>not a professional psychology service</strong>. If you're in crisis, please contact <strong>1323</strong> (Mental Health Hotline, 24/7) or <strong>1667</strong> (Samaritans).</p>
+
+        <h3>5. Contact</h3>
+        <p>For privacy questions, email <strong>sandotnim.jako@gmail.com</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="room-overlay active" id="room-travel">
+  <a class="close-btn" href="index.html" aria-label="Back to map">✕</a>
+  <div class="garden-room">
+    <div class="garden-bg" id="gardenBg"></div>
+
+    <div class="garden-content">
+      <span class="room-eyebrow"><span data-th>ห้องที่ 2</span><span data-en>Room 02</span></span>
+      <h2 class="room-title"><span data-th>ออกไปข้างนอก</span><span data-en>Step Outside</span></h2>
+      <p class="room-subtitle">
+        <span data-th>หมุนวงล้อ ออกไปทำกิจกรรมที่สุ่มได้ — ใจชอบ Extrovert ห้องนี้สำหรับเธอ</span>
+        <span data-en>Spin the wheel, do whatever it lands on — this is your room, Extrovert</span>
+      </p>
+
+      <!-- Mode picker — Default vs Custom -->
+      <div class="wheel-mode">
+        <button class="wheel-mode-btn active" data-wheel-mode="default">
+          🌿 <span data-th>List ทีมเลือก</span><span data-en>Curated</span>
+        </button>
+        <button class="wheel-mode-btn" data-wheel-mode="custom">
+          ✏️ <span data-th>เขียนเอง</span><span data-en>My list</span>
+        </button>
+      </div>
+
+      <!-- Custom list editor (hidden when default) -->
+      <div class="wheel-custom-editor" id="wheelCustomEditor" hidden>
+        <p class="alone-sub">
+          <span data-th>พิมพ์กิจกรรมที่อยากให้สุ่มเอง — บรรทัดละ 1 อัน (จะจำไว้ในเครื่อง)</span>
+          <span data-en>Type your activities — one per line (saved in your browser)</span>
+        </p>
+        <textarea id="wheelCustomList" class="wheel-textarea" rows="6"
+          placeholder="เช่น&#10;ไปคาเฟ่ใหม่&#10;ปั่นจักรยานเล่น&#10;โทรหาเพื่อนที่ไม่เจอนาน"></textarea>
+        <button class="nav-btn next" id="wheelCustomSave">
+          💾 <span data-th>บันทึก + ใช้ list นี้</span><span data-en>Save + use this list</span>
+        </button>
+      </div>
+
+      <!-- The wheel -->
+      <div class="wheel-stage">
+        <div class="wheel-pointer">▼</div>
+        <div class="wheel-disc-wrap">
+          <svg class="wheel-disc" id="wheelDisc" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+        <button class="nav-btn next wheel-spin-btn" id="wheelSpin">
+          🎲 <span data-th>หมุน!</span><span data-en>Spin!</span>
+        </button>
+      </div>
+
+      <!-- Result -->
+      <div class="wheel-result" id="wheelResult" hidden>
+        <div class="wheel-result-icon">✨</div>
+        <h3 class="wheel-result-title" id="wheelResultTitle"></h3>
+        <p class="wheel-result-sub">
+          <span data-th>ลองออกไปทำดูสักที่ — กลับมาเล่าให้เรา ฟัง</span>
+          <span data-en>Try it once — come back and tell us how it went</span>
+        </p>
+        <div class="wheel-result-actions">
+          <button class="nav-btn" id="wheelAgain">↻ <span data-th>หมุนใหม่</span><span data-en>Spin again</span></button>
+          <button class="nav-btn next share-btn" data-share-type="wheel">
+            📤 <span data-th>แชร์ให้เพื่อน</span><span data-en>Share</span>
+          </button>
+          <button class="card-action-btn bookmark-btn" data-bookmark-type="wheel" type="button">
+            🔖 <span data-th>บันทึก</span><span data-en>Save</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ============ SHOPPING MINI-GAME ============ -->
+      <div class="shop-divider"></div>
+      <div class="shop-section" id="shopSection">
+        <h3 class="shop-title">
+          🛍 <span data-th>ช้อปสบายใจ</span><span data-en>Calm shopping</span>
+        </h3>
+        <p class="shop-sub">
+          <span data-th>ไม่ต้องใช้เงินจริง — แค่กดเก็บของน่ารักๆ ใส่ตะกร้า ใจฟูเฉยๆ</span>
+          <span data-en>No real money — just tap cute things into a basket. Heart-fluff therapy.</span>
+        </p>
+
+        <!-- Stage 1: Setup -->
+        <div class="shop-stage shop-setup" id="shopSetup">
+          <div class="shop-block">
+            <h4 class="shop-h4"><span data-th>1. เลือกโซน</span><span data-en>1. Pick a zone</span></h4>
+            <div class="shop-zones">
+              <button class="shop-zone active" data-zone="cosmetics">
+                <div class="shop-zone-icon">💄</div>
+                <div class="shop-zone-label"><span data-th>เครื่องสำอาง</span><span data-en>Cosmetics</span></div>
+              </button>
+              <button class="shop-zone" data-zone="snacks">
+                <div class="shop-zone-icon">🍪</div>
+                <div class="shop-zone-label"><span data-th>ขนม</span><span data-en>Snacks</span></div>
+              </button>
+              <button class="shop-zone" data-zone="plants">
+                <div class="shop-zone-icon">🪴</div>
+                <div class="shop-zone-label"><span data-th>ต้นไม้</span><span data-en>Plants</span></div>
+              </button>
+            </div>
+          </div>
+          <div class="shop-block">
+            <h4 class="shop-h4"><span data-th>2. เลือกเวลา</span><span data-en>2. Pick a time</span></h4>
+            <div class="shop-durations">
+              <button class="shop-dur" data-dur="15">15s</button>
+              <button class="shop-dur active" data-dur="30">30s</button>
+              <button class="shop-dur" data-dur="60">60s</button>
+            </div>
+          </div>
+          <button class="nav-btn next shop-start-btn" id="shopStart">
+            🎀 <span data-th>เริ่มช้อป!</span><span data-en>Start shopping!</span>
+          </button>
+        </div>
+
+        <!-- Stage 2: Play -->
+        <div class="shop-stage shop-play" id="shopPlay" hidden>
+          <div class="shop-hud">
+            <div class="shop-timer">⏱ <span id="shopTimer">30</span>s</div>
+            <div class="shop-counter">🛒 <span id="shopCount">0</span></div>
+          </div>
+          <div class="shop-arena" id="shopArena"></div>
+          <p class="shop-tip">
+            <span data-th>แตะของที่ชอบ — เก็บใส่ตะกร้า</span>
+            <span data-en>Tap what you like — into the basket</span>
+          </p>
+        </div>
+
+        <!-- Stage 3: Result -->
+        <div class="shop-stage shop-result" id="shopResult" hidden>
+          <div class="shop-result-icon">🛍✨</div>
+          <h3 class="shop-result-title">
+            <span data-th>ช้อปจบ!</span><span data-en>Shopping done!</span>
+          </h3>
+          <p class="shop-result-stat" id="shopResultStat"></p>
+          <p class="shop-result-mood" id="shopResultMood"></p>
+          <div class="card-actions">
+            <button class="card-action-btn" id="shopAgain">↻ <span data-th>ช้อปอีก</span><span data-en>Shop again</span></button>
+            <button class="card-action-btn share-btn" data-share-type="shop" type="button">
+              📤 <span data-th>แชร์</span><span data-en>Share</span>
+            </button>
+            <button class="card-action-btn bookmark-btn" data-bookmark-type="shop" type="button">
+              🔖 <span data-th>บันทึก</span><span data-en>Save</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <nav class="room-nav room-nav-simple">
+        <a class="nav-btn map" href="index.html">← <span data-th>กลับแผนที่</span><span data-en>Back to map</span></a>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ROOM: พิพิธภัณฑ์ฮีลใจ — Art Gallery ============ -->
+
+
+<script defer src="assets/js/common.js"></script>
+<script defer src="assets/js/travel.js"></script>
+</body>
+</html>

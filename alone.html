@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ฮีลใจ 24/7 — Heal 24/7</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+
+<!-- =========================================================
+     CLOUDFLARE WEB ANALYTICS — Privacy-friendly, cookie-free
+     SETUP:
+     1) Go to https://www.cloudflare.com/web-analytics/ → sign up (free)
+     2) Add your site (e.g. healjai247.netlify.app or your own domain)
+     3) Copy the <script> snippet Cloudflare gives you
+     4) REPLACE the placeholder line below with that snippet
+        — it will look like:
+        <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token":"YOUR_REAL_TOKEN"}'></script>
+     ========================================================= -->
+<!-- <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token":"PASTE_YOUR_TOKEN_HERE"}'></script> -->
+
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body data-lang="th" data-page="alone">
+<div class="main visible" id="main">
+  <header>
+    <div class="brand">
+      <span class="heart">♥</span>
+      <span data-th>ฮีลใจ 24/7</span>
+      <span data-en>Heal 24/7</span>
+    </div>
+    <div class="header-actions">
+      <button class="music-toggle" id="musicToggle" aria-label="Music menu">
+        <span class="music-icon-pulse">♪</span>
+      </button>
+      <!-- Music dropdown menu -->
+      <div class="music-menu" id="musicMenu">
+        <div class="music-menu-title">
+          <span data-th>เลือกเพลง</span><span data-en>Choose track</span>
+        </div>
+        <button class="track-btn active" data-track="1" data-src="assets/audio/theme.mp3">
+          <span class="track-dot"></span>
+          <span>Land of Smiles</span>
+          <span class="track-meta">main</span>
+        </button>
+        <button class="track-btn" data-track="2" data-src="assets/audio/morning-heart.mp3">
+          <span class="track-dot"></span>
+          <span>Morning Heart</span>
+        </button>
+        <button class="track-btn" data-track="3" data-src="assets/audio/rainy-window.mp3">
+          <span class="track-dot"></span>
+          <span>Rainy Window</span>
+        </button>
+        <button class="track-btn" data-track="4" data-src="assets/audio/temple-at-dusk.mp3">
+          <span class="track-dot"></span>
+          <span>Temple at Dusk</span>
+        </button>
+        <button class="track-btn pause-btn" id="pauseTrack">
+          <span>⏸</span>
+          <span data-th>หยุดเพลง</span><span data-en>Pause</span>
+        </button>
+      </div>
+      <button class="lang-toggle" id="bookmarkOpen" aria-label="กล่องบันทึก">
+        <span style="font-size:16px;line-height:1">🔖</span>
+        <span class="bookmark-badge" id="bookmarkBadge" hidden>0</span>
+      </button>
+      <button class="lang-toggle" id="langToggle">
+        <span data-th>EN</span><span data-en>TH</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Bookmark drawer (saved items list) -->
+  <div class="bookmark-modal" id="bookmarkModal" hidden>
+    <div class="bookmark-backdrop" data-close-bookmark onclick="window.__closeBookmarkModal && window.__closeBookmarkModal()"></div>
+    <div class="bookmark-panel">
+      <div class="bookmark-head">
+        <h3 class="bookmark-title">
+          🔖 <span data-th>กล่องของฉัน</span><span data-en>My collection</span>
+        </h3>
+        <button class="bookmark-close" data-close-bookmark aria-label="ปิด" type="button" onclick="window.__closeBookmarkModal && window.__closeBookmarkModal()">✕</button>
+      </div>
+      <p class="bookmark-sub">
+        <span data-th>ทุกอย่างที่เธอบันทึกไว้ — เก็บในเครื่องนี้เท่านั้น ไม่ส่งไปไหน</span>
+        <span data-en>Everything you saved — stored only on this device</span>
+      </p>
+      <ul class="bookmark-list" id="bookmarkList"></ul>
+      <div class="bookmark-empty" id="bookmarkEmpty" hidden>
+        <div class="bookmark-empty-icon">📭</div>
+        <p>
+          <span data-th>ยังไม่มีอะไรในกล่อง — ไปกดปุ่ม 🔖 ตามที่ต่างๆ ในเว็บ เพื่อเก็บคำดีๆ ไว้ที่นี่</span>
+          <span data-en>Nothing here yet — hit 🔖 on cards across the site to save your favorites</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Background music (single audio element, src changes with track switch) -->
+  <audio id="bgMusic" src="assets/audio/theme.mp3" loop preload="auto"></audio>
+
+  <footer>
+    <span data-th>© 2026 ฮีลใจ 24/7 — สำหรับคนเมืองที่อยากมีที่ฮีลใจ</span>
+    <span data-en>© 2026 Heal 24/7 — for everyone who needs a place to come back to</span>
+    <br>
+    <button class="footer-link" data-open-privacy>
+      <span data-th>นโยบายความเป็นส่วนตัว (PDPA)</span><span data-en>Privacy Policy (PDPA)</span>
+    </button>
+  </footer>
+
+  <!-- Privacy Policy modal -->
+  <div class="privacy-modal" id="privacyModal">
+    <div class="privacy-card">
+      <button class="privacy-close" data-close-privacy aria-label="ปิด">✕</button>
+      <h2 class="privacy-title">
+        <span data-th>นโยบายความเป็นส่วนตัว</span><span data-en>Privacy Policy</span>
+      </h2>
+      <p class="privacy-updated">
+        <span data-th>อัพเดทล่าสุด: 15 พฤษภาคม 2569</span><span data-en>Last updated: 15 May 2026</span>
+      </p>
+
+      <div class="privacy-body" data-th>
+        <h3>1. เราเก็บข้อมูลอะไร</h3>
+        <p>ฮีลใจ 24/7 เป็นเว็บไซต์ที่ออกแบบมาให้ <strong>ใช้งานได้แบบไม่ต้องล็อกอิน</strong> เราเก็บข้อมูลน้อยที่สุดเท่าที่จำเป็น:</p>
+        <ul>
+          <li><strong>ข้อมูลการเข้าชม (Analytics):</strong> จำนวน visitors · หน้าที่เข้า · ประเทศ · browser · device type — รวบรวมผ่าน Cloudflare Web Analytics โดยไม่ใช้ cookie ไม่ระบุตัวตน</li>
+          <li><strong>ข้อมูลที่คุณกรอกใน Google Form:</strong> เมื่อคุณตอบแบบสำรวจ "คุณฮีลใจยังไง?" หรือ "ฝากคำพูดในพิพิธภัณฑ์" Google จะเก็บคำตอบของคุณ (อยู่ภายใต้ Google Privacy Policy)</li>
+          <li><strong>การตั้งค่าในเครื่อง (localStorage):</strong> เช่น aesthetic ห้องที่เลือก (cozy/loft), ข้อความที่เขียนถึงตัวเอง — เก็บไว้ในเบราเซอร์คุณเท่านั้น เราเข้าไม่ถึง</li>
+        </ul>
+
+        <h3>2. เราไม่ทำอะไรกับข้อมูล</h3>
+        <ul>
+          <li>เราไม่ขายข้อมูลคุณให้ third party</li>
+          <li>เราไม่ใช้ cookie tracking ข้ามเว็บ</li>
+          <li>เราไม่เก็บ IP address หรือข้อมูลระบุตัวบุคคล</li>
+          <li>ข้อความที่คุณเขียนถึงตัวเองอยู่ในเบราเซอร์คุณคนเดียว ไม่ส่งไปไหน</li>
+        </ul>
+
+        <h3>3. สิทธิ์ของคุณ (PDPA)</h3>
+        <p>ภายใต้พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA) คุณมีสิทธิ์:</p>
+        <ul>
+          <li>เข้าถึงข้อมูลที่เราเก็บเกี่ยวกับคุณ</li>
+          <li>ขอให้ลบข้อมูลของคุณออก</li>
+          <li>ถอนความยินยอม</li>
+          <li>ร้องเรียนต่อสำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล</li>
+        </ul>
+
+        <h3>4. ข้อจำกัด</h3>
+        <p>ฮีลใจ 24/7 เป็นพื้นที่ฮีลใจเบื้องต้น <strong>ไม่ใช่บริการจิตวิทยาวิชาชีพ</strong> ถ้าคุณอยู่ในวิกฤต โปรดติดต่อ <strong>1323</strong> (สายด่วนสุขภาพจิต 24 ชม.) หรือ <strong>1667</strong> (สะมาริตันส์)</p>
+
+        <h3>5. ติดต่อเรา</h3>
+        <p>ถ้ามีข้อสงสัยเรื่องข้อมูลส่วนบุคคล ส่งอีเมลถึง <strong>sandotnim.jako@gmail.com</strong></p>
+      </div>
+
+      <div class="privacy-body" data-en>
+        <h3>1. What we collect</h3>
+        <p>Heal 24/7 is designed to work <strong>without requiring login</strong>. We collect the bare minimum:</p>
+        <ul>
+          <li><strong>Visit analytics:</strong> visitor count, pages viewed, country, browser, device type — via Cloudflare Web Analytics, no cookies, anonymous.</li>
+          <li><strong>Google Form submissions:</strong> when you fill out the "How do you heal?" survey or submit words for the museum wall, Google stores your responses (under Google's Privacy Policy).</li>
+          <li><strong>Local browser storage:</strong> aesthetic preference (cozy/loft), your private journal entries — stored only in your browser. We cannot access these.</li>
+        </ul>
+
+        <h3>2. What we never do</h3>
+        <ul>
+          <li>We don't sell your data to third parties</li>
+          <li>We don't use cross-site tracking cookies</li>
+          <li>We don't store IP addresses or personal identifiers</li>
+          <li>Your journal entries stay in your browser only — they never leave your device</li>
+        </ul>
+
+        <h3>3. Your rights (PDPA)</h3>
+        <p>Under Thailand's Personal Data Protection Act (PDPA, 2019), you have the right to:</p>
+        <ul>
+          <li>Access data we hold about you</li>
+          <li>Request data deletion</li>
+          <li>Withdraw consent</li>
+          <li>File a complaint with the Personal Data Protection Committee</li>
+        </ul>
+
+        <h3>4. Limitations</h3>
+        <p>Heal 24/7 is a gentle everyday-healing space, <strong>not a professional psychology service</strong>. If you're in crisis, please contact <strong>1323</strong> (Mental Health Hotline, 24/7) or <strong>1667</strong> (Samaritans).</p>
+
+        <h3>5. Contact</h3>
+        <p>For privacy questions, email <strong>sandotnim.jako@gmail.com</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="room-overlay active" id="room-alone">
+  <a class="close-btn" href="index.html" aria-label="Back to map">✕</a>
+  <div class="alone-room">
+    <div class="alone-bg" id="aloneBg"></div>
+
+    <div class="alone-content">
+      <!-- Sub-room back button (visible only when a hotspot/tab is active) -->
+      <button class="subroom-back" data-subroom-back>
+        ← <span data-th>กลับห้องนอน</span><span data-en>Back to bedroom</span>
+      </button>
+
+      <span class="room-eyebrow"><span data-th>ห้องที่ 4</span><span data-en>Room 04</span></span>
+      <h2 class="room-title"><span data-th>อยู่กับตัวเอง</span><span data-en>Be With Yourself</span></h2>
+      <p class="room-subtitle">
+        <span data-th>กลับมาที่ห้องของคุณ ที่ไม่ต้องเป็นใครให้ใคร</span>
+        <span data-en>Come back to your room. Where you don't owe anyone anything.</span>
+      </p>
+
+      <!-- Aesthetic toggle (Cozy / Loft) — persisted in localStorage -->
+      <div class="aesthetic-toggle" role="group" aria-label="เลือกบรรยากาศห้อง">
+        <button class="aest-btn active" data-aest="cozy">🌸 <span data-th>Cozy</span><span data-en>Cozy</span></button>
+        <button class="aest-btn" data-aest="loft">🪵 <span data-th>Loft</span><span data-en>Loft</span></button>
+      </div>
+
+      <!-- Illustrated bedroom with clickable hotspots (5 zones) — positions in CSS per aesthetic -->
+      <div class="room-stage" data-aest="cozy">
+        <img id="bedroomImg" class="room-illustration" src="assets/images/bedroom-cozy.jpg" alt="ห้องนอน"/>
+        <button class="hotspot" data-pane="bedroom">
+          <span class="hotspot-dot"></span>
+          <span class="hotspot-label" data-th>🪟 ดูฟ้าฝน</span><span class="hotspot-label" data-en>🪟 Watch the sky</span>
+        </button>
+        <button class="hotspot" data-pane="mood">
+          <span class="hotspot-dot"></span>
+          <span class="hotspot-label" data-th>😊 เช็คใจ</span><span class="hotspot-label" data-en>😊 Mood</span>
+        </button>
+        <button class="hotspot" data-pane="letter">
+          <span class="hotspot-dot"></span>
+          <span class="hotspot-label" data-th>📝 เขียน</span><span class="hotspot-label" data-en>📝 Letter</span>
+        </button>
+        <button class="hotspot" data-pane="cat">
+          <span class="hotspot-dot"></span>
+          <span class="hotspot-label" data-th>🐱 อยู่กับแมว</span><span class="hotspot-label" data-en>🐱 With cat</span>
+        </button>
+        <button class="hotspot" data-pane="meditate">
+          <span class="hotspot-dot"></span>
+          <span class="hotspot-label" data-th>🧘 สมาธิ</span><span class="hotspot-label" data-en>🧘 Meditate</span>
+        </button>
+        <button class="hotspot" data-pane="color">
+          <span class="hotspot-dot"></span>
+          <span class="hotspot-label" data-th>🎨 ระบายสี</span><span class="hotspot-label" data-en>🎨 Color</span>
+        </button>
+      </div>
+
+      <!-- Tabs removed — hotspots on illustration are the only navigation.
+           Hidden DOM markers below preserve pane-switching logic. -->
+      <div class="alone-tabs" hidden aria-hidden="true">
+        <button class="alone-tab active" data-pane="bedroom"></button>
+        <button class="alone-tab" data-pane="cat"></button>
+        <button class="alone-tab" data-pane="mood"></button>
+        <button class="alone-tab" data-pane="letter"></button>
+        <button class="alone-tab" data-pane="meditate"></button>
+        <button class="alone-tab" data-pane="color"></button>
+      </div>
+
+      <!-- ===== Pane: Mood check ===== -->
+      <div class="alone-pane" id="apane-mood">
+        <h3 class="alone-h3"><span data-th>วันนี้ใจอยู่ตรงไหน?</span><span data-en>Where is your heart today?</span></h3>
+        <div class="mood-grid" id="moodGrid">
+          <button class="mood-btn" data-mood="1"><span class="m-emoji">😢</span><span data-th>หนัก</span><span data-en>Heavy</span></button>
+          <button class="mood-btn" data-mood="2"><span class="m-emoji">😟</span><span data-th>อึน</span><span data-en>Stuck</span></button>
+          <button class="mood-btn" data-mood="3"><span class="m-emoji">😐</span><span data-th>กลางๆ</span><span data-en>Meh</span></button>
+          <button class="mood-btn" data-mood="4"><span class="m-emoji">🙂</span><span data-th>พอไหว</span><span data-en>Okay</span></button>
+          <button class="mood-btn" data-mood="5"><span class="m-emoji">😊</span><span data-th>ดีนะ</span><span data-en>Good</span></button>
+        </div>
+        <div class="mood-response" id="moodResponse"></div>
+      </div>
+
+      <!-- ===== Pane: Letter ===== -->
+      <div class="alone-pane" id="apane-letter">
+        <h3 class="alone-h3"><span data-th>เขียนถึงใจตัวเอง</span><span data-en>A letter to your own heart</span></h3>
+
+        <!-- Daily writing streak + milestone medals -->
+        <div class="streak-badge" id="streakBadge" hidden>
+          <span class="streak-flame">🌱</span>
+          <span class="streak-text"></span>
+        </div>
+        <div class="streak-philosophy">
+          <span data-th>การฮีลที่ดีไม่ใช่ "ทุกข์ใจแล้วค่อยมาฮีล" — แต่คือการฮีลให้เป็นนิสัยทุกวัน · เขียนสั้นๆ แค่ 1 ประโยคก็พอ</span>
+          <span data-en>Real healing isn't waiting until you're hurt — it's a gentle daily habit. Even one sentence is enough.</span>
+        </div>
+        <div class="medal-row" id="medalRow"></div>
+
+        <div class="letter-mode-row">
+          <button class="letter-mode-btn active" data-letter-mode="now">
+            <span data-th>ปลอบตัวเองตอนนี้</span><span data-en>Comfort yourself now</span>
+          </button>
+          <button class="letter-mode-btn" data-letter-mode="future">
+            <span data-th>ถึงตัวเองในอนาคต</span><span data-en>To your future self</span>
+          </button>
+        </div>
+        <textarea id="letterText" maxlength="800"
+          data-th-placeholder="ใจของคุณอยากบอกอะไรกับตัวเอง..."
+          data-en-placeholder="What does your heart want to say to itself..."></textarea>
+        <div class="letter-actions">
+          <button class="nav-btn next" id="letterSave" disabled>
+            🌱 <span data-th>เก็บในกล่องของฉัน</span><span data-en>Keep in my box</span>
+          </button>
+        </div>
+        <div class="letter-success" id="letterSuccess">
+          ✨ <span data-th>เก็บไว้แล้ว — กลับมาอ่านได้เสมอ</span><span data-en>Saved — come back any time</span>
+        </div>
+
+        <!-- Past entries hint — shown when user has saved at least once -->
+        <div class="streak-history" id="streakHistory" hidden>
+          <p class="streak-history-line">
+            <span data-th>📖 คุณเขียนถึงตัวเองมาแล้ว <strong id="streakTotal">0</strong> ครั้ง</span>
+            <span data-en>📖 You've written to yourself <strong id="streakTotalEn">0</strong> times</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- ===== Pane: Meditate (moved from travel) ===== -->
+      <div class="alone-pane" id="apane-meditate">
+        <h3 class="alone-h3"><span data-th>นั่งสมาธิ ฝึกหายใจ</span><span data-en>Sit and breathe</span></h3>
+
+        <div class="sit-card" id="sitSetup">
+          <div style="font-family:'IBM Plex Serif',serif;font-size:17px;color:var(--ink);margin-bottom:8px">
+            <span data-th>นั่งกี่นาทีดี?</span><span data-en>How long?</span>
+          </div>
+          <div class="sit-duration">
+            <button class="duration-btn active" data-min="1">1 min</button>
+            <button class="duration-btn" data-min="3">3 min</button>
+            <button class="duration-btn" data-min="5">5 min</button>
+            <button class="duration-btn" data-min="10">10 min</button>
+          </div>
+
+          <div style="font-family:'IBM Plex Serif',serif;font-size:17px;color:var(--ink);margin-top:18px;margin-bottom:6px">
+            <span data-th>หายใจแบบไหน?</span><span data-en>Breathing pattern</span>
+          </div>
+          <div class="pattern-grid">
+            <button class="pattern-btn active" data-pattern="natural">
+              <div class="pat-name">🌬 <span data-th>หายใจปกติ</span><span data-en>Natural</span></div>
+              <div class="pat-desc"><span data-th>เข้า 4 · ออก 4</span><span data-en>In 4 · out 4</span></div>
+            </button>
+            <button class="pattern-btn" data-pattern="b478">
+              <div class="pat-name">🧘 4-7-8</div>
+              <div class="pat-desc"><span data-th>ผ่อนคลาย · ก่อนนอน</span><span data-en>Relax · sleep</span></div>
+            </button>
+            <button class="pattern-btn" data-pattern="box">
+              <div class="pat-name">🟦 <span data-th>กล่อง 4-4-4-4</span><span data-en>Box 4-4-4-4</span></div>
+              <div class="pat-desc"><span data-th>โฟกัส · มีสมาธิ</span><span data-en>Focus · calm</span></div>
+            </button>
+            <button class="pattern-btn" data-pattern="coherent">
+              <div class="pat-name">💗 5-5</div>
+              <div class="pat-desc"><span data-th>สงบใจ · บาลานซ์</span><span data-en>Heart-coherence</span></div>
+            </button>
+          </div>
+          <button class="nav-btn next" id="sitStart" style="margin-top:18px">
+            🌿 <span data-th>เริ่มนั่ง</span><span data-en>Start sitting</span>
+          </button>
+        </div>
+
+        <div class="breathing-stage" id="sitStage">
+          <div class="breath-circle" id="breathCircle">
+            <span data-th>หายใจ...</span><span data-en>Breathe...</span>
+          </div>
+          <div class="breath-label" id="breathLabel">
+            <span data-th>เข้า — ออก</span><span data-en>In — out</span>
+          </div>
+          <div class="timer-display" id="timerDisplay">01:00</div>
+          <div style="margin-top:24px">
+            <button class="nav-btn map" id="sitStop">
+              <span data-th>หยุดก่อน</span><span data-en>Stop early</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="sit-card" id="sitDone" style="display:none">
+          <div style="font-size:48px;margin-bottom:12px">🌸</div>
+          <div style="font-family:'IBM Plex Serif',serif;font-size:20px;color:var(--ink);margin-bottom:8px">
+            <span data-th>ขอบคุณที่ให้เวลาตัวเอง</span>
+            <span data-en>Thank yourself for the time</span>
+          </div>
+          <button class="nav-btn next" id="sitAgain">
+            <span data-th>นั่งอีกครั้ง</span><span data-en>Sit again</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== Pane: Bedroom — rain + music ===== -->
+      <div class="alone-pane active" id="apane-bedroom">
+        <div class="bedroom-stage">
+          <div class="rain-overlay" id="rainOverlay" aria-hidden="true">
+            <div class="rain-drop"></div><div class="rain-drop"></div><div class="rain-drop"></div>
+            <div class="rain-drop"></div><div class="rain-drop"></div><div class="rain-drop"></div>
+            <div class="rain-drop"></div><div class="rain-drop"></div><div class="rain-drop"></div>
+            <div class="rain-drop"></div><div class="rain-drop"></div><div class="rain-drop"></div>
+            <div class="rain-drop"></div><div class="rain-drop"></div><div class="rain-drop"></div>
+          </div>
+          <div class="bedroom-message">
+            <span data-th>เข้านอนสักครู่ — ฟังฝน ฟังเพลง</span>
+            <span data-en>Lie down for a moment — rain and music</span>
+          </div>
+        </div>
+
+        <div class="bedroom-controls">
+          <div class="ctrl-row" style="flex-direction:column; align-items:flex-start; gap:10px">
+            <span class="ctrl-label"><span data-th>เสียงบรรยากาศ</span><span data-en>Ambient sound</span></span>
+            <div class="ambient-picker" id="ambientPicker">
+              <button class="ambient-pill active" data-ambient="off">
+                <span data-th>ปิด</span><span data-en>Off</span>
+              </button>
+              <button class="ambient-pill" data-ambient="rain" data-src="assets/audio/rain.mp3">
+                🌧 <span data-th>ฝน</span><span data-en>Rain</span>
+              </button>
+              <button class="ambient-pill" data-ambient="ocean" data-src="assets/audio/ocean.mp3">
+                🌊 <span data-th>ทะเล</span><span data-en>Ocean</span>
+              </button>
+              <button class="ambient-pill" data-ambient="forest" data-src="assets/audio/forest.mp3">
+                🌳 <span data-th>ป่า</span><span data-en>Forest</span>
+              </button>
+              <button class="ambient-pill" data-ambient="waterfall" data-src="assets/audio/waterfall.mp3">
+                💧 <span data-th>น้ำตก</span><span data-en>Waterfall</span>
+              </button>
+              <button class="ambient-pill" data-ambient="underwater" data-src="assets/audio/underwater.mp3">
+                🐚 <span data-th>ใต้น้ำ</span><span data-en>Underwater</span>
+              </button>
+              <button class="ambient-pill" data-ambient="garden" data-src="assets/audio/garden.mp3">
+                🌿 <span data-th>สวน</span><span data-en>Garden</span>
+              </button>
+              <button class="ambient-pill" data-ambient="birds" data-src="assets/audio/birds.mp3">
+                🐦 <span data-th>นก</span><span data-en>Birds</span>
+              </button>
+              <button class="ambient-pill" data-ambient="deepsleep" data-src="assets/audio/deep-sleep.mp3">
+                🌙 <span data-th>หลับลึก</span><span data-en>Deep sleep</span>
+              </button>
+            </div>
+          </div>
+          <audio id="rainAudio" src="assets/audio/rain.mp3" loop preload="none"></audio>
+
+          <div class="ctrl-row" style="margin-top:18px">
+            <span class="ctrl-label"><span data-th>เพลย์ลิสต์</span><span data-en>Tracks</span></span>
+          </div>
+          <div class="bedroom-tracks" id="bedroomTracks">
+            <button class="bedroom-track active" data-bd-src="assets/audio/theme.mp3">Land of Smiles</button>
+            <button class="bedroom-track" data-bd-src="assets/audio/morning-heart.mp3">Morning Heart</button>
+            <button class="bedroom-track" data-bd-src="assets/audio/rainy-window.mp3">Rainy Window</button>
+            <button class="bedroom-track" data-bd-src="assets/audio/temple-at-dusk.mp3">Temple at Dusk</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Pane: Coloring — click-to-fill mandala (paint therapy) ===== -->
+      <div class="alone-pane" id="apane-color">
+        <h3 class="alone-h3"><span data-th>ระบายสีดอกไม้</span><span data-en>Color a flower</span></h3>
+        <p class="alone-sub">
+          <span data-th>เลือกสีที่ใจชอบ แล้วแตะที่กลีบดอก — ไม่มีถูกผิด ไม่มีหมดเวลา</span>
+          <span data-en>Pick a color, tap a petal — no right or wrong, no clock</span>
+        </p>
+
+        <!-- Difficulty levels -->
+        <div class="color-levels">
+          <button class="color-level-btn" data-level="easy">
+            🌷 <span data-th>ง่าย</span><span data-en>Easy</span>
+          </button>
+          <button class="color-level-btn active" data-level="medium">
+            🌸 <span data-th>กลาง</span><span data-en>Medium</span>
+          </button>
+          <button class="color-level-btn" data-level="hard">
+            ❀ <span data-th>ยาก</span><span data-en>Hard</span>
+          </button>
+        </div>
+
+        <div class="color-stage">
+          <svg class="color-canvas" id="colorCanvas" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-label="ดอกไม้ระบายสี">
+            <!-- Background circle -->
+            <circle class="cz" cx="200" cy="200" r="195" fill="#ffffff" stroke="#c19a6c" stroke-width="2"/>
+            <!-- Outer ring petals (8) -->
+            <g class="petal-ring outer">
+              <path class="cz" d="M200 30 C 230 60, 230 110, 200 130 C 170 110, 170 60, 200 30 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5"/>
+              <path class="cz" d="M200 30 C 230 60, 230 110, 200 130 C 170 110, 170 60, 200 30 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(45 200 200)"/>
+              <path class="cz" d="M200 30 C 230 60, 230 110, 200 130 C 170 110, 170 60, 200 30 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(90 200 200)"/>
+              <path class="cz" d="M200 30 C 230 60, 230 110, 200 130 C 170 110, 170 60, 200 30 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(135 200 200)"/>
+              <path class="cz" d="M200 30 C 230 60, 230 110, 200 130 C 170 110, 170 60, 200 30 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(180 200 200)"/>
+              <path class="cz" d="M200 30 C 230 60, 230 110, 200 130 C 170 110, 170 60, 200 30 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(225 200 200)"/>
+              <path class="cz" d="M200 30 C 230 60, 230 110, 200 130 C 170 110, 170 60, 200 30 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(270 200 200)"/>
+              <path class="cz" d="M200 30 C 230 60, 230 110, 200 130 C 170 110, 170 60, 200 30 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(315 200 200)"/>
+            </g>
+            <!-- Inner ring petals (8, smaller, offset) -->
+            <g class="petal-ring inner">
+              <path class="cz" d="M200 130 C 220 150, 220 180, 200 195 C 180 180, 180 150, 200 130 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(22.5 200 200)"/>
+              <path class="cz" d="M200 130 C 220 150, 220 180, 200 195 C 180 180, 180 150, 200 130 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(67.5 200 200)"/>
+              <path class="cz" d="M200 130 C 220 150, 220 180, 200 195 C 180 180, 180 150, 200 130 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(112.5 200 200)"/>
+              <path class="cz" d="M200 130 C 220 150, 220 180, 200 195 C 180 180, 180 150, 200 130 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(157.5 200 200)"/>
+              <path class="cz" d="M200 130 C 220 150, 220 180, 200 195 C 180 180, 180 150, 200 130 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(202.5 200 200)"/>
+              <path class="cz" d="M200 130 C 220 150, 220 180, 200 195 C 180 180, 180 150, 200 130 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(247.5 200 200)"/>
+              <path class="cz" d="M200 130 C 220 150, 220 180, 200 195 C 180 180, 180 150, 200 130 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(292.5 200 200)"/>
+              <path class="cz" d="M200 130 C 220 150, 220 180, 200 195 C 180 180, 180 150, 200 130 Z" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5" transform="rotate(337.5 200 200)"/>
+            </g>
+            <!-- Center ring -->
+            <circle class="cz" cx="200" cy="200" r="42" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5"/>
+            <!-- Center dot -->
+            <circle class="cz" cx="200" cy="200" r="18" fill="#ffffff" stroke="#8b6f47" stroke-width="1.5"/>
+          </svg>
+
+          <!-- Color palette — pastel earth-tones -->
+          <div class="color-palette" id="colorPalette">
+            <button class="color-swatch active" data-color="#f4b6a6" style="background:#f4b6a6" aria-label="peach"></button>
+            <button class="color-swatch" data-color="#e8a87c" style="background:#e8a87c" aria-label="coral"></button>
+            <button class="color-swatch" data-color="#c1a07a" style="background:#c1a07a" aria-label="caramel"></button>
+            <button class="color-swatch" data-color="#a8c4a2" style="background:#a8c4a2" aria-label="sage"></button>
+            <button class="color-swatch" data-color="#cce0bc" style="background:#cce0bc" aria-label="mint"></button>
+            <button class="color-swatch" data-color="#a8c4d8" style="background:#a8c4d8" aria-label="blue"></button>
+            <button class="color-swatch" data-color="#d8b4d8" style="background:#d8b4d8" aria-label="lavender"></button>
+            <button class="color-swatch" data-color="#f4d6a6" style="background:#f4d6a6" aria-label="butter"></button>
+            <button class="color-swatch eraser" data-color="#ffffff" aria-label="ลบ">✕</button>
+          </div>
+
+          <div class="color-actions">
+            <button class="nav-btn" id="colorReset">↻ <span data-th>ล้างทั้งหมด</span><span data-en>Clear all</span></button>
+            <button class="nav-btn next" id="colorSave">💾 <span data-th>เก็บภาพ</span><span data-en>Save image</span></button>
+            <button class="card-action-btn share-btn" data-share-type="coloring" type="button">
+              📤 <span data-th>แชร์</span><span data-en>Share</span>
+            </button>
+            <button class="card-action-btn bookmark-btn" data-bookmark-type="coloring" type="button">
+              🔖 <span data-th>บันทึก</span><span data-en>Save</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Pane: Cat — orange/white companion ===== -->
+      <div class="alone-pane" id="apane-cat">
+        <h3 class="alone-h3"><span data-th>อยู่กับแมวสักครู่</span><span data-en>Spend a moment with a cat</span></h3>
+        <p class="alone-sub">
+          <span data-th>เลือกสิ่งที่อยากทำ — บางครั้งใจเราต้องการแค่เพื่อนเงียบๆ</span>
+          <span data-en>Pick something to do — sometimes the heart just needs quiet company</span>
+        </p>
+
+        <div class="cat-stage">
+          <img class="cat-img" id="catImg" src="assets/images/cat-sit.jpg" alt="แมวส้มขาว"/>
+          <div class="cat-message" id="catMessage">
+            <span data-th>เพื่อนตัวน้อยรอเธออยู่ — ลองลูบหัว ลูบหลัง หรือจิ้มพุงดูสิ</span>
+            <span data-en>Your little companion is here — try petting head, back, or belly</span>
+          </div>
+        </div>
+
+        <div class="cat-actions">
+          <button class="cat-action" data-cat-action="pet">🤍 <span data-th>ลูบหัว</span><span data-en>Pet</span></button>
+          <button class="cat-action" data-cat-action="feed">🍽 <span data-th>ให้กิน</span><span data-en>Feed</span></button>
+          <button class="cat-action" data-cat-action="play">🧶 <span data-th>เล่นไหมพรม</span><span data-en>Play</span></button>
+          <button class="cat-action" data-cat-action="watch">😴 <span data-th>ดูมันนอน</span><span data-en>Watch sleep</span></button>
+        </div>
+      </div>
+
+      <nav class="room-nav room-nav-simple">
+        <a class="nav-btn map" href="index.html">← <span data-th>กลับแผนที่</span><span data-en>Back to map</span></a>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ROOM 5: ชุมชนฮีลใจ — Community ============ -->
+
+
+<script defer src="assets/js/common.js"></script>
+<script defer src="assets/js/alone.js"></script>
+</body>
+</html>

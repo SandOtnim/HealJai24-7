@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ฮีลใจ 24/7 — Heal 24/7</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+
+<!-- =========================================================
+     CLOUDFLARE WEB ANALYTICS — Privacy-friendly, cookie-free
+     SETUP:
+     1) Go to https://www.cloudflare.com/web-analytics/ → sign up (free)
+     2) Add your site (e.g. healjai247.netlify.app or your own domain)
+     3) Copy the <script> snippet Cloudflare gives you
+     4) REPLACE the placeholder line below with that snippet
+        — it will look like:
+        <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token":"YOUR_REAL_TOKEN"}'></script>
+     ========================================================= -->
+<!-- <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token":"PASTE_YOUR_TOKEN_HERE"}'></script> -->
+
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body data-lang="th" data-page="sacred">
+<div class="main visible" id="main">
+  <header>
+    <div class="brand">
+      <span class="heart">♥</span>
+      <span data-th>ฮีลใจ 24/7</span>
+      <span data-en>Heal 24/7</span>
+    </div>
+    <div class="header-actions">
+      <button class="music-toggle" id="musicToggle" aria-label="Music menu">
+        <span class="music-icon-pulse">♪</span>
+      </button>
+      <!-- Music dropdown menu -->
+      <div class="music-menu" id="musicMenu">
+        <div class="music-menu-title">
+          <span data-th>เลือกเพลง</span><span data-en>Choose track</span>
+        </div>
+        <button class="track-btn active" data-track="1" data-src="assets/audio/theme.mp3">
+          <span class="track-dot"></span>
+          <span>Land of Smiles</span>
+          <span class="track-meta">main</span>
+        </button>
+        <button class="track-btn" data-track="2" data-src="assets/audio/morning-heart.mp3">
+          <span class="track-dot"></span>
+          <span>Morning Heart</span>
+        </button>
+        <button class="track-btn" data-track="3" data-src="assets/audio/rainy-window.mp3">
+          <span class="track-dot"></span>
+          <span>Rainy Window</span>
+        </button>
+        <button class="track-btn" data-track="4" data-src="assets/audio/temple-at-dusk.mp3">
+          <span class="track-dot"></span>
+          <span>Temple at Dusk</span>
+        </button>
+        <button class="track-btn pause-btn" id="pauseTrack">
+          <span>⏸</span>
+          <span data-th>หยุดเพลง</span><span data-en>Pause</span>
+        </button>
+      </div>
+      <button class="lang-toggle" id="bookmarkOpen" aria-label="กล่องบันทึก">
+        <span style="font-size:16px;line-height:1">🔖</span>
+        <span class="bookmark-badge" id="bookmarkBadge" hidden>0</span>
+      </button>
+      <button class="lang-toggle" id="langToggle">
+        <span data-th>EN</span><span data-en>TH</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Bookmark drawer (saved items list) -->
+  <div class="bookmark-modal" id="bookmarkModal" hidden>
+    <div class="bookmark-backdrop" data-close-bookmark onclick="window.__closeBookmarkModal && window.__closeBookmarkModal()"></div>
+    <div class="bookmark-panel">
+      <div class="bookmark-head">
+        <h3 class="bookmark-title">
+          🔖 <span data-th>กล่องของฉัน</span><span data-en>My collection</span>
+        </h3>
+        <button class="bookmark-close" data-close-bookmark aria-label="ปิด" type="button" onclick="window.__closeBookmarkModal && window.__closeBookmarkModal()">✕</button>
+      </div>
+      <p class="bookmark-sub">
+        <span data-th>ทุกอย่างที่เธอบันทึกไว้ — เก็บในเครื่องนี้เท่านั้น ไม่ส่งไปไหน</span>
+        <span data-en>Everything you saved — stored only on this device</span>
+      </p>
+      <ul class="bookmark-list" id="bookmarkList"></ul>
+      <div class="bookmark-empty" id="bookmarkEmpty" hidden>
+        <div class="bookmark-empty-icon">📭</div>
+        <p>
+          <span data-th>ยังไม่มีอะไรในกล่อง — ไปกดปุ่ม 🔖 ตามที่ต่างๆ ในเว็บ เพื่อเก็บคำดีๆ ไว้ที่นี่</span>
+          <span data-en>Nothing here yet — hit 🔖 on cards across the site to save your favorites</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Background music (single audio element, src changes with track switch) -->
+  <audio id="bgMusic" src="assets/audio/theme.mp3" loop preload="auto"></audio>
+
+  <footer>
+    <span data-th>© 2026 ฮีลใจ 24/7 — สำหรับคนเมืองที่อยากมีที่ฮีลใจ</span>
+    <span data-en>© 2026 Heal 24/7 — for everyone who needs a place to come back to</span>
+    <br>
+    <button class="footer-link" data-open-privacy>
+      <span data-th>นโยบายความเป็นส่วนตัว (PDPA)</span><span data-en>Privacy Policy (PDPA)</span>
+    </button>
+  </footer>
+
+  <!-- Privacy Policy modal -->
+  <div class="privacy-modal" id="privacyModal">
+    <div class="privacy-card">
+      <button class="privacy-close" data-close-privacy aria-label="ปิด">✕</button>
+      <h2 class="privacy-title">
+        <span data-th>นโยบายความเป็นส่วนตัว</span><span data-en>Privacy Policy</span>
+      </h2>
+      <p class="privacy-updated">
+        <span data-th>อัพเดทล่าสุด: 15 พฤษภาคม 2569</span><span data-en>Last updated: 15 May 2026</span>
+      </p>
+
+      <div class="privacy-body" data-th>
+        <h3>1. เราเก็บข้อมูลอะไร</h3>
+        <p>ฮีลใจ 24/7 เป็นเว็บไซต์ที่ออกแบบมาให้ <strong>ใช้งานได้แบบไม่ต้องล็อกอิน</strong> เราเก็บข้อมูลน้อยที่สุดเท่าที่จำเป็น:</p>
+        <ul>
+          <li><strong>ข้อมูลการเข้าชม (Analytics):</strong> จำนวน visitors · หน้าที่เข้า · ประเทศ · browser · device type — รวบรวมผ่าน Cloudflare Web Analytics โดยไม่ใช้ cookie ไม่ระบุตัวตน</li>
+          <li><strong>ข้อมูลที่คุณกรอกใน Google Form:</strong> เมื่อคุณตอบแบบสำรวจ "คุณฮีลใจยังไง?" หรือ "ฝากคำพูดในพิพิธภัณฑ์" Google จะเก็บคำตอบของคุณ (อยู่ภายใต้ Google Privacy Policy)</li>
+          <li><strong>การตั้งค่าในเครื่อง (localStorage):</strong> เช่น aesthetic ห้องที่เลือก (cozy/loft), ข้อความที่เขียนถึงตัวเอง — เก็บไว้ในเบราเซอร์คุณเท่านั้น เราเข้าไม่ถึง</li>
+        </ul>
+
+        <h3>2. เราไม่ทำอะไรกับข้อมูล</h3>
+        <ul>
+          <li>เราไม่ขายข้อมูลคุณให้ third party</li>
+          <li>เราไม่ใช้ cookie tracking ข้ามเว็บ</li>
+          <li>เราไม่เก็บ IP address หรือข้อมูลระบุตัวบุคคล</li>
+          <li>ข้อความที่คุณเขียนถึงตัวเองอยู่ในเบราเซอร์คุณคนเดียว ไม่ส่งไปไหน</li>
+        </ul>
+
+        <h3>3. สิทธิ์ของคุณ (PDPA)</h3>
+        <p>ภายใต้พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA) คุณมีสิทธิ์:</p>
+        <ul>
+          <li>เข้าถึงข้อมูลที่เราเก็บเกี่ยวกับคุณ</li>
+          <li>ขอให้ลบข้อมูลของคุณออก</li>
+          <li>ถอนความยินยอม</li>
+          <li>ร้องเรียนต่อสำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล</li>
+        </ul>
+
+        <h3>4. ข้อจำกัด</h3>
+        <p>ฮีลใจ 24/7 เป็นพื้นที่ฮีลใจเบื้องต้น <strong>ไม่ใช่บริการจิตวิทยาวิชาชีพ</strong> ถ้าคุณอยู่ในวิกฤต โปรดติดต่อ <strong>1323</strong> (สายด่วนสุขภาพจิต 24 ชม.) หรือ <strong>1667</strong> (สะมาริตันส์)</p>
+
+        <h3>5. ติดต่อเรา</h3>
+        <p>ถ้ามีข้อสงสัยเรื่องข้อมูลส่วนบุคคล ส่งอีเมลถึง <strong>sandotnim.jako@gmail.com</strong></p>
+      </div>
+
+      <div class="privacy-body" data-en>
+        <h3>1. What we collect</h3>
+        <p>Heal 24/7 is designed to work <strong>without requiring login</strong>. We collect the bare minimum:</p>
+        <ul>
+          <li><strong>Visit analytics:</strong> visitor count, pages viewed, country, browser, device type — via Cloudflare Web Analytics, no cookies, anonymous.</li>
+          <li><strong>Google Form submissions:</strong> when you fill out the "How do you heal?" survey or submit words for the museum wall, Google stores your responses (under Google's Privacy Policy).</li>
+          <li><strong>Local browser storage:</strong> aesthetic preference (cozy/loft), your private journal entries — stored only in your browser. We cannot access these.</li>
+        </ul>
+
+        <h3>2. What we never do</h3>
+        <ul>
+          <li>We don't sell your data to third parties</li>
+          <li>We don't use cross-site tracking cookies</li>
+          <li>We don't store IP addresses or personal identifiers</li>
+          <li>Your journal entries stay in your browser only — they never leave your device</li>
+        </ul>
+
+        <h3>3. Your rights (PDPA)</h3>
+        <p>Under Thailand's Personal Data Protection Act (PDPA, 2019), you have the right to:</p>
+        <ul>
+          <li>Access data we hold about you</li>
+          <li>Request data deletion</li>
+          <li>Withdraw consent</li>
+          <li>File a complaint with the Personal Data Protection Committee</li>
+        </ul>
+
+        <h3>4. Limitations</h3>
+        <p>Heal 24/7 is a gentle everyday-healing space, <strong>not a professional psychology service</strong>. If you're in crisis, please contact <strong>1323</strong> (Mental Health Hotline, 24/7) or <strong>1667</strong> (Samaritans).</p>
+
+        <h3>5. Contact</h3>
+        <p>For privacy questions, email <strong>sandotnim.jako@gmail.com</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="room-overlay active" id="room-mu">
+  <a class="close-btn" href="index.html" aria-label="Back to map">✕</a>
+  <div class="deity-bg-overlay" id="deityBgOverlay"></div>
+  <div class="game-shell">
+    <span class="room-eyebrow">
+      <span data-th>ห้องที่ 1 · ห้องมู</span>
+      <span data-en>Room 01 · Sacred</span>
+    </span>
+
+    <!-- Progress dots -->
+    <div class="game-progress" id="gameProgress">
+      <div class="game-dot active"></div>
+      <div class="game-dot"></div>
+      <div class="game-dot"></div>
+      <div class="game-dot"></div>
+      <div class="game-dot"></div>
+      <div class="game-dot"></div>
+    </div>
+
+    <!-- Selected deity info (shown after step 1) -->
+    <div class="deity-info" id="deityInfo">
+      <img id="deityInfoImg" src="" alt="">
+      <div class="deity-info-text">
+        <div class="deity-info-name" id="deityInfoName"></div>
+        <div class="deity-info-power" id="deityInfoPower"></div>
+      </div>
+    </div>
+
+    <!-- ============ STEP 1: pick deity ============ -->
+    <div class="game-step active" data-step="1">
+      <div class="step-eyebrow"><span data-th>ขั้นที่ 1</span><span data-en>Step 1</span></div>
+      <h2 class="step-title">
+        <span data-th>วันนี้ขอกราบไหว้องค์ไหน?</span>
+        <span data-en>Who would you like to pay respects to today?</span>
+      </h2>
+      <p class="step-desc">
+        <span data-th>เลือกองค์ที่ใจคุณตรงด้วย — แต่ละองค์ดูแลคนละด้าน</span>
+        <span data-en>Pick the one your heart resonates with — each holds a different blessing</span>
+      </p>
+
+      <div class="deity-grid" id="deityGrid">
+        <button class="deity-card" data-deity="sothon" data-offering="egg">
+          <img class="deity-icon" src="assets/images/deity-sothon.jpg" alt="หลวงพ่อโสธร" loading="lazy">
+          <div class="deity-name"><span data-th>หลวงพ่อโสธร</span><span data-en>Luang Pho Sothon</span></div>
+          <div class="deity-power"><span data-th>ความสำเร็จ · ร่ำรวย</span><span data-en>Success & wealth</span></div>
+          <div class="deity-meta"><span data-th>ธูป 3 · ไข่ต้ม</span><span data-en>3 sticks · boiled eggs</span></div>
+        </button>
+        <button class="deity-card" data-deity="trimurti" data-offering="rose">
+          <img class="deity-icon" src="assets/images/deity-trimurti.jpg" alt="พระตรีมูรติ" loading="lazy">
+          <div class="deity-name"><span data-th>พระตรีมูรติ</span><span data-en>Trimurti</span></div>
+          <div class="deity-power"><span data-th>เรื่องความรัก</span><span data-en>Love & relationships</span></div>
+          <div class="deity-meta"><span data-th>ธูป 9 · กุหลาบแดง</span><span data-en>9 sticks · red roses</span></div>
+        </button>
+        <button class="deity-card" data-deity="brahma" data-offering="jasmine">
+          <img class="deity-icon" src="assets/images/deity-brahma.jpg" alt="พระพรหม" loading="lazy">
+          <div class="deity-name"><span data-th>พระพรหม</span><span data-en>Brahma</span></div>
+          <div class="deity-power"><span data-th>โชค · สติปัญญา</span><span data-en>Wisdom & fortune</span></div>
+          <div class="deity-meta"><span data-th>ธูป 16 · พวงมาลัย</span><span data-en>16 sticks · jasmine</span></div>
+        </button>
+        <button class="deity-card" data-deity="ganesha" data-offering="sweets">
+          <img class="deity-icon" src="assets/images/deity-ganesha.jpg" alt="พระพิฆเนศ" loading="lazy">
+          <div class="deity-name"><span data-th>พระพิฆเนศ</span><span data-en>Ganesha</span></div>
+          <div class="deity-power"><span data-th>ผ่านอุปสรรค</span><span data-en>Removing obstacles</span></div>
+          <div class="deity-meta"><span data-th>ธูป 9 · ขนมหวาน</span><span data-en>9 sticks · sweets</span></div>
+        </button>
+        <button class="deity-card" data-deity="lakshmi" data-offering="lotus">
+          <img class="deity-icon" src="assets/images/deity-lakshmi.jpg" alt="พระแม่ลักษมี" loading="lazy">
+          <div class="deity-name"><span data-th>พระแม่ลักษมี</span><span data-en>Lakshmi</span></div>
+          <div class="deity-power"><span data-th>ความอุดมสมบูรณ์</span><span data-en>Abundance & prosperity</span></div>
+          <div class="deity-meta"><span data-th>ธูป 9 · ดอกบัว</span><span data-en>9 sticks · lotus</span></div>
+        </button>
+        <button class="deity-card" data-deity="vessuwan" data-offering="water">
+          <img class="deity-icon" src="assets/images/deity-vessuwan.jpg" alt="ท้าวเวสสุวรรณ" loading="lazy">
+          <div class="deity-name"><span data-th>ท้าวเวสสุวรรณ</span><span data-en>Tao Vessuwan</span></div>
+          <div class="deity-power"><span data-th>ปกป้อง · ขจัดภัย</span><span data-en>Protection · ward off evil</span></div>
+          <div class="deity-meta"><span data-th>ธูป 9 · น้ำสะอาด</span><span data-en>9 sticks · clean water</span></div>
+        </button>
+        <button class="deity-card" data-deity="guanyin" data-offering="lotus">
+          <img class="deity-icon" src="assets/images/deity-guanyin.jpg" alt="เจ้าแม่กวนอิม" loading="lazy">
+          <div class="deity-name"><span data-th>เจ้าแม่กวนอิม</span><span data-en>Guan Yin</span></div>
+          <div class="deity-power"><span data-th>เมตตา · ปัญญา · ลูก</span><span data-en>Compassion · wisdom · children</span></div>
+          <div class="deity-meta"><span data-th>ธูป 9 · ดอกบัว/ผลไม้</span><span data-en>9 sticks · lotus/fruit</span></div>
+        </button>
+        <button class="deity-card" data-deity="thapthim" data-offering="fruit">
+          <img class="deity-icon" src="assets/images/deity-thapthim.jpg" alt="เจ้าแม่ทับทิม" loading="lazy">
+          <div class="deity-name"><span data-th>เจ้าแม่ทับทิม</span><span data-en>Chao Mae Thapthim</span></div>
+          <div class="deity-power"><span data-th>การเดินทาง · ค้าขาย · ลูกหลาน</span><span data-en>Travel · trade · family</span></div>
+          <div class="deity-meta"><span data-th>ธูป 5 · ผลไม้แดง</span><span data-en>5 sticks · red fruit</span></div>
+        </button>
+      </div>
+
+      <!-- Prayer type choice (appears after deity is picked) -->
+      <div class="prayer-type-stage" id="prayerTypeStage">
+        <h3 class="prayer-type-title">
+          <span data-th>วันนี้คุณอยากไหว้แบบไหน?</span>
+          <span data-en>How would you like to pray today?</span>
+        </h3>
+        <div class="prayer-type-options">
+          <button class="prayer-type-btn" data-type="regular">
+            <div class="pt-name">
+              <span data-th>ไหว้แบบปกติ</span><span data-en>Regular</span>
+            </div>
+            <div class="pt-sub">
+              <span data-th>ธูป 3 ดอก · พิธีพื้นฐาน · ทุกวัน</span>
+              <span data-en>3 sticks · basic ritual · everyday</span>
+            </div>
+          </button>
+          <button class="prayer-type-btn special" id="specialBtn" data-type="special">
+            <div class="pt-name">
+              <span data-th>ไหว้แบบพิเศษ</span><span data-en>Special</span>
+            </div>
+            <div class="pt-sub" id="specialSub">
+              <span data-th>พิธีครบ · มีกิมมิกเฉพาะองค์</span>
+              <span data-en>Full ritual · with special gimmick</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <a class="nav-btn map" href="index.html">
+          <span data-th>กลับแผนที่</span><span data-en>Back to map</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- ============ STEP 2: pick correct offering ============ -->
+    <div class="game-step" data-step="2">
+      <div class="step-eyebrow"><span data-th>ขั้นที่ 2</span><span data-en>Step 2</span></div>
+      <h2 class="step-title">
+        <span data-th>เลือกของถวาย</span>
+        <span data-en>Pick the right offering</span>
+      </h2>
+      <p class="step-desc">
+        <span data-th>แต่ละองค์มีของถวายที่ตรงใจ — ลองทาย</span>
+        <span data-en>Each deity has a signature offering — give it a try</span>
+      </p>
+
+      <div class="offering-stage">
+        <img class="offering-deity" id="offeringDeity" src="" alt="" hidden>
+        <div class="offering-hint" id="offeringHint">
+          <span data-th>เลือกของที่เหมาะกับองค์</span>
+          <span data-en>Pick what fits this deity</span>
+        </div>
+        <div class="offering-options" id="offeringOptions">
+          <button class="offering-btn" data-offer="rose">
+            <span class="o-emoji">🌹</span>
+            <span data-th>ดอกกุหลาบ</span><span data-en>Roses</span>
+          </button>
+          <button class="offering-btn" data-offer="egg">
+            <span class="o-emoji">🥚</span>
+            <span data-th>ไข่ต้ม</span><span data-en>Boiled eggs</span>
+          </button>
+          <button class="offering-btn" data-offer="jasmine">
+            <span class="o-emoji">🌼</span>
+            <span data-th>ดอกมะลิ</span><span data-en>Jasmine</span>
+          </button>
+          <button class="offering-btn" data-offer="sweets">
+            <span class="o-emoji">🍯</span>
+            <span data-th>ขนมหวาน</span><span data-en>Sweets</span>
+          </button>
+          <button class="offering-btn" data-offer="lotus">
+            <span class="o-emoji">🪷</span>
+            <span data-th>ดอกบัว</span><span data-en>Lotus</span>
+          </button>
+          <button class="offering-btn" data-offer="fruit">
+            <span class="o-emoji">🍎</span>
+            <span data-th>ผลไม้</span><span data-en>Fruit</span>
+          </button>
+          <button class="offering-btn" data-offer="water">
+            <span class="o-emoji">💧</span>
+            <span data-th>น้ำสะอาด</span><span data-en>Clean water</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <button class="nav-btn map step-back" data-go-step="1">
+          ← <span data-th>ย้อนกลับ</span><span data-en>Back</span>
+        </button>
+        <button class="nav-btn next step-next" data-go-step="3" disabled>
+          <span data-th>ต่อไป</span><span data-en>Next</span> →
+        </button>
+      </div>
+    </div>
+
+    <!-- ============ STEP 3: light incense ============ -->
+    <div class="game-step" data-step="3">
+      <div class="step-eyebrow"><span data-th>ขั้นที่ 3</span><span data-en>Step 3</span></div>
+      <h2 class="step-title">
+        <span data-th>จุดธูป 3 ดอก</span>
+        <span data-en>Light 3 sticks of incense</span>
+      </h2>
+      <p class="step-desc">
+        <span data-th>คลิกที่ปลายธูปแต่ละดอกเพื่อจุดไฟ</span>
+        <span data-en>Click the tip of each stick to light it</span>
+      </p>
+
+      <div class="incense-stage">
+        <div class="incense-row" id="incenseRow"></div>
+      </div>
+      <div class="incense-count" id="incenseCount">
+        <span data-th>จุดแล้ว 0/3</span><span data-en>Lit 0/3</span>
+      </div>
+
+      <div class="step-nav">
+        <button class="nav-btn map step-back" data-go-step="2">
+          ← <span data-th>ย้อนกลับ</span><span data-en>Back</span>
+        </button>
+        <button class="nav-btn next step-next" data-go-step="4" disabled>
+          <span data-th>ต่อไป</span><span data-en>Next</span> →
+        </button>
+      </div>
+    </div>
+
+    <!-- ============ STEP 4: write prayer ============ -->
+    <div class="game-step" data-step="4">
+      <div class="step-eyebrow"><span data-th>ขั้นที่ 4</span><span data-en>Step 4</span></div>
+      <h2 class="step-title">
+        <span data-th>เขียนคำอธิษฐาน</span>
+        <span data-en>Write your prayer</span>
+      </h2>
+      <p class="step-desc">
+        <span data-th>เขียนสิ่งที่อยากขอ แล้วปล่อยลอยไปกับใจ</span>
+        <span data-en>Write what you wish for, then let it float away</span>
+      </p>
+
+      <!-- Deity-specific ritual hint -->
+      <div class="ritual-banner hidden" id="ritualBanner">
+        <span class="ritual-emoji" id="ritualEmoji">✨</span>
+        <div>
+          <span class="ritual-label">
+            <span data-th>พิธีพิเศษ</span><span data-en>Special Ritual</span>
+          </span>
+          <p id="ritualText"></p>
+        </div>
+      </div>
+
+      <!-- ===== MINI-QUESTS (one shown based on deity, only when special) ===== -->
+
+      <!-- Sothon: choose vow OR just bow normally -->
+      <div class="mini-quest" id="quest-sothon">
+        <!-- Step 1: pick path -->
+        <div class="vow-choice" id="vowChoice">
+          <h4 style="margin-bottom:14px">🙏 <span data-th>วันนี้จะไหว้แบบไหน?</span><span data-en>How would you like to pay respects?</span></h4>
+          <div class="vow-choice-buttons">
+            <button class="vow-path-btn" data-vow-path="simple">
+              <div class="vow-path-icon">🤍</div>
+              <div class="vow-path-title"><span data-th>ไหว้ปกติ</span><span data-en>Just bow</span></div>
+              <div class="vow-path-sub"><span data-th>ขอพรเฉยๆ ไม่ต้องบน</span><span data-en>Simply ask, no promises</span></div>
+            </button>
+            <button class="vow-path-btn" data-vow-path="vow">
+              <div class="vow-path-icon">📜</div>
+              <div class="vow-path-title"><span data-th>อยากบน</span><span data-en>Make a vow</span></div>
+              <div class="vow-path-sub"><span data-th>ขอแบบสัญญา ถ้าสมหวังจะมาแก้บน</span><span data-en>Promise an offering if it comes true</span></div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2 (only if 'vow' picked): contract -->
+        <div class="vow-contract" id="vowContract" hidden>
+          <h4>📜 <span data-th>ถ้าสมหวัง — จะแก้บนอย่างไร?</span><span data-en>If it comes true — what will you offer?</span></h4>
+          <div class="vow-options" id="vowOptions">
+            <label><input type="radio" name="vow" value="9eggs"><span data-th>ไข่ต้ม 9 ฟอง</span><span data-en>9 boiled eggs</span></label>
+            <label><input type="radio" name="vow" value="21eggs"><span data-th>ไข่ต้ม 21 ฟอง</span><span data-en>21 boiled eggs</span></label>
+            <label><input type="radio" name="vow" value="pighead"><span data-th>หัวหมู</span><span data-en>Pig's head</span></label>
+            <label><input type="radio" name="vow" value="redsoda"><span data-th>น้ำแดง + พวงมาลัย</span><span data-en>Red soda + jasmine garland</span></label>
+          </div>
+          <div class="stamp-area">
+            <div class="stamp" id="vowStamp">
+              <span data-th>บันทึกแล้ว<br>วันที่ <span id="vowDate"></span></span>
+              <span data-en>Sealed<br>Date: <span id="vowDateEn"></span></span>
+            </div>
+          </div>
+          <div style="text-align:center;margin-top:14px">
+            <button class="nav-btn next" id="vowSign" disabled>
+              ✍️ <span data-th>เซ็นสัญญา</span><span data-en>Sign the contract</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trimurti: write name + fold paper -->
+      <div class="mini-quest" id="quest-trimurti">
+        <div class="fold-paper" id="foldPaper">
+          <h4>💌 <span data-th>เขียนชื่อ — พับใส่กระเป๋า</span><span data-en>Write the name — fold into wallet</span></h4>
+          <textarea id="trimurtiName" maxlength="80"
+            data-th-placeholder="ชื่อคนรัก / คนที่อยากเจอ..."
+            data-en-placeholder="Name of someone you love / wish to meet..."></textarea>
+          <div><span class="wallet-icon">👛</span></div>
+        </div>
+        <div style="text-align:center;margin-top:14px">
+          <button class="nav-btn next" id="foldBtn" disabled>
+            🪷 <span data-th>พับกระดาษใส่กระเป๋า</span><span data-en>Fold into wallet</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Brahma: 4 directions -->
+      <div class="mini-quest" id="quest-brahma">
+        <h4 style="margin-bottom:24px"><span data-th>🧭 ไหว้ครบ 4 หน้า เดินตามเข็มนาฬิกา</span><span data-en>🧭 Bow to all 4 faces, clockwise</span></h4>
+        <div class="compass">
+          <div class="compass-center">卐</div>
+          <button class="compass-direction dir-north" data-order="4">
+            <span class="compass-name"><span data-th>เหนือ</span><span data-en>N</span></span>
+            <span class="compass-power"><span data-th>สุขภาพ</span><span data-en>Health</span></span>
+          </button>
+          <button class="compass-direction dir-east" data-order="1">
+            <span class="compass-name"><span data-th>ตะวันออก</span><span data-en>E</span></span>
+            <span class="compass-power"><span data-th>การงาน</span><span data-en>Career</span></span>
+          </button>
+          <button class="compass-direction dir-south" data-order="2">
+            <span class="compass-name"><span data-th>ใต้</span><span data-en>S</span></span>
+            <span class="compass-power"><span data-th>เงิน</span><span data-en>Wealth</span></span>
+          </button>
+          <button class="compass-direction dir-west" data-order="3">
+            <span class="compass-name"><span data-th>ตะวันตก</span><span data-en>W</span></span>
+            <span class="compass-power"><span data-th>ความรัก</span><span data-en>Love</span></span>
+          </button>
+        </div>
+        <p class="coin-instructions" style="margin-top:18px">
+          <span data-th>เริ่มจาก ตะวันออก → ใต้ → ตะวันตก → เหนือ</span>
+          <span data-en>Order: East → South → West → North</span>
+        </p>
+      </div>
+
+      <!-- Ganesha: whisper to mouse -->
+      <div class="mini-quest" id="quest-ganesha">
+        <div class="whisper-stage">
+          <span class="mouse-char">🐭</span>
+          <h4 style="font-family:'IBM Plex Serif',serif;font-weight:500;font-size:18px;margin-bottom:14px;color:var(--ink)">
+            <span data-th>กระซิบให้น้องหนู (มูสิกา)</span>
+            <span data-en>Whisper to Mushika the mouse</span>
+          </h4>
+          <textarea id="whisperText" maxlength="140"
+            data-th-placeholder="กระซิบความปรารถนาที่อยากให้พระพิฆเนศช่วย..."
+            data-en-placeholder="Whisper what you wish Ganesha to help with..."></textarea>
+          <div style="margin-top:10px">
+            <button class="nav-btn next" id="whisperBtn" disabled>
+              🐭 <span data-th>กระซิบให้น้องหนู</span><span data-en>Whisper to Mushika</span>
+            </button>
+          </div>
+          <div class="whisper-sent" id="whisperSent">
+            <span data-th>น้องหนูฟังจบแล้ว — กำลังวิ่งไปบอกพระพิฆเนศ ✨</span>
+            <span data-en>Mushika has heard — running to tell Ganesha ✨</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lakshmi: place coin -->
+      <div class="mini-quest" id="quest-lakshmi">
+        <h4 style="margin-bottom:18px">💰 <span data-th>วางเหรียญที่แท่นบูชา</span><span data-en>Place a coin at the altar</span></h4>
+        <div class="coin-stage">
+          <div class="altar-zone" id="altar">
+            <span class="altar-icon">⌂</span>
+            <span class="placed-coin">🪙</span>
+          </div>
+          <p class="coin-instructions" id="coinInstructions">
+            <span data-th>1. กดเหรียญข้างล่าง  2. กดแท่นบูชาด้านบน</span>
+            <span data-en>1. Tap the coin below  2. Tap the altar above</span>
+          </p>
+          <span class="coin-source" id="coinSource">🪙</span>
+        </div>
+      </div>
+
+      <div class="prayer-card" id="prayerCard">
+        <textarea
+          class="prayer-textarea"
+          id="prayerText"
+          maxlength="200"
+          data-th-placeholder="เขียนคำอธิษฐานของคุณที่นี่..."
+          data-en-placeholder="Write your prayer here..."
+        ></textarea>
+        <div class="prayer-released" id="prayerReleased"></div>
+      </div>
+
+      <div class="step-nav">
+        <button class="nav-btn map step-back" data-go-step="3">
+          ← <span data-th>ย้อนกลับ</span><span data-en>Back</span>
+        </button>
+        <button class="nav-btn next step-next" id="releaseBtn" disabled>
+          <span data-th>ปล่อยลอยขึ้นฟ้า</span><span data-en>Release to the sky</span> ✨
+        </button>
+      </div>
+    </div>
+
+    <!-- ============ STEP 5: เซียมซี ============ -->
+    <div class="game-step" data-step="5">
+      <div class="step-eyebrow"><span data-th>ขั้นที่ 5</span><span data-en>Step 5</span></div>
+      <h2 class="step-title">
+        <span data-th>เซียมซี</span>
+        <span data-en>Draw a fortune</span>
+      </h2>
+      <p class="step-desc">
+        <span data-th>เขย่าและคลิกกระบอกเพื่อจับเซียมซี</span>
+        <span data-en>Click the cup to shake and draw your fortune</span>
+      </p>
+
+      <div class="fortune-stage">
+        <div class="fortune-cup" id="fortuneCup"></div>
+      </div>
+
+      <div class="fortune-result" id="fortuneResult">
+        <div class="fortune-num" id="fortuneNum"></div>
+        <div id="fortuneMsg"></div>
+        <div class="card-actions">
+          <button class="card-action-btn share-btn" data-share-type="mu" type="button">
+            <span data-th>📤 แชร์เซียมซี</span><span data-en>📤 Share fortune</span>
+          </button>
+          <button class="card-action-btn bookmark-btn" data-bookmark-type="mu-fortune" type="button">
+            <span data-th>🔖 บันทึก</span><span data-en>🔖 Save</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <button class="nav-btn map step-back" data-go-step="4">
+          ← <span data-th>ย้อนกลับ</span><span data-en>Back</span>
+        </button>
+        <button class="nav-btn next step-next" data-go-step="6" disabled>
+          <span data-th>รับพร</span><span data-en>Receive blessing</span> →
+        </button>
+      </div>
+    </div>
+
+    <!-- ============ STEP 6: blessing ============ -->
+    <div class="game-step" data-step="6">
+      <div class="blessing-card">
+        <div class="blessing-icon">🙏</div>
+        <div class="blessing-text">
+          <span data-th>ขอให้คุณกลับไปด้วยใจที่เบาขึ้นนะ</span>
+          <span data-en>May you walk away with a lighter heart</span>
+        </div>
+        <div class="blessing-sub">
+          <span data-th>พรที่คุณได้รับวันนี้ จะอยู่ในใจของคุณตลอดไป</span>
+          <span data-en>The blessing you received today stays with you</span>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <a class="nav-btn map" href="index.html">
+          <span data-th>กลับแผนที่</span><span data-en>Back to map</span>
+        </a>
+        <button class="nav-btn next" id="prayAgainBtn" data-go-step="1">
+          🙏 <span data-th>ไหว้องค์อื่น</span><span data-en>Pray to another deity</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ROOM: ออกไปข้างนอก ============ -->
+
+
+<script defer src="assets/js/common.js"></script>
+<script defer src="assets/js/sacred.js"></script>
+</body>
+</html>
