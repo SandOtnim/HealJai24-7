@@ -5401,3 +5401,213 @@ body[data-lang="en"] [data-th] { display: none; }
 
 
 .close-btn, .nav-btn { text-decoration: none; }
+
+/* ============ "พาทัวร์" header button ============ */
+/* Tour only makes sense on the map/home — hide it inside rooms */
+body:not([data-page="home"]) #tourOpen { display: none; }
+.tour-open-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(245,235,224,0.9));
+  color: var(--clay);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(92,74,60,0.08);
+  transition: all var(--transition);
+}
+.tour-open-btn:hover {
+  color: #fff;
+  background: var(--clay);
+  border-color: var(--clay);
+  box-shadow: 0 4px 12px rgba(176,122,101,0.3);
+  transform: translateY(-1px);
+}
+.tour-open-icon { font-size: 14px; line-height: 1; }
+
+/* ============ GUIDED TOUR / DIRECTORY ============ */
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  max-width: 100vw;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.5s var(--ease);
+}
+.tour.show { opacity: 1; }
+.tour[hidden] { display: none; }
+
+.tour-mask {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
+}
+#tourHoleRect { transition: x 0.5s var(--ease), y 0.5s var(--ease),
+  width 0.5s var(--ease), height 0.5s var(--ease); }
+
+/* Soft feathered halo around the spotlit element (premium glow + gentle pulse) */
+.tour-ring {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: 1;
+  box-shadow:
+    0 0 0 1.5px rgba(255,255,255,0.9),
+    0 0 0 8px rgba(255,255,255,0.08),
+    0 0 28px 10px rgba(255,255,255,0.28),
+    0 0 60px 26px rgba(201,169,97,0.18);
+  transition: left 0.5s var(--ease), top 0.5s var(--ease),
+    width 0.5s var(--ease), height 0.5s var(--ease);
+  animation: tourPulse 2.6s var(--ease) infinite;
+}
+.tour-ring[hidden] { display: none; }
+@keyframes tourPulse {
+  0%, 100% { box-shadow:
+    0 0 0 1.5px rgba(255,255,255,0.9),
+    0 0 0 8px rgba(255,255,255,0.08),
+    0 0 28px 10px rgba(255,255,255,0.26),
+    0 0 60px 26px rgba(201,169,97,0.16); }
+  50% { box-shadow:
+    0 0 0 1.5px rgba(255,255,255,1),
+    0 0 0 11px rgba(255,255,255,0.12),
+    0 0 38px 14px rgba(255,255,255,0.34),
+    0 0 78px 34px rgba(201,169,97,0.24); }
+}
+
+/* The instruction card — premium glass-paper feel */
+.tour-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(88vw, 360px);
+  max-width: 100vw;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FBF6EF 100%);
+  border: 1px solid rgba(255,255,255,0.7);
+  border-radius: 28px;
+  padding: 26px 26px 20px;
+  box-shadow:
+    0 2px 8px rgba(40,28,20,0.10),
+    0 30px 70px rgba(20,12,6,0.42),
+    inset 0 1px 0 rgba(255,255,255,0.9);
+  text-align: center;
+  z-index: 2;
+  transition: top 0.5s var(--ease), left 0.5s var(--ease),
+    transform 0.5s var(--ease);
+}
+/* Emoji inside a soft circular medallion */
+.tour-emoji {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  line-height: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 28%, #FFF7E9, #F0D9B5 78%);
+  box-shadow:
+    inset 0 2px 4px rgba(255,255,255,0.8),
+    inset 0 -3px 6px rgba(176,122,101,0.18),
+    0 6px 16px rgba(201,169,97,0.28);
+}
+.tour-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 21px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0.2px;
+  margin: 0 0 10px;
+}
+.tour-text {
+  font-size: 15px;
+  line-height: 1.72;
+  color: var(--ink-soft);
+  margin: 0 0 18px;
+}
+/* Progress — refined: active step elongates into a pill */
+.tour-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.tour-dots span {
+  width: 6px;
+  height: 6px;
+  min-height: 0 !important;
+  border-radius: 999px;
+  background: var(--beige);
+  transition: all 0.4s var(--ease);
+}
+.tour-dots span.on {
+  width: 22px;
+  background: linear-gradient(90deg, var(--gold), var(--clay));
+}
+.tour-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.tour-skip {
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 12px;
+  transition: color 0.3s var(--ease);
+}
+.tour-skip:hover { color: var(--ink); }
+.tour-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: linear-gradient(135deg, #C68A72 0%, #B07A65 55%, #9A6450 100%);
+  color: #fff;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  padding: 12px 26px;
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(176,122,101,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+  transition: transform 0.2s var(--ease), box-shadow 0.3s var(--ease), filter 0.3s var(--ease);
+}
+.tour-next::after {
+  content: "→";
+  font-size: 15px;
+  transition: transform 0.25s var(--ease);
+}
+.tour-next:hover { transform: translateY(-1.5px); box-shadow: 0 10px 24px rgba(176,122,101,0.5); filter: brightness(1.04); }
+.tour-next:hover::after { transform: translateX(3px); }
+.tour-next:active { transform: translateY(0); }
+
+/* Gentle content fade-in on each step */
+.tour-card.anim .tour-emoji { animation: tourStepIn 0.5s var(--ease) both; }
+.tour-card.anim .tour-title { animation: tourStepIn 0.5s var(--ease) 0.06s both; }
+.tour-card.anim .tour-text  { animation: tourStepIn 0.5s var(--ease) 0.12s both; }
+@keyframes tourStepIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-ring { animation: none; }
+  .tour-card.anim .tour-emoji,
+  .tour-card.anim .tour-title,
+  .tour-card.anim .tour-text { animation: none; }
+}

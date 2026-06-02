@@ -103,6 +103,74 @@
   document.addEventListener('click', firstInteractionStart, true);
   document.addEventListener('keydown', firstInteractionStart, true);
 
+  // ============ Music continuity across pages ============
+  // Multi-page site: each page has its own <audio>, so without this the song
+  // restarts on every navigation. We remember the track + position + play state
+  // in localStorage and resume from where it left off on the next page.
+  (function musicMemory() {
+    if (!bgMusic) return;
+    const MKEY = 'healjai_music_v1';
+    let lastSave = 0;
+    function save() {
+      try {
+        localStorage.setItem(MKEY, JSON.stringify({
+          src: bgMusic.src,
+          time: bgMusic.currentTime || 0,
+          playing: !bgMusic.paused,
+        }));
+      } catch (e) {}
+    }
+    function throttledSave() {
+      const now = Date.now();
+      if (now - lastSave > 1200) { lastSave = now; save(); }
+    }
+    function markActiveTrack(src) {
+      document.querySelectorAll('.track-btn[data-src]').forEach(btn => {
+        const file = btn.dataset.src.replace(/^.*\//, '');
+        btn.classList.toggle('active', src.endsWith(file));
+      });
+    }
+    // Restore saved state on load
+    let st = null;
+    try { st = JSON.parse(localStorage.getItem(MKEY) || 'null'); } catch (e) {}
+    if (st && st.src) {
+      if (bgMusic.src !== st.src) { bgMusic.src = st.src; bgMusic.load(); }
+      const target = (st.time && isFinite(st.time)) ? st.time : 0;
+      let poll = null, tries = 0;
+      function detach() {
+        bgMusic.removeEventListener('loadedmetadata', trySeek);
+        bgMusic.removeEventListener('loadeddata', trySeek);
+        bgMusic.removeEventListener('canplay', trySeek);
+        if (poll) { clearInterval(poll); poll = null; }
+      }
+      // Seek can fail if attempted before the media is seekable. Media events may
+      // have already fired before this deferred script runs, so we also poll
+      // briefly until the position actually sticks.
+      function trySeek() {
+        if (target <= 0) { detach(); return; }
+        try {
+          const sk = bgMusic.seekable;
+          if (sk && sk.length && sk.end(sk.length - 1) >= target - 0.3) {
+            bgMusic.currentTime = target;
+            if (Math.abs(bgMusic.currentTime - target) < 1) { detach(); return; }
+          }
+        } catch (e) {}
+      }
+      bgMusic.addEventListener('loadedmetadata', trySeek);
+      bgMusic.addEventListener('loadeddata', trySeek);
+      bgMusic.addEventListener('canplay', trySeek);
+      poll = setInterval(() => { tries++; trySeek(); if (tries > 50) { if (poll) clearInterval(poll); poll = null; } }, 80);
+      trySeek();
+      markActiveTrack(st.src);
+      if (st.playing) playMusic();   // may wait for first interaction (handled above)
+    }
+    bgMusic.addEventListener('timeupdate', throttledSave);
+    bgMusic.addEventListener('play', save);
+    bgMusic.addEventListener('pause', save);
+    window.addEventListener('pagehide', save);
+    window.addEventListener('beforeunload', save);
+  })();
+
   document.addEventListener('click', e => {
     const btn = e.target.closest('.bedroom-track[data-bd-src]');
     if (!btn) return;

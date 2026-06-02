@@ -6,9 +6,13 @@
   const TIMING = { fadeIn: 1000, hold: 2000, fadeOut: 800, brandHold: 3200 }; let introTimers = [];
   function clearIntroTimers() { introTimers.forEach(clearTimeout); introTimers = []; }
   function runIntro() { if (!intro || !main) return; const phrases = phrasesByLang[body.dataset.lang || 'th'] || []; phrases.forEach(p => p.classList.remove('show')); setTimeout(() => { const m = document.getElementById('bgMusic'); const tg = document.getElementById('musicToggle'); if (m && m.paused) m.play().then(() => tg && tg.classList.add('playing')).catch(() => {}); }, 900); let cursor = 0; phrases.forEach(p => { const isBrand = p.classList.contains('brand'); const hold = isBrand ? TIMING.brandHold : TIMING.hold; const cycle = TIMING.fadeIn + hold + TIMING.fadeOut; introTimers.push(setTimeout(() => p.classList.add('show'), cursor)); introTimers.push(setTimeout(() => p.classList.remove('show'), cursor + TIMING.fadeIn + hold)); cursor += cycle - 200; }); introTimers.push(setTimeout(finishIntro, cursor + 600)); }
-  function finishIntro() { if (!intro || !main) return; clearIntroTimers(); intro.classList.add('done'); setTimeout(() => { intro.style.display = 'none'; main.classList.add('visible'); }, 1200); }
+  const INTRO_KEY = 'healjai_intro_v1';
+  function markIntroSeen() { try { sessionStorage.setItem(INTRO_KEY, '1'); } catch (e) {} }
+  function finishIntro() { if (!intro || !main) return; clearIntroTimers(); markIntroSeen(); intro.classList.add('done'); setTimeout(() => { intro.style.display = 'none'; main.classList.add('visible'); if (window.__maybeStartTour) window.__maybeStartTour(); }, 1200); }
+  // Returning from a room → skip the intro and show the map straight away.
+  function showMapInstant() { markIntroSeen(); if (intro) { intro.classList.add('done'); intro.style.display = 'none'; } if (main) main.classList.add('visible'); if (window.__maybeStartTour) window.__maybeStartTour(); }
   if (skipBtn) skipBtn.addEventListener('click', finishIntro);
-  const ROOM_URLS = { mu: 'sacred.html', travel: 'travel.html', museum: 'museum.html', alone: 'alone.html', community: 'community.html', island: 'island.html' }; function navigateToRoom(room) { const url = ROOM_URLS[room]; if (url) window.location.href = url; }
+  const ROOM_URLS = { mu: 'sacred.html', travel: 'travel.html', museum: 'museum.html', alone: 'alone.html', community: 'community.html', island: 'island.html' }; function navigateToRoom(room) { const url = ROOM_URLS[room]; if (!url) return; if (window.__healNav) window.__healNav(url); else window.location.href = url; }
   // ============ COMING SOON ============
   const SOON_INFO = {
     scream: {
@@ -357,8 +361,182 @@
         smoothScrollTo(0);
       });
     }
+    // Tour hook: snap the map back to the heart island instantly
+    window.__mapHome = () => setPos(0);
   })();
 
 
-  runIntro();
+  // ============ GUIDED TOUR / DIRECTORY ============
+  (function initTour() {
+    const tour = document.getElementById('tour');
+    if (!tour) return;
+    const holeRect = document.getElementById('tourHoleRect');
+    const ring = document.getElementById('tourRing');
+    const card = document.getElementById('tourCard');
+    const emojiEl = document.getElementById('tourEmoji');
+    const titleEl = document.getElementById('tourTitle');
+    const textEl = document.getElementById('tourText');
+    const dotsEl = document.getElementById('tourDots');
+    const tourSkip = document.getElementById('tourSkip');
+    const tourNext = document.getElementById('tourNext');
+    const openBtn = document.getElementById('tourOpen');
+    const TOUR_KEY = 'healjai_tour_v1';
+
+    const STEPS = [
+      { emoji: '🏝️',
+        th_t: 'ยินดีต้อนรับสู่ เกาะฮีลใจ', en_t: 'Welcome to Heal Island',
+        th: 'ที่นี่คือ “เกาะฮีลใจ” — เกาะที่มีหลายห้องให้แวะพักใจ เลือกห้องตามความรู้สึกตอนนี้ได้เลย ไม่ต้องรีบ',
+        en: 'This is “Heal Island” — an island of little rooms to rest your heart. Choose whatever feels right now, no rush.' },
+      { target: '.pin-1', emoji: '🙏',
+        th_t: 'อยากขอพร ใจสงบ?', en_t: 'Need calm or a little blessing?',
+        th: 'แวะ “ห้องมู” — ไหว้พระ จุดธูป ขอพร เสี่ยงเซียมซี ให้ใจเบาขึ้น',
+        en: 'Visit “The Sacred” — pray, light incense, make a wish, draw a fortune stick.' },
+      { target: '.pin-4', emoji: '🌙',
+        th_t: 'อยากอยู่เงียบๆ คนเดียว?', en_t: 'Want a quiet moment alone?',
+        th: '“อยู่กับตัวเอง” มีห้องนอน นั่งสมาธิ และสมุดให้เขียนระบายความรู้สึก',
+        en: '“Be With Yourself” — a bedroom, meditation, and a journal to let feelings out.' },
+      { target: '.pin-5', emoji: '🎧',
+        th_t: 'อยากผ่อนคลายเบาๆ?', en_t: 'Want to unwind gently?',
+        th: '“ชุมชนฮีลใจ” มีเพลง LO-Fi ดูดวง และแบบทดสอบสนุกๆ ให้เล่น',
+        en: '“Community” — LO-Fi music, fortunes, and gentle little quizzes.' },
+      { target: '.pin-3', emoji: '🖼️',
+        th_t: 'อยากดูเรื่องราวของคนอื่น?', en_t: 'Curious about others’ stories?',
+        th: '“พิพิธภัณฑ์ฮีลใจ” รวมของและคำพูดที่เคยช่วยให้ใครสักคนเดินต่อไหว',
+        en: '“The Heal Museum” — things and words that once helped someone keep going.' },
+      { target: '.pin-2', emoji: '🌳',
+        th_t: 'อยากลุกไปใช้ชีวิตข้างนอก?', en_t: 'Ready to step outside?',
+        th: '“ออกไปข้างนอก” ชวนเธอเดินเล่น มองท้องฟ้า เติมพลังจากโลกจริง',
+        en: '“Step Outside” — take a walk, look at the sky, recharge in the real world.' },
+      { emoji: '🪧',
+        th_t: 'ยังมีอีกเกาะให้สำรวจ', en_t: 'There’s another island too',
+        th: 'ทางขวาของเกาะมีป้าย “เกาะแห่งเวลา” กดเพื่อข้ามไป — พื้นที่ให้หยุดคิด และเห็นค่าของวันนี้',
+        en: 'On the right edge, a sign leads to “Time Island” — a space to pause and feel today’s worth.' },
+      { target: '.header-actions', emoji: '🎵',
+        th_t: 'เครื่องมือเล็กๆ ของเธอ', en_t: 'Your little tools',
+        th: 'เปลี่ยนเพลง 🎵 เก็บคำดีๆ ในกล่อง 🔖 สลับ ไทย/EN และกด ❓ เพื่อดูทัวร์นี้ซ้ำได้',
+        en: 'Switch music 🎵, save favorites 🔖, toggle TH/EN, and tap ❓ to replay this tour.' },
+      { emoji: '💛',
+        th_t: 'พร้อมแล้ว', en_t: 'You’re all set',
+        th: 'เริ่มจากห้องไหนก็ได้ที่ใจอยากแวะ เราอยู่ตรงนี้ 24 ชม. ไม่ต้องรีบนะ',
+        en: 'Start wherever your heart wants to go. We’re here 24/7 — no rush.' },
+    ];
+
+    let idx = 0, active = false, curTarget = null;
+
+    function buildDots() {
+      dotsEl.innerHTML = STEPS.map((_, i) => `<span class="${i === idx ? 'on' : ''}"></span>`).join('');
+    }
+    function clearSpot() {
+      ring.hidden = true;
+      holeRect.setAttribute('x', -300);
+      holeRect.setAttribute('y', -300);
+      holeRect.setAttribute('width', 0);
+      holeRect.setAttribute('height', 0);
+    }
+    function centerCard() {
+      card.style.left = '50%';
+      card.style.top = '50%';
+      card.style.transform = 'translate(-50%, -50%)';
+    }
+    // Position spotlight + card around the current target (relative to viewport).
+    // Only scrolls the WINDOW vertically — never touches the map's horizontal pan.
+    function position() {
+      if (!curTarget) { clearSpot(); centerCard(); return; }
+      let r = curTarget.getBoundingClientRect();
+      if (!r.width || !r.height) { clearSpot(); centerCard(); return; }
+      const vhPre = window.innerHeight;
+      // If the target sits outside the comfortable band, scroll the page
+      // vertically to centre it (vertical only — horizontal pan untouched).
+      if (r.height < vhPre - 140 && (r.top < 70 || r.bottom > vhPre - 70)) {
+        const absY = window.scrollY + r.top + r.height / 2;
+        window.scrollTo({ top: Math.max(0, absY - vhPre / 2), behavior: 'auto' });
+        r = curTarget.getBoundingClientRect();
+      }
+      const pad = 12;
+      const x = r.left - pad, y = r.top - pad;
+      const w = r.width + pad * 2, h = r.height + pad * 2;
+      const radius = Math.min(w, h) / 2;
+      holeRect.setAttribute('x', x);
+      holeRect.setAttribute('y', y);
+      holeRect.setAttribute('width', w);
+      holeRect.setAttribute('height', h);
+      holeRect.setAttribute('rx', radius);
+      ring.hidden = false;
+      ring.style.left = x + 'px';
+      ring.style.top = y + 'px';
+      ring.style.width = w + 'px';
+      ring.style.height = h + 'px';
+      ring.style.borderRadius = radius + 'px';
+      const cardH = card.offsetHeight || 230;
+      const vh = window.innerHeight;
+      card.style.left = '50%';
+      card.style.transform = 'translate(-50%, 0)';
+      if (y + h + 18 + cardH < vh) {
+        card.style.top = (y + h + 18) + 'px';
+      } else if (y - 18 - cardH > 0) {
+        card.style.top = (y - 18 - cardH) + 'px';
+      } else {
+        centerCard();
+      }
+    }
+    function render() {
+      const s = STEPS[idx];
+      emojiEl.textContent = s.emoji;
+      titleEl.innerHTML = `<span data-th>${s.th_t}</span><span data-en>${s.en_t}</span>`;
+      textEl.innerHTML = `<span data-th>${s.th}</span><span data-en>${s.en}</span>`;
+      buildDots();
+      tourNext.innerHTML = (idx === STEPS.length - 1)
+        ? '<span data-th>เริ่มสำรวจ</span><span data-en>Start</span>'
+        : '<span data-th>ถัดไป</span><span data-en>Next</span>';
+      // Re-trigger the gentle content fade-in for this step
+      card.classList.remove('anim'); void card.offsetWidth; card.classList.add('anim');
+      curTarget = s.target ? document.querySelector(s.target) : null;
+      // Measure on the next frame so the spotlight lands correctly.
+      if (curTarget) {
+        requestAnimationFrame(() => requestAnimationFrame(position));
+      } else {
+        clearSpot(); centerCard();
+      }
+    }
+    function openTour() {
+      idx = 0; active = true;
+      // Snap map back to the heart island + go to the top so steps line up.
+      if (window.__mapHome) { try { window.__mapHome(); } catch (e) {} }
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      tour.hidden = false;
+      requestAnimationFrame(() => { tour.classList.add('show'); render(); });
+    }
+    function closeTour() {
+      active = false;
+      tour.classList.remove('show');
+      try { localStorage.setItem(TOUR_KEY, '1'); } catch (e) {}
+      // Leave the visitor at the top of the heart island, looking at the whole map.
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      setTimeout(() => { tour.hidden = true; clearSpot(); }, 450);
+    }
+    function nextStep() {
+      if (idx >= STEPS.length - 1) { closeTour(); return; }
+      idx++; render();
+    }
+    tourNext.addEventListener('click', nextStep);
+    tourSkip.addEventListener('click', closeTour);
+    if (openBtn) openBtn.addEventListener('click', openTour);
+    window.addEventListener('keydown', e => { if (active && e.key === 'Escape') closeTour(); });
+    let rt; window.addEventListener('resize', () => { if (active) { clearTimeout(rt); rt = setTimeout(position, 120); } });
+    window.addEventListener('scroll', () => { if (active) position(); }, { passive: true });
+
+    window.__maybeStartTour = function () {
+      let seen = false;
+      try { seen = localStorage.getItem(TOUR_KEY) === '1'; } catch (e) {}
+      if (!seen) setTimeout(openTour, 500);
+    };
+  })();
+
+
+  // Play the intro only once per browsing session. Coming back from a room
+  // (same tab) skips it and lands straight on the map / island.
+  let introSeen = false;
+  try { introSeen = sessionStorage.getItem(INTRO_KEY) === '1'; } catch (e) {}
+  if (introSeen) showMapInstant();
+  else runIntro();
 })();

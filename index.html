@@ -92,6 +92,10 @@
       <button class="lang-toggle" id="langToggle">
         <span data-th>EN</span><span data-en>TH</span>
       </button>
+      <button class="tour-open-btn" id="tourOpen" aria-label="พาทัวร์รอบเกาะ">
+        <span class="tour-open-icon" aria-hidden="true">🧭</span>
+        <span data-th>พาทัวร์</span><span data-en>Tour</span>
+      </button>
     </div>
   </header>
 
@@ -404,7 +408,36 @@
   </div>
 </div>
 
+<!-- ============ GUIDED TOUR / DIRECTORY ============ -->
+<div class="tour" id="tour" hidden aria-hidden="true">
+  <svg class="tour-mask" id="tourMask" preserveAspectRatio="none" aria-hidden="true">
+    <defs>
+      <mask id="tourHole">
+        <rect width="100%" height="100%" fill="#fff"/>
+        <rect id="tourHoleRect" x="-300" y="-300" width="0" height="0" rx="0" fill="#000"/>
+      </mask>
+    </defs>
+    <rect width="100%" height="100%" fill="rgba(0,0,0,0.72)" mask="url(#tourHole)"/>
+  </svg>
+  <div class="tour-ring" id="tourRing" hidden></div>
+  <div class="tour-card" id="tourCard" role="dialog" aria-modal="true" aria-live="polite">
+    <div class="tour-emoji" id="tourEmoji">🗺️</div>
+    <h3 class="tour-title" id="tourTitle"></h3>
+    <p class="tour-text" id="tourText"></p>
+    <div class="tour-dots" id="tourDots" aria-hidden="true"></div>
+    <div class="tour-actions">
+      <button class="tour-skip" id="tourSkip" type="button">
+        <span data-th>ข้าม</span><span data-en>Skip</span>
+      </button>
+      <button class="tour-next" id="tourNext" type="button">
+        <span data-th>ถัดไป</span><span data-en>Next</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <script defer src="assets/js/common.js"></script>
 <script defer src="assets/js/home.js"></script>
+<script defer src="assets/js/nav.js"></script>
 </body>
 </html>
