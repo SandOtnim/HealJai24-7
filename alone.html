@@ -267,6 +267,33 @@
           <button class="mood-btn" data-mood="5"><span class="m-emoji">😊</span><span data-th>ดีนะ</span><span data-en>Good</span></button>
         </div>
         <div class="mood-response" id="moodResponse"></div>
+
+        <!-- Optional note + save today's check-in -->
+        <div class="mood-note-wrap" id="moodNoteWrap" hidden>
+          <textarea id="moodNote" class="mood-note" maxlength="140" rows="2"
+            data-th-placeholder="อยากเล่าอะไรให้ใจฟังไหม… (ไม่บังคับ)"
+            data-en-placeholder="Anything you want to tell your heart? (optional)"></textarea>
+          <button class="mood-save-btn" id="moodSave" type="button">
+            <span data-th>บันทึกใจวันนี้</span><span data-en>Save today</span>
+          </button>
+          <div class="mood-saved-note" id="moodSavedNote" hidden>
+            <span data-th>บันทึกแล้ว — พรุ่งนี้แวะมาเช็คใจกันใหม่นะ 💛</span>
+            <span data-en>Saved — come back tomorrow to check in again 💛</span>
+          </div>
+        </div>
+
+        <!-- Mood trend over time -->
+        <div class="mood-trend" id="moodTrend" hidden>
+          <div class="mood-trend-head">
+            <span class="mood-trend-title"><span data-th>แนวโน้มใจของเธอ</span><span data-en>Your heart's trend</span></span>
+            <div class="mood-range" role="group" aria-label="ช่วงเวลา">
+              <button class="mood-range-btn active" data-range="7" type="button"><span data-th>7 วัน</span><span data-en>7d</span></button>
+              <button class="mood-range-btn" data-range="30" type="button"><span data-th>30 วัน</span><span data-en>30d</span></button>
+            </div>
+          </div>
+          <div class="mood-chart" id="moodChart"></div>
+          <p class="mood-summary" id="moodSummary"></p>
+        </div>
       </div>
 
       <!-- ===== Pane: Letter ===== -->

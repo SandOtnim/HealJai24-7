@@ -628,18 +628,134 @@
     4: { th: 'ดีจัง — เก็บความรู้สึกนี้ไว้ในกระเป๋าใจ', en: 'Lovely — tuck this feeling away in your heart\'s pocket.' },
     5: { th: 'ขอบคุณที่ดูแลตัวเองมาถึงวันนี้ ✨', en: 'Thank you for taking care of yourself today ✨' },
   };
+  const MOOD_META = {
+    1: { th: 'หนัก', en: 'Heavy', c: '#9B8FB5' },
+    2: { th: 'อึน',  en: 'Stuck', c: '#B59C86' },
+    3: { th: 'กลางๆ', en: 'Meh',  c: '#C7BBA6' },
+    4: { th: 'พอไหว', en: 'Okay', c: '#E6BE8C' },
+    5: { th: 'ดีนะ',  en: 'Good', c: '#C9A961' },
+  };
+  const MOOD_KEY = 'healjai_mood_v1';
+  let moodSel = null;
+  let moodRange = 7;
+
+  function moodToday() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function moodLoad() { try { return JSON.parse(localStorage.getItem(MOOD_KEY) || '[]'); } catch (e) { return []; } }
+  function moodStore(a) { try { localStorage.setItem(MOOD_KEY, JSON.stringify(a)); } catch (e) {} }
+  function moodGet(date) { return moodLoad().find(x => x.date === date); }
+  function moodUpsert(mood, note) {
+    const all = moodLoad(); const t = moodToday();
+    const entry = { date: t, mood: +mood, note: (note || '').trim() };
+    const i = all.findIndex(x => x.date === t);
+    if (i >= 0) all[i] = entry; else all.push(entry);
+    moodStore(all);
+  }
+
+  function showMoodResponse(mood) {
+    const res = MOOD_RESPONSE[mood];
+    const r = document.getElementById('moodResponse');
+    if (res && r) { r.innerHTML = '<span data-th>' + res.th + '</span><span data-en>' + res.en + '</span>'; r.classList.add('show'); }
+  }
+
   document.querySelectorAll('.mood-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
-      const mood = btn.dataset.mood;
-      const lang = body.dataset.lang;
-      const res = MOOD_RESPONSE[mood];
-      const r = document.getElementById('moodResponse');
-      r.innerHTML = '<span data-th>' + res.th + '</span><span data-en>' + res.en + '</span>';
-      r.classList.add('show');
+      moodSel = btn.dataset.mood;
+      showMoodResponse(moodSel);
+      const wrap = document.getElementById('moodNoteWrap');
+      if (wrap) wrap.hidden = false;
+      const saved = document.getElementById('moodSavedNote');
+      if (saved) saved.hidden = true;
     });
   });
+
+  const moodSaveBtn = document.getElementById('moodSave');
+  if (moodSaveBtn) {
+    moodSaveBtn.addEventListener('click', () => {
+      if (!moodSel) return;
+      const note = (document.getElementById('moodNote') || {}).value || '';
+      moodUpsert(moodSel, note);
+      const saved = document.getElementById('moodSavedNote');
+      if (saved) saved.hidden = false;
+      renderMoodTrend();
+    });
+  }
+
+  document.querySelectorAll('.mood-range-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mood-range-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      moodRange = +btn.dataset.range || 7;
+      renderMoodTrend();
+    });
+  });
+
+  function renderMoodTrend() {
+    const chart = document.getElementById('moodChart');
+    const trend = document.getElementById('moodTrend');
+    if (!chart || !trend) return;
+    trend.hidden = false;
+    const all = moodLoad();
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const days = [];
+    for (let i = moodRange - 1; i >= 0; i--) {
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      const e = all.find(x => x.date === key);
+      days.push({ d, key, mood: e ? e.mood : 0 });
+    }
+    const W = moodRange === 7 ? 280 : 320, H = 116, pad = 16;
+    const slot = (W - pad * 2) / days.length;
+    const bw = Math.min(slot * 0.62, 22);
+    let bars = '';
+    days.forEach((day, idx) => {
+      const cx = pad + slot * (idx + 0.5);
+      const x = cx - bw / 2;
+      if (day.mood) {
+        const h = (day.mood / 5) * (H - pad * 2);
+        const y = H - pad - h;
+        const label = MOOD_META[day.mood];
+        bars += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="' + Math.min(bw / 2, 5) + '" fill="' + label.c + '"><title>' + day.key + ' · ' + label.th + '</title></rect>';
+      } else {
+        bars += '<rect x="' + x.toFixed(1) + '" y="' + (H - pad - 3) + '" width="' + bw.toFixed(1) + '" height="3" rx="1.5" fill="var(--beige)" opacity="0.6"/>';
+      }
+    });
+    chart.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" height="' + H + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="กราฟแนวโน้มอารมณ์">' + bars + '</svg>';
+
+    const filled = days.filter(x => x.mood);
+    const sum = document.getElementById('moodSummary');
+    if (!sum) return;
+    if (!filled.length) {
+      sum.innerHTML = '<span data-th>ยังไม่มีบันทึกในช่วงนี้ — เริ่มเช็คใจวันนี้ได้เลยนะ</span><span data-en>No check-ins yet in this range — start with today.</span>';
+      return;
+    }
+    const avg = filled.reduce((s, x) => s + x.mood, 0) / filled.length;
+    const n = filled.length;
+    let th, en;
+    if (avg < 2.5) { th = 'ช่วงนี้ใจเธอหนักอยู่บ้าง ขอบคุณที่ยังดูแลตัวเองนะ'; en = 'It\'s been a heavy stretch — thank you for still caring for yourself.'; }
+    else if (avg <= 3.5) { th = 'ใจเธอมีขึ้นมีลง เป็นเรื่องธรรมดา เธอทำได้ดีแล้ว'; en = 'Ups and downs are normal — you\'re doing okay.'; }
+    else { th = 'ช่วงนี้ใจเธอค่อนข้างโอเคเลยนะ ดีจัง 💛'; en = 'Your heart\'s been doing alright lately 💛'; }
+    sum.innerHTML = '<span data-th>' + th + ' · เช็คใจไป ' + n + ' วัน</span>' +
+      '<span data-en>' + en + ' · ' + n + ' check-in' + (n > 1 ? 's' : '') + '</span>';
+  }
+
+  // Prefill today's entry + draw the trend on load
+  (function initMoodCheckin() {
+    const t = moodGet(moodToday());
+    if (t) {
+      const btn = document.querySelector('.mood-btn[data-mood="' + t.mood + '"]');
+      if (btn) { btn.classList.add('selected'); moodSel = String(t.mood); showMoodResponse(t.mood); }
+      const wrap = document.getElementById('moodNoteWrap');
+      if (wrap) wrap.hidden = false;
+      const noteEl = document.getElementById('moodNote');
+      if (noteEl) noteEl.value = t.note || '';
+    }
+    renderMoodTrend();
+  })();
 
   // Letter to self
   const letterText = document.getElementById('letterText');

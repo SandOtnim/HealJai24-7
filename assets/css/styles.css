@@ -5402,6 +5402,88 @@ body[data-lang="en"] [data-th] { display: none; }
 
 .close-btn, .nav-btn { text-decoration: none; }
 
+/* ============ Mood check-in: note + trend graph ============ */
+.mood-note-wrap {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 100%;
+}
+.mood-note {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--beige);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--bg);
+  resize: none;
+  line-height: 1.6;
+}
+.mood-note:focus { outline: none; border-color: var(--clay); }
+.mood-save-btn {
+  align-self: flex-start;
+  background: linear-gradient(135deg, #C68A72, #B07A65);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 5px 14px rgba(176,122,101,0.35);
+  transition: transform 0.2s var(--ease), box-shadow 0.3s var(--ease);
+}
+.mood-save-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(176,122,101,0.45); }
+.mood-saved-note { font-size: 13px; color: var(--ink-soft); }
+
+.mood-trend {
+  margin-top: 22px;
+  padding: 18px 16px 14px;
+  border-radius: 18px;
+  background: var(--cream);
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.mood-trend-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.mood-trend-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 16px;
+  color: var(--ink);
+}
+.mood-range { display: flex; gap: 6px; }
+.mood-range-btn {
+  background: var(--bg);
+  border: 1px solid var(--beige);
+  border-radius: 999px;
+  padding: 5px 13px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.mood-range-btn.active { background: var(--clay); border-color: var(--clay); color: #fff; }
+.mood-chart { width: 100%; max-width: 100%; overflow: hidden; }
+.mood-chart svg { display: block; }
+.mood-summary {
+  margin: 10px 2px 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
 /* ============ "พาทัวร์" header button ============ */
 /* Tour only makes sense on the map/home — hide it inside rooms */
 body:not([data-page="home"]) #tourOpen { display: none; }
