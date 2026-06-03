@@ -5402,6 +5402,18 @@ body[data-lang="en"] [data-th] { display: none; }
 
 .close-btn, .nav-btn { text-decoration: none; }
 
+/* ============ Island name label on the map ============ */
+.island-name {
+  text-align: center;
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  color: var(--clay);
+  margin: 0 0 4px;
+  text-transform: none;
+  opacity: 0.9;
+}
+
 /* ============ Mood check-in: note + trend graph ============ */
 .mood-note-wrap {
   margin-top: 16px;
