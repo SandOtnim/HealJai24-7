@@ -85,6 +85,37 @@
       '<span data-en>' + phase.en + '</span>';
   }
 
+  // ----- Soft completion bell (Web Audio — no file needed) -----
+  let sitAudioCtxRef = null;
+  function sitAudioCtx() {
+    if (!sitAudioCtxRef) {
+      try { sitAudioCtxRef = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch (_) { sitAudioCtxRef = null; }
+    }
+    if (sitAudioCtxRef && sitAudioCtxRef.state === 'suspended') sitAudioCtxRef.resume().catch(() => {});
+    return sitAudioCtxRef;
+  }
+  function playSitBell() {
+    const ctx = sitAudioCtx();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    // Two gentle singing-bowl strikes
+    [0, 2.0].forEach(off => {
+      [523.25, 659.25, 783.99].forEach((f, i) => {
+        const o = ctx.createOscillator();
+        o.type = 'sine';
+        o.frequency.value = f;
+        const g = ctx.createGain();
+        const t0 = now + off + i * 0.012;
+        g.gain.setValueAtTime(0, t0);
+        g.gain.linearRampToValueAtTime(0.09 / (i + 1), t0 + 0.025);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.6);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(t0); o.stop(t0 + 2.7);
+      });
+    });
+  }
+
   function startSit() {
     const minBtn = document.querySelector('.duration-btn.active');
     const patBtn = document.querySelector('.pattern-btn.active');
@@ -102,20 +133,26 @@
     sitSetup.style.display = 'none';
     sitDoneEl.style.display = 'none';
     sitStage.classList.add('active');
+    // Dim the screen while meditating
+    body.classList.add('meditating');
+    // Unlock audio ctx on this user gesture so the finish bell can play
+    sitAudioCtx();
     // Tick every second
     sitTimer = setInterval(() => {
       sitRemaining--;
       sitElapsed++;
       timerDisplay.textContent = fmtTime(sitRemaining);
       updateBreathLabel();
-      if (sitRemaining <= 0) finishSit();
+      if (sitRemaining <= 0) finishSit(true);
     }, 1000);
   }
-  function finishSit() {
+  function finishSit(completed) {
     clearInterval(sitTimer);
     sitStage.classList.remove('active');
     sitDoneEl.style.display = '';
     breathCircle.classList.remove('natural', 'b478', 'box', 'coherent');
+    body.classList.remove('meditating');
+    if (completed === true) playSitBell();
   }
   function resetSit() {
     clearInterval(sitTimer);
@@ -123,10 +160,11 @@
     sitDoneEl.style.display = 'none';
     sitSetup.style.display = '';
     breathCircle.classList.remove('natural', 'b478', 'box', 'coherent');
+    body.classList.remove('meditating');
   }
 
   document.getElementById('sitStart').addEventListener('click', startSit);
-  document.getElementById('sitStop').addEventListener('click', finishSit);
+  document.getElementById('sitStop').addEventListener('click', () => finishSit(false));
   document.getElementById('sitAgain').addEventListener('click', resetSit);
 
 
@@ -146,6 +184,7 @@
     }
   }
   function exitAloneSubroom() {
+    if (body.classList.contains('meditating')) resetSit();
     if (aloneContent) aloneContent.classList.remove('subroom-active');
     const overlay = document.getElementById('room-alone');
     if (overlay) overlay.scrollTop = 0;
@@ -604,6 +643,48 @@
       }
     });
 
+    // ----- Hunger timer — cat gets hungry over real time (localStorage) -----
+    const FED_KEY = 'healjai_cat_fed_v1';
+    const hungerEl = document.getElementById('catHunger');
+    const hungerIcon = document.getElementById('catHungerIcon');
+    const hungerText = document.getElementById('catHungerText');
+
+    function hungerState() {
+      const last = +localStorage.getItem(FED_KEY) || 0;
+      if (!last) return 'hungry'; // never fed → hungry
+      const hrs = (Date.now() - last) / 3600000;
+      if (hrs < 3) return 'full';
+      if (hrs < 6) return 'peckish';
+      return 'hungry';
+    }
+    function renderHunger() {
+      if (!hungerEl) return;
+      const s = hungerState();
+      hungerEl.hidden = false;
+      hungerEl.dataset.state = s;
+      let ic, th, en;
+      if (s === 'full') {
+        ic = '😺'; th = 'น้องแมวอิ่มอยู่ — ขอบคุณที่ดูแลกันนะ'; en = 'Kitty is full — thanks for caring';
+      } else if (s === 'peckish') {
+        ic = '🐱'; th = 'น้องแมวเริ่มหิวแล้วล่ะ...'; en = 'Kitty is getting a little hungry...';
+      } else {
+        ic = '🙀'; th = 'น้องแมวหิวมากแล้ว ให้ข้าวหน่อยน้า'; en = 'Kitty is very hungry — please feed me!';
+      }
+      if (hungerIcon) hungerIcon.textContent = ic;
+      if (hungerText) hungerText.innerHTML = '<span data-th>' + th + '</span><span data-en>' + en + '</span>';
+      const feedBtn = document.querySelector('.cat-action[data-cat-action="feed"]');
+      if (feedBtn) feedBtn.classList.toggle('attention', s !== 'full');
+    }
+    const feedBtnEl = document.querySelector('.cat-action[data-cat-action="feed"]');
+    if (feedBtnEl) {
+      feedBtnEl.addEventListener('click', () => {
+        localStorage.setItem(FED_KEY, String(Date.now()));
+        renderHunger();
+      });
+    }
+    renderHunger();
+    setInterval(renderHunger, 60000); // refresh every minute
+
     // ----- Reset when entering room -----
     window.resetCat = function() {
       if (reactionTimeoutId) { clearTimeout(reactionTimeoutId); reactionTimeoutId = null; }
@@ -757,14 +838,80 @@
     renderMoodTrend();
   })();
 
-  // Letter to self
+  // Letter to self — saved locally with date stamp · 3 modes incl. gratitude journal
   const letterText = document.getElementById('letterText');
   const letterSave = document.getElementById('letterSave');
   const letterSuccess = document.getElementById('letterSuccess');
+  const LETTER_KEY = 'healjai_letters_v1';
+  let letterMode = 'now';
+
+  const LETTER_PLACEHOLDERS = {
+    now:       { th: 'ใจของคุณอยากบอกอะไรกับตัวเอง...', en: 'What does your heart want to say to itself...' },
+    future:    { th: 'อยากฝากอะไรถึงตัวเองในอนาคต...', en: 'What do you want to tell your future self...' },
+    gratitude: { th: 'วันนี้ขอบคุณอะไรบ้าง — ลองนึกถึงเรื่องเล็กๆ สัก 3 อย่าง...', en: 'What are you grateful for today? Try three small things...' },
+  };
+  const LETTER_MODE_TAG = {
+    now:       { icon: '💛', th: 'ปลอบใจ',   en: 'Comfort' },
+    future:    { icon: '✉️', th: 'ถึงอนาคต', en: 'Future me' },
+    gratitude: { icon: '🙏', th: 'ขอบคุณ',   en: 'Gratitude' },
+  };
+
+  function lettersLoad() { try { return JSON.parse(localStorage.getItem(LETTER_KEY) || '[]'); } catch (e) { return []; } }
+  function lettersStore(a) { try { localStorage.setItem(LETTER_KEY, JSON.stringify(a)); } catch (e) {} }
+  function letterStamp(ts, lang) {
+    return new Date(ts).toLocaleDateString(lang === 'en' ? 'en-GB' : 'th-TH',
+      { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function applyLetterPlaceholder() {
+    const p = LETTER_PLACEHOLDERS[letterMode] || LETTER_PLACEHOLDERS.now;
+    letterText.setAttribute('data-th-placeholder', p.th);
+    letterText.setAttribute('data-en-placeholder', p.en);
+    const lang = body.dataset.lang || 'th';
+    letterText.placeholder = lang === 'en' ? p.en : p.th;
+  }
+
+  function renderLetterHistory() {
+    const wrap = document.getElementById('letterHistory');
+    const list = document.getElementById('letterHistoryList');
+    const count = document.getElementById('letterCount');
+    if (!wrap || !list) return;
+    const all = lettersLoad();
+    wrap.hidden = all.length === 0;
+    if (count) count.textContent = all.length;
+    const lang = body.dataset.lang || 'th';
+    list.innerHTML = '';
+    all.slice().reverse().forEach(e => {
+      const tag = LETTER_MODE_TAG[e.mode] || LETTER_MODE_TAG.now;
+      const li = document.createElement('li');
+      li.className = 'letter-entry';
+      const head = document.createElement('div');
+      head.className = 'letter-entry-head';
+      head.innerHTML = '<span class="letter-entry-date">🗓 ' + letterStamp(e.ts, lang) + '</span>' +
+        '<span class="letter-entry-tag">' + tag.icon + ' ' + (lang === 'en' ? tag.en : tag.th) + '</span>';
+      const txt = document.createElement('div');
+      txt.className = 'letter-entry-text';
+      txt.textContent = e.text;
+      const del = document.createElement('button');
+      del.className = 'letter-entry-del';
+      del.type = 'button';
+      del.setAttribute('aria-label', 'ลบ');
+      del.textContent = '✕';
+      del.addEventListener('click', () => {
+        lettersStore(lettersLoad().filter(x => x.ts !== e.ts));
+        renderLetterHistory();
+      });
+      li.appendChild(head); li.appendChild(txt); li.appendChild(del);
+      list.appendChild(li);
+    });
+  }
+
   document.querySelectorAll('.letter-mode-btn').forEach(b => {
     b.addEventListener('click', () => {
       document.querySelectorAll('.letter-mode-btn').forEach(x => x.classList.remove('active'));
       b.classList.add('active');
+      letterMode = b.dataset.letterMode || 'now';
+      applyLetterPlaceholder();
     });
   });
   letterText.addEventListener('input', () => {
@@ -773,13 +920,34 @@
   });
   letterSave.addEventListener('click', () => {
     if (letterSave.disabled) return;
-    // Visual mockup — production: persist to backend
+    const all = lettersLoad();
+    all.push({ ts: Date.now(), mode: letterMode, text: letterText.value.trim() });
+    lettersStore(all);
+    renderLetterHistory();
     letterSuccess.classList.add('show');
     letterText.value = '';
     letterSave.disabled = true;
     // Update writing streak
     if (typeof window.recordWritingDay === 'function') window.recordWritingDay();
   });
+
+  const letterHistToggle = document.getElementById('letterHistoryToggle');
+  if (letterHistToggle) {
+    letterHistToggle.addEventListener('click', () => {
+      const list = document.getElementById('letterHistoryList');
+      if (list) list.hidden = !list.hidden;
+    });
+  }
+  // Re-render dates/tags when language changes
+  const langToggleBtn = document.getElementById('langToggle');
+  if (langToggleBtn) {
+    langToggleBtn.addEventListener('click', () => setTimeout(() => {
+      renderLetterHistory();
+      applyLetterPlaceholder();
+    }, 0));
+  }
+  applyLetterPlaceholder();
+  renderLetterHistory();
 
   // ============ Daily writing streak — localStorage based, intrinsic motivation ============
   (function initWritingStreak() {
@@ -986,6 +1154,45 @@
     }
   });
 
+
+  // ============ Bedroom extras — desk cat walking + light switch ============
+  (function initBedroomExtras() {
+    const stage = document.querySelector('#apane-bedroom .bedroom-stage');
+    const switchBtn = document.getElementById('lightSwitch');
+    const deskCat = document.getElementById('deskCat');
+    if (!stage || !switchBtn) return;
+    const LIGHT_KEY = 'healjai_bedroom_lights_v1';
+
+    function applyLights(off) {
+      stage.classList.toggle('lights-off', off);
+      switchBtn.textContent = off ? '🌙' : '💡';
+    }
+    let lightsOff = localStorage.getItem(LIGHT_KEY) === 'off';
+    applyLights(lightsOff);
+    switchBtn.addEventListener('click', () => {
+      lightsOff = !lightsOff;
+      localStorage.setItem(LIGHT_KEY, lightsOff ? 'off' : 'on');
+      applyLights(lightsOff);
+    });
+
+    if (deskCat) {
+      deskCat.addEventListener('click', () => {
+        // little hop + heart pop
+        deskCat.classList.remove('meow');
+        void deskCat.offsetWidth;
+        deskCat.classList.add('meow');
+        const r = deskCat.getBoundingClientRect();
+        const sr = stage.getBoundingClientRect();
+        const h = document.createElement('div');
+        h.className = 'desk-cat-heart';
+        h.textContent = '🤍';
+        h.style.left = (r.left - sr.left + r.width / 2 - 8) + 'px';
+        h.style.top = (r.top - sr.top - 14) + 'px';
+        stage.appendChild(h);
+        setTimeout(() => h.remove(), 1500);
+      });
+    }
+  })();
 
   const aloneRoot = document.querySelector('#room-alone .alone-content'); if (aloneRoot) aloneRoot.classList.remove('subroom-active'); if (typeof resetSit === 'function') resetSit();
 })();

@@ -651,16 +651,18 @@
     fortuneCup.classList.add('shake');
     setTimeout(() => {
       fortuneCup.classList.remove('shake');
-      const idx = Math.floor(Math.random() * MU_FORTUNES.th.length);
+      // ใช้คำจาก Google Sheet (หลังบ้าน) ถ้ามี — ไม่มีก็ใช้ชุดในโค้ด
+      const SRC = (window.HealSheet && window.HealSheet.mu) || MU_FORTUNES;
+      const idx = Math.floor(Math.random() * SRC.th.length);
       game.fortuneIdx = idx;
       const lang = body.dataset.lang;
       fortuneNum.textContent = '#' + (idx + 1);
-      fortuneMsg.textContent = MU_FORTUNES[lang][idx];
+      fortuneMsg.textContent = (SRC[lang] && SRC[lang][idx]) || SRC.th[idx];
       fortuneResult.classList.add('show');
       // Store for share + bookmark
       const fortuneText = (lang === 'th'
-        ? 'เซียมซี #' + (idx + 1) + ' จากห้องมู — ' + MU_FORTUNES.th[idx]
-        : 'Fortune #' + (idx + 1) + ' from the Mu room — ' + MU_FORTUNES.en[idx]);
+        ? 'เซียมซี #' + (idx + 1) + ' จากห้องมู — ' + SRC.th[idx]
+        : 'Fortune #' + (idx + 1) + ' from the Mu room — ' + (SRC.en[idx] || SRC.th[idx]));
       window._muLastBlessing = fortuneText;
       window._muLastFortuneIdx = idx;
       document.querySelector('[data-step="5"] .step-next').disabled = false;

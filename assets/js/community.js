@@ -506,8 +506,11 @@
     { sym:'🍇', name_th:'องุ่น',       name_en:'Vine' },
     { sym:'🌻', name_th:'ทานตะวัน',  name_en:'Sunflower' },
   ];
-  const TAROT_DECK_SIZE = TAROT_CARDS.length;
   const tarotDeckEl = document.getElementById('tarotDeck');
+  // เมื่อข้อมูลหลังบ้านมาถึง → สร้างสำรับใหม่ (ถ้ายังไม่ได้จั่ว)
+  document.addEventListener('healsheet:ready', () => {
+    if (!tarotDrawn && tarotDeckEl) buildTarotDeck();
+  });
   let fortuneTopic = null;
   let tarotDrawn = false;
   // Shuffle the deck so the order is random each time but every card stays unique
@@ -522,16 +525,21 @@
 
   function buildTarotDeck() {
     tarotDeckEl.innerHTML = '';
-    const order = shuffled(TAROT_CARDS);
-    for (let i = 0; i < TAROT_DECK_SIZE; i++) {
+    // ใช้ไพ่จาก Google Sheet (หลังบ้าน) ถ้ามี — ไม่มีก็ใช้ชุดในโค้ด
+    const SHEET_TAROT = (window.HealSheet && window.HealSheet.tarot) || TAROT_CARDS;
+    const order = shuffled(SHEET_TAROT);
+    for (let i = 0; i < order.length; i++) {
       const c = order[i];
       const card = document.createElement('div');
       card.className = 'tarot-card';
       card.dataset.idx = i;
+      const visual = c.image
+        ? `<img class="tf-img" src="assets/images/tarot/${c.image}" alt="${c.name_th}" loading="lazy">`
+        : `<div class="tf-symbol">${c.sym}</div>`;
       card.innerHTML = `
         <div class="tarot-back"></div>
         <div class="tarot-face">
-          <div class="tf-symbol">${c.sym}</div>
+          ${visual}
           <div class="tf-name"><span data-th>${c.name_th}</span><span data-en>${c.name_en}</span></div>
           <div class="tf-num">${(i+1).toString().padStart(2,'0')}</div>
         </div>
@@ -547,8 +555,9 @@
   function drawCard(card) {
     if (!fortuneTopic || tarotDrawn) return;
     tarotDrawn = true;
-    // pick a random fortune from the topic list
-    const list = FORTUNES[fortuneTopic];
+    // pick a random fortune from the topic list (Google Sheet override ถ้ามี)
+    const SHEET_F = (window.HealSheet && window.HealSheet.cafe) || {};
+    const list = SHEET_F[fortuneTopic] || FORTUNES[fortuneTopic];
     const f = list[Math.floor(Math.random() * list.length)];
     // flip this card
     card.classList.add('flipped');

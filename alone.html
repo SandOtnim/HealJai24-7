@@ -204,7 +204,7 @@
       </button>
 
       <span class="room-eyebrow"><span data-th>ห้องที่ 4</span><span data-en>Room 04</span></span>
-      <h2 class="room-title"><span data-th>ห้องนอนพักใจ</span><span data-en>Resting Bedroom</span></h2>
+      <h2 class="room-title"><span data-th>บ้านพักใจ</span><span data-en>Resting Home</span></h2>
       <p class="room-subtitle">
         <span data-th>กลับมาที่ห้องของคุณ ที่ไม่ต้องเป็นใครให้ใคร</span>
         <span data-en>Come back to your room. Where you don't owe anyone anything.</span>
@@ -318,6 +318,9 @@
           <button class="letter-mode-btn" data-letter-mode="future">
             <span data-th>ถึงตัวเองในอนาคต</span><span data-en>To your future self</span>
           </button>
+          <button class="letter-mode-btn" data-letter-mode="gratitude">
+            🙏 <span data-th>ขอบคุณวันนี้</span><span data-en>Gratitude</span>
+          </button>
         </div>
         <textarea id="letterText" maxlength="800"
           data-th-placeholder="ใจของคุณอยากบอกอะไรกับตัวเอง..."
@@ -329,6 +332,14 @@
         </div>
         <div class="letter-success" id="letterSuccess">
           ✨ <span data-th>เก็บไว้แล้ว — กลับมาอ่านได้เสมอ</span><span data-en>Saved — come back any time</span>
+        </div>
+
+        <!-- Past entries — stored locally with date stamp -->
+        <div class="letter-history" id="letterHistory" hidden>
+          <button class="letter-history-toggle" id="letterHistoryToggle" type="button">
+            📖 <span data-th>อ่านที่เคยเขียน</span><span data-en>Read past entries</span> (<span id="letterCount">0</span>)
+          </button>
+          <ul class="letter-history-list" id="letterHistoryList" hidden></ul>
         </div>
 
         <!-- Past entries hint — shown when user has saved at least once -->
@@ -381,6 +392,7 @@
           </button>
         </div>
 
+        <div class="sit-dim" id="sitDim" aria-hidden="true"></div>
         <div class="breathing-stage" id="sitStage">
           <div class="breath-circle" id="breathCircle">
             <span data-th>หายใจ...</span><span data-en>Breathe...</span>
@@ -418,10 +430,13 @@
             <div class="rain-drop"></div><div class="rain-drop"></div><div class="rain-drop"></div>
             <div class="rain-drop"></div><div class="rain-drop"></div><div class="rain-drop"></div>
           </div>
+          <div class="lights-overlay" aria-hidden="true"></div>
           <div class="bedroom-message">
             <span data-th>เข้านอนสักครู่ — ฟังฝน ฟังเพลง</span>
             <span data-en>Lie down for a moment — rain and music</span>
           </div>
+          <div class="desk-cat" id="deskCat" title="น้องแมวเดินเล่น">🐈</div>
+          <button class="light-switch" id="lightSwitch" type="button" aria-label="เปิด/ปิดไฟ">💡</button>
         </div>
 
         <div class="bedroom-controls">
@@ -557,6 +572,12 @@
           <span data-th>เลือกสิ่งที่อยากทำ — บางครั้งใจเราต้องการแค่เพื่อนเงียบๆ</span>
           <span data-en>Pick something to do — sometimes the heart just needs quiet company</span>
         </p>
+
+        <!-- Cat hunger status (timer-based, stored locally) -->
+        <div class="cat-hunger" id="catHunger" hidden>
+          <span class="cat-hunger-icon" id="catHungerIcon">🍚</span>
+          <span class="cat-hunger-text" id="catHungerText"></span>
+        </div>
 
         <div class="cat-stage">
           <img class="cat-img" id="catImg" src="assets/images/cat-sit.jpg" alt="แมวส้มขาว"/>
