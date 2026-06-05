@@ -1,32 +1,37 @@
 # _HANDOFF — HealJai24-7
-> อัปเดต: 5 มิ.ย. 2026 · Resume phrase ในแชทใหม่: **"ทำต่อโปรเจค ฮีลใจ 24/7"**
-> แชทใหม่: อ่านไฟล์นี้ + `AI_BRIEF.md` (canon backlog) + `TEAM-UPDATES.md` (ค้างส่งทีม) ก่อนเริ่ม
+> อัปเดต: 5 มิ.ย. 2026 (รอบ 2) · Resume phrase ในแชทใหม่: **"ทำต่อโปรเจค ฮีลใจ 24/7"**
+> แชทใหม่: อ่านไฟล์นี้ + `AI_BRIEF.md` (canon backlog §8) + `TEAM-UPDATES.md` (ค้างส่งทีม) ก่อนเริ่ม
 
 ## กำลังทำอะไรอยู่
-- Deadline เว็บเสร็จ **14 มิ.ย. 2026** (timeline ทีม: Update Website from Dev #2)
-- รอบล่าสุดโฟกัส: ต้นแบบพิพิธภัณฑ์ใหม่ `museum-gallery-concept.html` — ทำเสร็จแล้ว รอ user เอาให้ทีมเคาะ
+- Deadline เว็บเสร็จ **14 มิ.ย. 2026** · launch 16 มิ.ย.
+- รอบนี้จบใหญ่: **พิพิธภัณฑ์เสร็จทั้ง 2 โซนแล้ว** owner ชอบมาก ✅ — เหลือทีมเทสมือถือจริง
 
-## ค้าง commit (สำคัญ — เตือน user ให้ push)
-`TEAM-UPDATES.md` · `AI_BRIEF.md` · `assets/css/styles.css` · `assets/js/museum.js` · `museum-gallery-concept.html` (ใหม่)
-(= งานแก้ UX พิพิธภัณฑ์ 3 จุด + ต้นแบบแกลเลอรี) — commit ก่อนหน้า 6afd924 push แล้ว
-⚠️ ถ้า commit เจอ "lock file exists" → ให้ user รัน Terminal: `rm -f "/Volumes/Seagate/On Going/HealJai24-7/.git/index.lock"` (sandbox ลบเองไม่ได้)
+## สถานะ git (สำคัญ)
+- ค้าง push **6 commits**: f863349 (แกลเลอรีขึ้นจริง) · 2dddd36 (ลบต้นแบบ) · e04f325 (คำพูดเป็นแกลเลอรี) · 457b8a5 (โพสต์อิทใส่อาชีพ·อายุ) + ก้อนโพสต์อิท + ก้อน handoff นี้
+- **push จากเครื่อง owner เท่านั้น** (sandbox ไม่มีรหัส GitHub) → GitHub Desktop หรือ `git push`
+- ⚠️ git บน Seagate ชอบทิ้ง `.git/index.lock` / `HEAD.lock` ค้าง → แก้: `find .git -maxdepth 1 -name "*.lock" -delete` (sandbox ลบได้แล้วหลังขอสิทธิ์ allow_cowork_file_delete) · commit ต้องใส่ `-c user.name="SandOtnim" -c user.email="SandOtnim.Jako@gmail.com"`
 
-## การตัดสินใจล่าสุด
-- เปลี่ยนชื่อตาม WORKING SHEET: บ้านพักใจ (Resting Home) · สวนหย่อนใจ (Chill Garden) — EN ทีมเปลี่ยนได้
-- ห้องระบาย+ร้านไว้ใจ = Under Construction ไปก่อน
-- หลังบ้านเซียมซี/ไพ่ = Google Sheet (content-sheet.js + healjai-content-template.xlsx อยู่ root) — **รอ user import เข้า Google Sheets แล้วส่ง Sheet ID มาใส่ใน content-sheet.js**
-- ไพ่ทาโร่ = พิธีกรรมการหยิบ (คำมาจากหมวด cafe) — ทีมยังต้องเคาะว่าจะให้ไพ่มีความหมายเองไหม
-- Art 3D clay + Mobile overflow = user ขอข้ามไว้ คุยกับทีมก่อน
+## การตัดสินใจล่าสุด (5 มิ.ย.)
+- พิพิธภัณฑ์ 📦 ภาพ = แกลเลอรีเดินชม (กรอบไม้+โคม+ป้าย+เรื่องคลี่) · 💌 คำพูด = **โพสต์อิทพาสเทล 5 สี** เอียง+เทป+มุมพับซ้าย ไม่มีป้ายแยก แต่มี **อาชีพ·อายุตัวเล็กมุมล่างขวาบนกระดาษ**
+- ทางเข้าห้อง = ภาพห้อง + hotspot 2 จุดแบบเดิม (ตัดจอมืด "เปิดประตู" ทิ้ง)
+- จุดเปลี่ยนผนัง = pagination dots (ไม่มีเลขหน้า/ปุ่ม ‹ ›) · มีปุ่ม "← ทางเข้า"
+- `museum-gallery-concept.html` ถูกลบแล้ว (อยู่ในประวัติ git ที่ f863349)
+- เสนอ owner แล้วยังไม่ตอบ: ฟอนต์ลายมือ (เช่น Mali) บนโพสต์อิท — ถ้าเอาต้องเพิ่ม Google Font (ถามก่อนตามกฎ AI_BRIEF)
 
-## ต้นแบบพิพิธภัณฑ์ (สรุปเทคนิค)
-ฉากเดียวกล้องเดียว (translate+scale บน .hall-inner, origin 0 0) · t∈[0,1] ขับทุกอย่าง (กล้อง+ภาพบิน+ไฟ dim+เรื่องคลี่) ผ่าน applyCam(t,L,target) · pinch=นิ้วคุม t, ปุ่ม=animateCam easeInOutCubic 1.15s · ผนัง 3 ด้าน WALL_SIZE=6 (ช่อง 7-18 placeholder มีเลข) · ลำแสง conic-gradient จุดกำเนิดเหนือจอ (มือถือ -12% / desktop -35%, มุม ±28°)
+## เทคนิคแกลเลอรี (ของจริงใน museum.html แล้ว)
+- เครื่องยนต์เดียว 2 ชุดข้อมูล: `openGallery('objects'|'words')` ท้าย `assets/js/museum.js` · CSS ท้าย `styles.css` scope `.mg-room`
+- โหมด overview/walk/pinching อยู่บน `.mg-room` (ห้ามย้ายไป body — กัน class ค้างข้าม AJAX nav)
+- ผนัง 3 ด้าน 18 ช่อง (objects: 6 จริง+12 เปล่า · words: 15+3) · กล้อง translate+scale บน .hall-inner, t∈[0,1] ขับทุกอย่าง
+- pane/subroom เดิมของพิพิธภัณฑ์ถูกถอดหมด · ฟอร์มส่งของ (submitModal) + Google Form ฝากคำ ต่ออยู่ที่ end-wall
+- เทสด้วย jsdom ผ่านครบ (สคริปต์อยู่ /tmp ของ sandbox — เขียนใหม่ได้ง่าย)
 
 ## งานค้างเรียงลำดับ (ดู AI_BRIEF §8 เป็น canon)
-1. ทีมเคาะต้นแบบพิพิธภัณฑ์ → ถ้าผ่าน ย้ายเข้า museum.html จริง (2 ภาษา + ต่อ Google Sheet)
-2. รอ user: Google Sheet ID (หลังบ้าน) · ไฟล์เสียงธรรมชาติจากเพื่อน (บ้านพักใจ UI พร้อมแล้ว)
-3. รอแท้งค์: คำเซียมซีกลอน 8 → วางลงชีทแท็บ mu ได้เลย
-4. สวนหย่อนใจ: default list วงล้อ + ถ่ายรูปแชร์ · แบบทดสอบเป็น hero · เกาะแห่งเวลา bg (รอเนม)
-5. Mobile overflow ทั้งเว็บ (user จะคุยทีมก่อน)
+1. **Owner: push 6 commits** + ส่งข้อความอัปเดตทีม (ร่างไว้ให้แล้วในแชทก่อน — เพิ่มบรรทัดโพสต์อิท) → แล้วบอก AI ให้ย้าย TEAM-UPDATES ไป "ส่งทีมแล้ว"
+2. ทีมเทสพิพิธภัณฑ์บนมือถือจริง (pinch สองนิ้ว iPhone Safari)
+3. รอ owner: Google Sheet ID (import healjai-content-template.xlsx แล้วใส่ใน content-sheet.js) · ไฟล์เสียงธรรมชาติจากเพื่อน
+4. รอแท้งค์: คำเซียมซีกลอน 8 → วางแท็บ mu
+5. สวนหย่อนใจ: default list วงล้อ + ถ่ายรูปแชร์ · แบบทดสอบเป็น hero · เกาะแห่งเวลา bg (รอเนม)
+6. Mobile overflow ทั้งเว็บ (owner จะคุยทีมก่อน) · Art re-gen 3D clay (แมว 7, เทพ 3, ห้อง 2)
 
 ## กฎทีม (จาก memory)
-AI_BRIEF คือ canon — อัปเดต+push เสมอ · ทุก edit ลง TEAM-UPDATES จนกว่า user บอก "ส่งทีมแล้ว" (แล้วย้ายไป Archived) · ไม่เขียน commit message เว้นแต่ขอ · ถามตัวเลือกเป็นข้อความธรรมดา ไม่ใช้ widget · user ไม่เขียนโค้ด อธิบายง่ายๆ เรียกแทนตัวเองว่า "ฉัน/เธอ" ได้
+AI_BRIEF คือ canon — อัปเดต+push เสมอ · ทุก edit ลง TEAM-UPDATES จนกว่า owner บอก "ส่งทีมแล้ว" · ไม่เขียน commit message เว้นแต่ขอ · ถามตัวเลือกเป็นข้อความธรรมดา ไม่ใช้ widget · owner ไม่เขียนโค้ด อธิบายง่ายๆ · เรียกแทนตัวเอง "ฉัน/เธอ" ได้
