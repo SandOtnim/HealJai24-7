@@ -6379,32 +6379,83 @@ body.meditating #apane-meditate .breathing-stage.active { position: relative; z-
   .mg-room .plaque-title { font-size: 14.5px; }
 }
 
-/* --- กรอบคำพูด (โซน 💌 ใช้เครื่องยนต์แกลเลอรีเดียวกัน — คำคือชิ้นงานศิลปะ) --- */
-.mg-room .word-art {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  max-height: 44vh;
+/* --- โพสต์อิทคำพูด (โซน 💌 ใช้เครื่องยนต์แกลเลอรีเดียวกัน แต่เป็นกระดาษแปะผนัง) --- */
+.mg-room {
+  --note1: #FFF3B0; /* เหลือง */
+  --note2: #FFDDE6; /* ชมพู */
+  --note3: #D6EFFF; /* ฟ้า */
+  --note4: #E0F5D9; /* เขียว */
+  --note5: #FFE9CF; /* พีช */
+}
+.mg-room .note {
+  position: relative;
+  width: min(400px, 76vw);
+  min-height: min(340px, 64vw);
+  padding: clamp(28px, 4vw, 46px) clamp(24px, 3.4vw, 40px);
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   text-align: center;
-  padding: clamp(14px, 2.4vw, 32px);
   box-sizing: border-box;
-  background: #FAF6EE;
+  background: var(--note1);
+  box-shadow: 0 14px 34px rgba(43, 31, 24, 0.22);
+  cursor: pointer;
+  filter: brightness(0.72) saturate(0.9);
+  transform: scale(0.94) rotate(var(--tilt, 0deg));
+  transition: filter 0.9s var(--ease), transform 0.9s var(--ease), box-shadow 0.9s;
 }
-.mg-room .word-art .wq {
-  font-family: 'IBM Plex Serif', serif;
-  font-size: clamp(30px, 4vw, 46px);
-  color: var(--gold);
-  line-height: 1;
-  margin-bottom: 8px;
+/* มุมพับล่างขวา */
+.mg-room .note::after {
+  content: ''; position: absolute; right: 0; bottom: 0;
+  width: 36px; height: 36px;
+  background: linear-gradient(315deg, rgba(43,31,24,0.13) 0%, rgba(43,31,24,0.05) 46%, transparent 50%);
 }
-.mg-room .word-art .word-text {
-  font-family: 'IBM Plex Serif', serif;
-  font-style: italic;
-  font-size: clamp(14px, 1.7vw, 19px);
-  line-height: 1.95;
-  color: var(--ink);
-  overflow: hidden;
+/* เทปกาวแปะหัวกระดาษ */
+.mg-room .note-tape {
+  position: absolute; top: -13px; left: 50%;
+  transform: translateX(-50%) rotate(-2.5deg);
+  width: 88px; height: 26px;
+  background: rgba(255, 253, 247, 0.55);
+  border-left: 1px dashed rgba(139, 115, 85, 0.25);
+  border-right: 1px dashed rgba(139, 115, 85, 0.25);
+  box-shadow: 0 2px 6px rgba(43, 31, 24, 0.10);
+}
+.mg-room .note-c0 { background: var(--note1); }
+.mg-room .note-c1 { background: var(--note2); }
+.mg-room .note-c2 { background: var(--note3); }
+.mg-room .note-c3 { background: var(--note4); }
+.mg-room .note-c4 { background: var(--note5); }
+.mg-room .tilt0 { --tilt: -1.8deg; }
+.mg-room .tilt1 { --tilt: 0.9deg; }
+.mg-room .tilt2 { --tilt: 2.1deg; }
+.mg-room .note-text {
+  font-size: clamp(15px, 1.9vw, 20px);
+  line-height: 2.05;
+  font-weight: 500;
+  color: #4A3B2E;
+}
+/* สถานะไฟ — เหมือนกรอบภาพ: มุมกว้างสว่างรอ เดินชมสว่างเฉพาะใบที่ดู */
+.mg-room .piece.lit .note {
+  filter: brightness(1) saturate(1);
+  transform: scale(1) rotate(var(--tilt, 0deg));
+  box-shadow: 0 22px 50px rgba(43, 31, 24, 0.28), 0 0 60px rgba(255, 233, 184, 0.10);
+}
+.mg-room.overview-mode .note {
+  filter: brightness(0.97) saturate(0.97);
+  transform: scale(1) rotate(var(--tilt, 0deg));
+  cursor: zoom-in;
+}
+/* โพสต์อิทเปล่า — รอคำใหม่ */
+.mg-room .note-empty {
+  background: rgba(255, 253, 248, 0.6);
+  border: 1.5px dashed rgba(139, 115, 85, 0.35);
+  box-shadow: none;
+  gap: 8px;
+}
+.mg-room .note-empty .ph-num { font-size: clamp(30px, 4vw, 46px); }
+.mg-room .note-empty-text {
+  font-size: 12.5px;
+  color: rgba(139, 115, 85, 0.6);
+  letter-spacing: 0.5px;
 }
 /* ปุ่มท้ายผนังแบบลิงก์ (ฝากคำ → Google Form) ให้หน้าตาเหมือนปุ่มปกติ */
 .mg-room a.end-btn {

@@ -288,48 +288,53 @@
       const piece = document.createElement('div');
       piece.className = 'piece';
       piece.dataset.idx = i;
-      let visual, title, meta, story = '';
-      if (ex.placeholder) {
-        visual = `<div class="ph-slot"><div class="ph-num">${ex.num}</div>
-             <div class="ph-text"><span data-th>ยังว่างอยู่</span><span data-en>Still empty</span></div></div>`;
-        title = `<span data-th>หมายเลข ${ex.num}</span><span data-en>No. ${ex.num}</span>`;
-        meta = type === 'words'
-          ? `<span data-th>ยังไม่มีคำจัดแสดง · รอคำของเธอ</span><span data-en>No words here yet · waiting for yours</span>`
-          : `<span data-th>ยังไม่มีภาพจัดแสดง · รอเรื่องของเธอ</span><span data-en>Nothing here yet · waiting for your story</span>`;
-      } else if (ex.word) {
-        // กรอบคำพูด — คำคือชิ้นงานศิลปะ
-        visual = `<div class="word-art"><span class="wq">"</span>
-             <div class="word-text"><span data-th>${ex.th}</span><span data-en>${ex.en}</span></div></div>`;
-        title = ex.author;
-        meta = `<span data-th>จากแบบสำรวจ "คุณฮีลใจยังไง?"</span><span data-en>From the "How do you heal?" survey</span>`;
+      if (type === 'words') {
+        // โซนคำพูด = โพสต์อิทแปะผนัง (ไม่มีกรอบ/โคม/ป้าย — ไม่ระบุตัวตน)
+        const note = ex.placeholder
+          ? `<div class="note note-empty tilt${i % 3}"><span class="note-tape"></span>
+               <div class="ph-num">${ex.num}</div>
+               <div class="note-empty-text"><span data-th>ยังว่างอยู่ — รอคำของเธอ</span><span data-en>Still empty — waiting for your words</span></div></div>`
+          : `<div class="note note-c${i % 5} tilt${i % 3}"><span class="note-tape"></span>
+               <div class="note-text"><span data-th>${ex.th}</span><span data-en>${ex.en}</span></div></div>`;
+        piece.innerHTML = `
+          <div class="spot"></div>
+          <div class="art">${note}</div>
+        `;
       } else {
-        visual = `<img src="${ex.img}" alt="${ex.title_en}" loading="lazy">`;
-        title = `<span data-th>${ex.title_th}</span><span data-en>${ex.title_en}</span>`;
-        meta = `${ex.author} · ${ex.year}`;
-        story = `<div class="plaque-story"><span data-th>${ex.story_th}</span><span data-en>${ex.story_en}</span></div>
-         <div class="plaque-sig">— ${ex.author}</div>`;
+        let visual, title, meta, story = '';
+        if (ex.placeholder) {
+          visual = `<div class="ph-slot"><div class="ph-num">${ex.num}</div>
+               <div class="ph-text"><span data-th>ยังว่างอยู่</span><span data-en>Still empty</span></div></div>`;
+          title = `<span data-th>หมายเลข ${ex.num}</span><span data-en>No. ${ex.num}</span>`;
+          meta = `<span data-th>ยังไม่มีภาพจัดแสดง · รอเรื่องของเธอ</span><span data-en>Nothing here yet · waiting for your story</span>`;
+        } else {
+          visual = `<img src="${ex.img}" alt="${ex.title_en}" loading="lazy">`;
+          title = `<span data-th>${ex.title_th}</span><span data-en>${ex.title_en}</span>`;
+          meta = `${ex.author} · ${ex.year}`;
+          story = `<div class="plaque-story"><span data-th>${ex.story_th}</span><span data-en>${ex.story_en}</span></div>
+           <div class="plaque-sig">— ${ex.author}</div>`;
+        }
+        piece.innerHTML = `
+          <div class="spot"></div>
+          <div class="art">
+            <div class="lamp"></div>
+            <div class="frame">
+              <div class="mat">${visual}</div>
+            </div>
+            <div class="plaque">
+              <div class="plaque-title">${title}</div>
+              <div class="plaque-meta">${meta}</div>
+              ${story}
+            </div>
+          </div>
+        `;
       }
-      piece.innerHTML = `
-        <div class="spot"></div>
-        <div class="art">
-          <div class="lamp"></div>
-          <div class="frame">
-            <div class="mat">${visual}</div>
-          </div>
-          <div class="plaque">
-            <div class="plaque-title">${title}</div>
-            <div class="plaque-meta">${meta}</div>
-            ${story}
-          </div>
-        </div>
-      `;
       const onTap = () => {
         if (camAnim || mode === 'pinching') return;
         if (mode === 'overview') zoomToPiece(i);
         // โหมดเดินชม: เรื่องโชว์เต็มอยู่แล้ว ไม่ต้องกดดู
       };
-      piece.querySelector('.frame').addEventListener('click', onTap);
-      piece.querySelector('.plaque').addEventListener('click', onTap);
+      piece.querySelector('.art').addEventListener('click', onTap);
       inner.insertBefore(piece, endWall);
     });
     buildDots();
@@ -535,7 +540,7 @@
     let target, t0;
     if (mode === 'overview') {
       let bd = Infinity;
-      inner.querySelectorAll('.piece .frame').forEach((f, i) => {
+      inner.querySelectorAll('.piece .art').forEach((f, i) => {
         if (Math.floor(i / WALL_SIZE) !== currentWall) return; // เฉพาะผนังที่เห็นอยู่
         const r = f.getBoundingClientRect();
         const d = Math.hypot(r.left + r.width / 2 - midX, r.top + r.height / 2 - midY);
@@ -593,7 +598,7 @@
       let target, t0;
       if (mode === 'overview') {
         let bd = Infinity;
-        inner.querySelectorAll('.piece .frame').forEach((f, i) => {
+        inner.querySelectorAll('.piece .art').forEach((f, i) => {
           const r = f.getBoundingClientRect();
           const d = Math.hypot(r.left + r.width / 2 - e.clientX, r.top + r.height / 2 - e.clientY);
           if (d < bd) { bd = d; target = i; }

@@ -175,7 +175,7 @@ HTML ต้องมี: `<audio id="bgMusic">`, `<button id="musicToggle">`, `<
 - แมว 7 ภาพ (ยังเป็น watercolor) · 3 เทพใหม่ (กวนอิม/ทับทิม/เวสสุวรรณ) ให้ match สไตล์ 5 องค์เดิม · room-museum.jpg + bedroom-cozy.jpg
 
 **ห้องคำติดผนัง / พิพิธภัณฑ์จัดแสดงใจ**
-- ✅ 5 มิ.ย. **แกลเลอรีเดินชมขึ้นหน้าจริงแล้ว ทั้ง 2 โซน** (owner เคาะ) — 📦 ภาพ + 💌 คำพูด ใช้เครื่องยนต์เดียวกัน (`openGallery('objects'|'words')` ใน museum.js) · คำพูดเป็น "กรอบคำ" แขวนผนัง 15 คำ + 3 ช่องว่าง · 2 ภาษาครบ · pinch ได้ · ผนัง 3 ด้าน 18 ช่อง · โหมดทั้งหมดอยู่บน `.mg-room` ไม่แตะ body (กัน class ค้างข้าม AJAX nav) · JS อยู่ท้าย museum.js, CSS อยู่ท้าย styles.css (prefix `.mg-room`) · pane/subroom เดิมถูกถอดออกหมดแล้ว
+- ✅ 5 มิ.ย. **แกลเลอรีเดินชมขึ้นหน้าจริงแล้ว ทั้ง 2 โซน** (owner เคาะ) — 📦 ภาพ + 💌 คำพูด ใช้เครื่องยนต์เดียวกัน (`openGallery('objects'|'words')` ใน museum.js) · คำพูดเป็น **โพสต์อิทแปะผนัง** (พาสเทล 5 สี เอียง+เทป+มุมพับ, ไม่ระบุอาชีพ/อายุ — มติ owner 5 มิ.ย.) 15 คำ + 3 ใบเปล่า · 2 ภาษาครบ · pinch ได้ · ผนัง 3 ด้าน 18 ช่อง · โหมดทั้งหมดอยู่บน `.mg-room` ไม่แตะ body (กัน class ค้างข้าม AJAX nav) · JS อยู่ท้าย museum.js, CSS อยู่ท้าย styles.css (prefix `.mg-room`) · pane/subroom เดิมถูกถอดออกหมดแล้ว
 - `museum-gallery-concept.html` = ไฟล์ต้นแบบเดิม เก็บไว้อ้างอิง (อย่าแก้ต่อ — ของจริงอยู่ใน museum.html แล้ว)
 - ยังเหลือ: เทสมือถือจริง (pinch) · ต่อ exhibits เข้าหลังบ้าน Google Sheet (รอ Sheet ID)
 - ฟอร์มฝากคำ: เก็บแค่ "อาชีพ + อายุ" (ตอนนี้ยังมี title/ชื่อ field) — ฝั่ง Google (owner ทำ manual), ฝั่งเว็บ Claude ต่อโค้ดอ่านได้
