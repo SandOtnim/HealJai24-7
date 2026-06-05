@@ -6444,6 +6444,22 @@ body.meditating #apane-meditate .breathing-stage.active { position: relative; z-
   transform: scale(1) rotate(var(--tilt, 0deg));
   cursor: zoom-in;
 }
+/* ลายเซ็นมุมล่าง — อาชีพ · อายุ ตัวเล็กๆ บนกระดาษ (ไม่ใช่ป้ายแยก) */
+.mg-room .note-sig {
+  position: absolute;
+  right: 18px; bottom: 12px;
+  font-size: 10.5px;
+  font-style: italic;
+  color: rgba(74, 59, 46, 0.55);
+  letter-spacing: 0.3px;
+  pointer-events: none;
+}
+/* กันลายเซ็นชนมุมพับ: ขยับมุมพับไปซ้ายล่างแทน */
+.mg-room .note:not(.note-empty)::after {
+  right: auto; left: 0;
+  background: linear-gradient(45deg, rgba(43,31,24,0.13) 0%, rgba(43,31,24,0.05) 46%, transparent 50%);
+}
+
 /* โพสต์อิทเปล่า — รอคำใหม่ */
 .mg-room .note-empty {
   background: rgba(255, 253, 248, 0.6);

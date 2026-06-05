@@ -295,7 +295,8 @@
                <div class="ph-num">${ex.num}</div>
                <div class="note-empty-text"><span data-th>ยังว่างอยู่ — รอคำของเธอ</span><span data-en>Still empty — waiting for your words</span></div></div>`
           : `<div class="note note-c${i % 5} tilt${i % 3}"><span class="note-tape"></span>
-               <div class="note-text"><span data-th>${ex.th}</span><span data-en>${ex.en}</span></div></div>`;
+               <div class="note-text"><span data-th>${ex.th}</span><span data-en>${ex.en}</span></div>
+               <div class="note-sig">${ex.author}</div></div>`;
         piece.innerHTML = `
           <div class="spot"></div>
           <div class="art">${note}</div>
