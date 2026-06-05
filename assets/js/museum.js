@@ -160,155 +160,6 @@
     },
   ];
 
-  // Render exhibits dynamically
-  function renderExhibits() {
-    const grid = document.getElementById('exhibitsGrid');
-    grid.innerHTML = EXHIBITS.map(ex => `
-      <div class="exhibit" data-exhibit-id="${ex.id}">
-        <div class="exhibit-frame">
-          <div class="exhibit-mat">
-            <img class="exhibit-photo" src="${ex.img}" alt="${ex.title_en}" loading="lazy">
-          </div>
-        </div>
-        <div class="exhibit-plaque">
-          <div class="plaque-title">
-            <span data-th>${ex.title_th}</span><span data-en>${ex.title_en}</span>
-          </div>
-          <div class="plaque-meta">
-            ${ex.author} · ${ex.year}
-          </div>
-          <div class="plaque-tease">
-            <span data-th>${ex.tease_th}</span><span data-en>${ex.tease_en}</span>
-          </div>
-          <span class="plaque-cta">
-            <span data-th>อ่านเรื่องเต็ม →</span><span data-en>Read the story →</span>
-          </span>
-        </div>
-      </div>
-    `).join('');
-
-    // Bind click → open detail modal
-    grid.querySelectorAll('.exhibit').forEach(el => {
-      el.addEventListener('click', () => openExhibit(el.dataset.exhibitId));
-    });
-
-    // Build dots indicator
-    const dots = document.getElementById('exhibitDots');
-    if (dots) {
-      dots.innerHTML = '';
-      EXHIBITS.forEach((_, i) => {
-        const d = document.createElement('button');
-        d.className = 'exhibit-dot' + (i === 0 ? ' active' : '');
-        d.dataset.idx = i;
-        d.addEventListener('click', () => scrollToExhibit(i));
-        dots.appendChild(d);
-      });
-    }
-  }
-
-  // ===== Exhibits horizontal slide nav + auto-advance =====
-  let exhibitCurrentIdx = 0;
-  let exhibitAutoTimer = null;
-  let exhibitAutoOn = true;
-  function scrollToExhibit(idx) {
-    const grid = document.getElementById('exhibitsGrid');
-    const items = grid.querySelectorAll('.exhibit');
-    if (!items[idx]) return;
-    exhibitCurrentIdx = idx;
-    items[idx].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-    document.querySelectorAll('.exhibit-dot').forEach((d, i) =>
-      d.classList.toggle('active', i === idx));
-  }
-  function nextExhibit() {
-    const items = document.querySelectorAll('#exhibitsGrid .exhibit');
-    if (!items.length) return;
-    scrollToExhibit((exhibitCurrentIdx + 1) % items.length);
-  }
-  function prevExhibit() {
-    const items = document.querySelectorAll('#exhibitsGrid .exhibit');
-    if (!items.length) return;
-    scrollToExhibit((exhibitCurrentIdx - 1 + items.length) % items.length);
-  }
-  function startExhibitAuto() {
-    stopExhibitAuto();
-    exhibitAutoTimer = setInterval(nextExhibit, 4500);
-  }
-  function stopExhibitAuto() {
-    if (exhibitAutoTimer) clearInterval(exhibitAutoTimer);
-    exhibitAutoTimer = null;
-  }
-  const ePrev = document.getElementById('exhibitPrev');
-  const eNext = document.getElementById('exhibitNext');
-  const eAuto = document.getElementById('exhibitAutoToggle');
-  if (ePrev) ePrev.addEventListener('click', () => { prevExhibit(); if (exhibitAutoOn) startExhibitAuto(); });
-  if (eNext) eNext.addEventListener('click', () => { nextExhibit(); if (exhibitAutoOn) startExhibitAuto(); });
-  if (eAuto) eAuto.addEventListener('click', () => {
-    exhibitAutoOn = !exhibitAutoOn;
-    eAuto.classList.toggle('on', exhibitAutoOn);
-    if (exhibitAutoOn) {
-      eAuto.innerHTML = '<span data-th>⏸ หยุดเลื่อน</span><span data-en>⏸ Pause</span>';
-      startExhibitAuto();
-    } else {
-      eAuto.innerHTML = '<span data-th>▶ เล่นต่อ</span><span data-en>▶ Play</span>';
-      stopExhibitAuto();
-    }
-    // Re-apply lang
-    const lang = body.dataset.lang || 'th';
-    eAuto.querySelectorAll('[data-th]').forEach(s => s.style.display = lang === 'th' ? '' : 'none');
-    eAuto.querySelectorAll('[data-en]').forEach(s => s.style.display = lang === 'en' ? '' : 'none');
-  });
-  // ===== Mac dock-style focus scaling =====
-  function updateExhibitDock() {
-    const grid = document.getElementById('exhibitsGrid');
-    if (!grid) return;
-    const items = grid.querySelectorAll('.exhibit');
-    if (!items.length) return;
-    const gridRect = grid.getBoundingClientRect();
-    const center = gridRect.left + gridRect.width / 2;
-    const reach = gridRect.width * 0.55;
-    items.forEach(item => {
-      const r = item.getBoundingClientRect();
-      const itemCenter = r.left + r.width / 2;
-      const dist = Math.abs(center - itemCenter);
-      const norm = Math.min(dist / reach, 1);
-      const scale = (1 - norm * 0.30).toFixed(3);
-      const opacity = (1 - norm * 0.55).toFixed(2);
-      item.style.setProperty('--dock-scale', scale);
-      item.style.setProperty('--dock-opacity', opacity);
-      item.style.zIndex = String(Math.round(40 - norm * 35));
-    });
-  }
-  let dockRaf = null;
-  function scheduleExhibitDock() {
-    if (dockRaf) return;
-    dockRaf = requestAnimationFrame(() => {
-      updateExhibitDock();
-      dockRaf = null;
-    });
-  }
-
-  // Pause auto when user scrolls manually + recompute dock
-  const exGrid = document.getElementById('exhibitsGrid');
-  if (exGrid) {
-    let scrollPauseTimer = null;
-    exGrid.addEventListener('scroll', () => {
-      scheduleExhibitDock();
-      if (!exhibitAutoOn) return;
-      stopExhibitAuto();
-      clearTimeout(scrollPauseTimer);
-      scrollPauseTimer = setTimeout(() => {
-        if (exhibitAutoOn) startExhibitAuto();
-      }, 3000);
-    }, { passive: true });
-  }
-  window.addEventListener('resize', scheduleExhibitDock);
-  // Initial layout pass after render
-  setTimeout(updateExhibitDock, 300);
-  setTimeout(updateExhibitDock, 900);
-
-  // Auto-play now starts/stops based on museum subroom state
-  // (see switchMuseumPane + exitMuseumSubroom below)
-
   // Render words gallery
   function renderWords() {
     const grid = document.getElementById('wordsGrid');
@@ -323,44 +174,7 @@
     `).join('');
   }
 
-  renderExhibits();
   renderWords();
-
-  // Tab switching
-  document.querySelectorAll('.museum-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      const target = tab.dataset.pane;
-      document.querySelectorAll('.museum-tab').forEach(t => t.classList.toggle('active', t.dataset.pane === target));
-      document.querySelectorAll('.gallery-pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + target));
-    });
-  });
-
-  // Exhibit detail modal
-  const exhibitModal = document.getElementById('exhibitModal');
-  function openExhibit(id) {
-    const ex = EXHIBITS.find(e => e.id === id);
-    if (!ex) return;
-    document.getElementById('exhibitDetailPhoto').src = ex.img;
-    document.getElementById('exhibitDetailEyebrow').textContent = ex.year;
-    document.getElementById('exhibitDetailTitle').innerHTML =
-      '<span data-th>' + ex.title_th + '</span>' +
-      '<span data-en>' + ex.title_en + '</span>';
-    document.getElementById('exhibitDetailMeta').textContent = ex.author;
-    document.getElementById('exhibitDetailStory').innerHTML =
-      '<span data-th>' + ex.story_th + '</span>' +
-      '<span data-en>' + ex.story_en + '</span>';
-    document.getElementById('exhibitDetailAuthor').textContent = '— ' + ex.author;
-    exhibitModal.classList.add('active');
-    body.style.overflow = 'hidden';
-  }
-  function closeExhibit() {
-    exhibitModal.classList.remove('active');
-    body.style.overflow = '';
-  }
-  document.querySelectorAll('[data-exhibit-close]').forEach(b => b.addEventListener('click', closeExhibit));
-  exhibitModal.addEventListener('click', e => {
-    if (e.target === exhibitModal) closeExhibit();
-  });
 
   // Submit modal
   const submitModal = document.getElementById('submitModal');
@@ -431,8 +245,10 @@
 
 
   // ============ MUSEUM — Sub-room mode ============
+  // 📦 objects = เปิดแกลเลอรีเดินชม (mgRoom, ดูด้านล่าง) · 💌 words = subroom เดิม
   const museumInner = document.querySelector('#room-museum .museum-inner');
   function switchMuseumPane(target, enterSubroom = true) {
+    if (target === 'objects') { openGallery(); return; }
     document.querySelectorAll('.museum-tab').forEach(t =>
       t.classList.toggle('active', t.dataset.pane === target));
     document.querySelectorAll('#room-museum .gallery-pane').forEach(p =>
@@ -444,23 +260,11 @@
       const overlay = document.getElementById('room-museum');
       if (overlay) overlay.scrollTop = 0;
     }
-    // Start auto-play only when on objects pane; stop otherwise
-    if (target === 'objects') {
-      // Reset to first item + recompute dock + start auto after layout
-      setTimeout(() => {
-        scrollToExhibit(0);
-        updateExhibitDock();
-        if (exhibitAutoOn) startExhibitAuto();
-      }, 350);
-    } else {
-      stopExhibitAuto();
-    }
   }
   function exitMuseumSubroom() {
     if (museumInner) museumInner.classList.remove('subroom-active');
     const overlay = document.getElementById('room-museum');
     if (overlay) overlay.scrollTop = 0;
-    stopExhibitAuto();
   }
   document.querySelectorAll('.museum-tab').forEach(tab => {
     tab.addEventListener('click', () => switchMuseumPane(tab.dataset.pane, true));
@@ -479,4 +283,450 @@
 
 
   const museumRoot = document.querySelector('#room-museum .museum-inner'); if (museumRoot) museumRoot.classList.remove('subroom-active');
+
+
+  /* ============================================================
+     MUSEUM GALLERY — เดินชมแกลเลอรี (ฉากเดียวกล้องเดียว)
+     ย้ายมาจาก museum-gallery-concept.html (ทีมเคาะ 5 มิ.ย. 2026)
+     - overview: ภาพกระจายบนผนังแบบ salon wall, ผนัง 3 ด้าน 18 ช่อง
+     - walk: เดินชมแถวยาว ไฟหรี่เหลือลำแสงโคม เรื่องคลี่ใต้ภาพ
+     - กล้อง = translate+scale บน .hall-inner · t∈[0,1] ขับทุกอย่าง
+     - pinch สองนิ้ว / trackpad pinch = นิ้วถือกล้องเอง
+     โหมดทั้งหมดอยู่บน .mg-room (ไม่แตะ body — กัน class ค้างข้าม AJAX nav)
+     ============================================================ */
+  const mgRoom = document.getElementById('mgRoom');
+  let openGallery = () => {};
+  if (mgRoom) {
+
+  // 18 ช่อง = ผนัง 3 ด้าน — 6 ภาพแรกมีของจริง ที่เหลือเป็นช่องว่างรอจัดแสดง
+  const GALLERY = EXHIBITS.slice();
+  while (GALLERY.length < 18) {
+    const n = GALLERY.length + 1;
+    GALLERY.push({ placeholder: true, num: String(n).padStart(2, '0') });
+  }
+
+  const WALL_SIZE = 6;
+  const WALL_COUNT = Math.ceil(GALLERY.length / WALL_SIZE);
+  let currentWall = 0;
+  let currentIdx = 0;
+  let mode = 'overview'; // 'overview' | 'walk' | 'pinching'
+  let camAnim = false;
+
+  const hall = document.getElementById('mgHall');
+  const inner = document.getElementById('mgHallInner');
+  const endWall = document.getElementById('mgEndWall');
+  const walkHint = document.getElementById('mgWalkHint');
+  const walkDim = mgRoom.querySelector('.walk-dim');
+  const ovBack = document.getElementById('mgOvBack');
+  const hudCount = document.getElementById('mgHudCount');
+  const hudBar = document.getElementById('mgHudBar');
+
+  // ----- สร้างชิ้นงาน (สองภาษาด้วย data-th/data-en — สลับภาษาทำงานอัตโนมัติผ่าน CSS) -----
+  GALLERY.forEach((ex, i) => {
+    const piece = document.createElement('div');
+    piece.className = 'piece';
+    piece.dataset.idx = i;
+    const visual = ex.placeholder
+      ? `<div class="ph-slot"><div class="ph-num">${ex.num}</div>
+           <div class="ph-text"><span data-th>ยังว่างอยู่</span><span data-en>Still empty</span></div></div>`
+      : `<img src="${ex.img}" alt="${ex.title_en}" loading="lazy">`;
+    const title = ex.placeholder
+      ? `<span data-th>หมายเลข ${ex.num}</span><span data-en>No. ${ex.num}</span>`
+      : `<span data-th>${ex.title_th}</span><span data-en>${ex.title_en}</span>`;
+    const meta = ex.placeholder
+      ? `<span data-th>ยังไม่มีภาพจัดแสดง · รอเรื่องของเธอ</span><span data-en>Nothing here yet · waiting for your story</span>`
+      : `${ex.author} · ${ex.year}`;
+    const story = ex.placeholder ? '' :
+      `<div class="plaque-story"><span data-th>${ex.story_th}</span><span data-en>${ex.story_en}</span></div>
+       <div class="plaque-sig">— ${ex.author}</div>`;
+    piece.innerHTML = `
+      <div class="spot"></div>
+      <div class="art">
+        <div class="lamp"></div>
+        <div class="frame">
+          <div class="mat">${visual}</div>
+        </div>
+        <div class="plaque">
+          <div class="plaque-title">${title}</div>
+          <div class="plaque-meta">${meta}</div>
+          ${story}
+        </div>
+      </div>
+    `;
+    const onTap = () => {
+      if (camAnim || mode === 'pinching') return;
+      if (mode === 'overview') zoomToPiece(i);
+      // โหมดเดินชม: เรื่องโชว์เต็มอยู่แล้ว ไม่ต้องกดดู
+    };
+    piece.querySelector('.frame').addEventListener('click', onTap);
+    piece.querySelector('.plaque').addEventListener('click', onTap);
+    inner.insertBefore(piece, endWall);
+  });
+
+  /* ----- กล้อง: คณิตศาสตร์เดียว ใช้ทั้งสองมุม -----
+     มุมกว้าง: กล้องเฉยๆ ภาพย้ายตัวเองไปตำแหน่งกระจาย
+     มุมใกล้:  scale 1, translate = -scrollLeft ของภาพเป้าหมาย */
+  function camOverview() { return 'translate(0px, 0px) scale(1)'; }
+  function camCloseUp(scrollX) { return 'translate(' + (-scrollX) + 'px, 0px) scale(1)'; }
+
+  // ตำแหน่งกระจายบนผนัง (สัดส่วนของจอ) + เอียงนิดๆ ให้มีชีวิต
+  const SCATTER = [
+    { x: 0.18, y: 0.34, r: -1.4 },
+    { x: 0.50, y: 0.33, r:  1.0 },
+    { x: 0.82, y: 0.34, r: -0.8 },
+    { x: 0.18, y: 0.70, r:  1.2 },
+    { x: 0.50, y: 0.71, r: -1.0 },
+    { x: 0.82, y: 0.70, r:  1.4 },
+  ];
+  const SCATTER_MOBILE = [
+    { x: 0.26, y: 0.23, r: -2.2 },
+    { x: 0.74, y: 0.26, r:  1.6 },
+    { x: 0.24, y: 0.51, r:  1.4 },
+    { x: 0.76, y: 0.54, r: -1.6 },
+    { x: 0.28, y: 0.79, r:  2.0 },
+    { x: 0.72, y: 0.82, r: -1.4 },
+  ];
+  let scatterState = [];
+  function computeScatter() {
+    const V = hall.clientWidth, H = hall.clientHeight;
+    if (!V) return scatterState; // ยังไม่ได้เปิด/ถูกซ่อนอยู่
+    const mobile = V < 700;
+    const layout = mobile ? SCATTER_MOBILE : SCATTER;
+    const pieces = inner.querySelectorAll('.piece');
+    const targetW = mobile ? V * 0.37 : Math.min(V * 0.21, 280);
+    scatterState = [];
+    pieces.forEach((p, i) => {
+      const wall = Math.floor(i / WALL_SIZE);
+      const spot = layout[i % WALL_SIZE % layout.length];
+      let k = targetW / p.offsetWidth;
+      if (!mobile) {
+        // desktop: จำกัดความสูงด้วย — ภาพแนวตั้งไม่ทะลุไปทับหัวข้อ/จุดเปลี่ยนผนัง
+        k = Math.min(k, (H * 0.28) / p.offsetHeight);
+      }
+      const naturalCX = p.offsetLeft + p.offsetWidth / 2;
+      const naturalCY = H / 2;
+      const wallShift = (wall - currentWall) * V * 1.45; // ผนังอื่นยืนรอนอกจอ
+      scatterState.push({ dx: spot.x * V - naturalCX + wallShift, dy: spot.y * H - naturalCY, k, r: spot.r });
+    });
+    return scatterState;
+  }
+  function scatterPieces() {
+    computeScatter();
+    inner.querySelectorAll('.piece').forEach((p, i) => {
+      const s = scatterState[i];
+      if (!s) return;
+      p.style.transform = 'translate(' + s.dx + 'px, ' + s.dy + 'px) scale(' + s.k + ') rotate(' + s.r + 'deg)';
+    });
+  }
+  function targetScroll(i) {
+    const p = inner.querySelectorAll('.piece')[i];
+    const max = inner.scrollWidth - hall.clientWidth;
+    return Math.max(0, Math.min(max, p.offsetLeft + p.offsetWidth / 2 - hall.clientWidth / 2));
+  }
+
+  // ----- ซูมเข้า/ออก -----
+  function zoomToPiece(i) {
+    if (mode !== 'overview' || camAnim) return;
+    mode = 'pinching';
+    computeScatter();
+    const L = targetScroll(i);
+    hall.scrollLeft = 0;
+    animateCam(0, 1, L, i, 1150);
+  }
+  function zoomOut() {
+    if (mode !== 'walk' || camAnim) return;
+    mode = 'pinching';
+    mgRoom.classList.remove('walk-mode'); // เปิดไฟกลับก่อนถอยกล้อง
+    const L = hall.scrollLeft;
+    currentWall = Math.floor(currentIdx / WALL_SIZE);
+    setWall(currentWall);
+    computeScatter();
+    hall.scrollLeft = 0;
+    inner.style.transform = camCloseUp(L);
+    ovBack.classList.remove('show');
+    animateCam(1, 0, L, currentIdx, 1150);
+  }
+
+  // ----- จุดบอกผนัง — กดจุดไหนกระโดดไปผนังนั้น -----
+  const wallNav = document.getElementById('mgWallNav');
+  const wallDots = [];
+  for (let w = 0; w < WALL_COUNT; w++) {
+    const d = document.createElement('button');
+    d.className = 'wall-dot';
+    d.setAttribute('aria-label', 'ผนังที่ ' + (w + 1));
+    d.addEventListener('click', () => setWall(w));
+    wallNav.appendChild(d);
+    wallDots.push(d);
+  }
+  function setWall(w) {
+    currentWall = Math.max(0, Math.min(WALL_COUNT - 1, w));
+    wallDots.forEach((d, i) => d.classList.toggle('active', i === currentWall));
+    if (mode === 'overview') scatterPieces(); // .piece มี transition → ภาพไหลไปเอง
+  }
+  wallDots[0].classList.add('active');
+
+  // ปัดซ้าย-ขวาในมุมกว้าง = เปลี่ยนผนัง
+  let wallSwipe = null;
+  hall.addEventListener('pointerdown', (e) => {
+    if (mode !== 'overview' || camAnim) return;
+    wallSwipe = { x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY };
+  });
+  window.addEventListener('pointermove', (e) => {
+    if (wallSwipe) { wallSwipe.x = e.clientX; wallSwipe.y = e.clientY; }
+  });
+  function endWallSwipe() {
+    if (!wallSwipe || mode !== 'overview') { wallSwipe = null; return; }
+    const dx = wallSwipe.x - wallSwipe.x0;
+    const dy = wallSwipe.y - wallSwipe.y0;
+    wallSwipe = null;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+      setWall(currentWall + (dx < 0 ? 1 : -1));
+    }
+  }
+  window.addEventListener('pointerup', endWallSwipe);
+  window.addEventListener('pointercancel', endWallSwipe);
+
+  document.getElementById('mgOvWalkBtn').addEventListener('click', () => zoomToPiece(currentWall * WALL_SIZE));
+  ovBack.addEventListener('click', zoomOut);
+  document.getElementById('mgOvExit').addEventListener('click', closeGallery);
+
+  /* ----- PINCH — นิ้วเป็นคนถือกล้อง: t = 0 มุมกว้าง · t = 1 มุมใกล้ ----- */
+  function applyCam(t, L, target) {
+    inner.style.transform = 'translate(' + (-L * t) + 'px, 0px) scale(1)';
+    const pieces = inner.querySelectorAll('.piece');
+    pieces.forEach((p, i) => {
+      const s = scatterState[i];
+      if (!s) return;
+      const u = 1 - t;
+      const k = s.k + (1 - s.k) * t;
+      p.style.transform = 'translate(' + (s.dx * u) + 'px, ' + (s.dy * u) + 'px) scale(' + k + ') rotate(' + (s.r * u) + 'deg)';
+      p.style.setProperty('--reveal', t); // เรื่องเต็มทุกภาพคลี่ตาม t พร้อมกัน
+    });
+    walkDim.style.opacity = t; // ไฟหรี่ตาม t เป๊ะ
+  }
+  function finalizePinch(t, L, target) {
+    mgRoom.classList.remove('pinching');
+    if (t >= 1) {
+      mode = 'walk';
+      mgRoom.classList.remove('overview-mode');
+      mgRoom.classList.add('walk-mode');
+      walkDim.style.opacity = 1;
+      inner.querySelectorAll('.piece').forEach(p => { p.style.transform = ''; });
+      inner.style.transform = '';
+      hall.scrollLeft = L;
+      ovBack.classList.add('show');
+      setLit(target);
+      update();
+    } else {
+      mode = 'overview';
+      mgRoom.classList.remove('walk-mode');
+      walkDim.style.opacity = 0;
+      inner.querySelectorAll('.piece').forEach(p => p.style.setProperty('--reveal', 0));
+      currentWall = Math.floor(target / WALL_SIZE);
+      setWall(currentWall);
+      mgRoom.classList.add('overview-mode');
+      inner.style.transform = camOverview();
+      scatterPieces();
+      hall.scrollLeft = 0;
+      ovBack.classList.remove('show');
+    }
+  }
+  const easeInOutCubic = p => p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+  function animateCam(tFrom, goal, L, target, D) {
+    camAnim = true;
+    mgRoom.classList.add('pinching'); // ปิด CSS transition — เครื่องยนต์นี้คุมเองทุกเฟรม
+    const start = performance.now();
+    function step(now) {
+      const p = Math.min((now - start) / D, 1);
+      applyCam(tFrom + (goal - tFrom) * easeInOutCubic(p), L, target);
+      if (p < 1) requestAnimationFrame(step);
+      else { camAnim = false; finalizePinch(goal, L, target); }
+    }
+    requestAnimationFrame(step);
+  }
+  function settlePinch(tFrom, goal, L, target) {
+    const D = 260 + 480 * Math.abs(goal - tFrom); // เหลือทางน้อย = ใช้เวลาน้อย
+    animateCam(tFrom, goal, L, target, D);
+  }
+
+  let pinch = null;
+  function pinchDist(e) { return Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }
+  function beginPinch(e) {
+    if (camAnim) return;
+    const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+    const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    computeScatter();
+    let target, t0;
+    if (mode === 'overview') {
+      let bd = Infinity;
+      inner.querySelectorAll('.piece .frame').forEach((f, i) => {
+        if (Math.floor(i / WALL_SIZE) !== currentWall) return; // เฉพาะผนังที่เห็นอยู่
+        const r = f.getBoundingClientRect();
+        const d = Math.hypot(r.left + r.width / 2 - midX, r.top + r.height / 2 - midY);
+        if (d < bd) { bd = d; target = i; }
+      });
+      t0 = 0;
+    } else {
+      target = currentIdx;
+      t0 = 1;
+      mgRoom.classList.remove('walk-mode'); // pinch ออก = ไฟค่อยๆ กลับมา
+    }
+    const L = targetScroll(target);
+    if (t0 === 1) {
+      const L0 = hall.scrollLeft;
+      hall.scrollLeft = 0;
+      inner.style.transform = camCloseUp(L0);
+    }
+    mgRoom.classList.add('pinching');
+    pinch = { d0: pinchDist(e), t0, t: t0, L, target };
+    mode = 'pinching';
+  }
+  hall.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2 && (mode === 'overview' || mode === 'walk')) {
+      e.preventDefault();
+      beginPinch(e);
+    }
+  }, { passive: false });
+  hall.addEventListener('touchmove', (e) => {
+    if (!pinch || e.touches.length !== 2) return;
+    e.preventDefault();
+    const ratio = pinchDist(e) / pinch.d0;
+    let t;
+    if (pinch.t0 === 0) t = (ratio - 1) / 1.1;
+    else t = 1 + (ratio - 1) / 0.5;
+    pinch.t = Math.max(0, Math.min(1, t));
+    applyCam(pinch.t, pinch.L, pinch.target);
+  }, { passive: false });
+  hall.addEventListener('touchend', () => {
+    if (!pinch) return;
+    const { t, t0, L, target } = pinch;
+    pinch = null;
+    // hysteresis: ต้องดึงเกินครึ่งทางถึงจะเปลี่ยนมุม
+    const goal = t0 === 0 ? (t > 0.35 ? 1 : 0) : (t < 0.65 ? 0 : 1);
+    settlePinch(t, goal, L, target);
+  });
+
+  // trackpad pinch (ctrl+scroll) สำหรับ desktop — ฟิสิกส์เดียวกัน
+  let wheelPinch = null, wheelTimer = null;
+  hall.addEventListener('wheel', (e) => {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    if (camAnim) return;
+    if (!wheelPinch) {
+      computeScatter();
+      let target, t0;
+      if (mode === 'overview') {
+        let bd = Infinity;
+        inner.querySelectorAll('.piece .frame').forEach((f, i) => {
+          const r = f.getBoundingClientRect();
+          const d = Math.hypot(r.left + r.width / 2 - e.clientX, r.top + r.height / 2 - e.clientY);
+          if (d < bd) { bd = d; target = i; }
+        });
+        t0 = 0;
+      } else if (mode === 'walk') {
+        target = currentIdx; t0 = 1;
+        const L0 = hall.scrollLeft;
+        hall.scrollLeft = 0;
+        inner.style.transform = camCloseUp(L0);
+      } else return;
+      mgRoom.classList.add('pinching');
+      wheelPinch = { t: t0, t0, L: targetScroll(target), target };
+      mode = 'pinching';
+    }
+    wheelPinch.t = Math.max(0, Math.min(1, wheelPinch.t - e.deltaY * 0.012));
+    applyCam(wheelPinch.t, wheelPinch.L, wheelPinch.target);
+    clearTimeout(wheelTimer);
+    wheelTimer = setTimeout(() => {
+      const { t, t0, L, target } = wheelPinch;
+      wheelPinch = null;
+      const goal = t0 === 0 ? (t > 0.35 ? 1 : 0) : (t < 0.65 ? 0 : 1);
+      settlePinch(t, goal, L, target);
+    }, 180);
+  }, { passive: false });
+
+  // เดินด้วยล้อเมาส์แนวตั้ง (เฉพาะมุมใกล้)
+  hall.addEventListener('wheel', (e) => {
+    if (mode !== 'walk') return;
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      hall.scrollLeft += e.deltaY;
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  // ----- ไฟส่อง + HUD (มุมใกล้) -----
+  function setLit(idx) {
+    currentIdx = idx;
+    inner.querySelectorAll('.piece').forEach((p, i) => {
+      p.classList.toggle('lit', i === idx);
+    });
+    hudCount.innerHTML =
+      '<span data-th>ภาพที่ ' + (idx + 1) + ' / ' + GALLERY.length + '</span>' +
+      '<span data-en>Piece ' + (idx + 1) + ' / ' + GALLERY.length + '</span>';
+  }
+  let raf = null;
+  function update() {
+    raf = null;
+    if (mode !== 'walk') return;
+    const x = hall.scrollLeft;
+    const center = x + hall.clientWidth / 2;
+    const pieces = inner.querySelectorAll('.piece');
+    let active = 0, bestD = Infinity;
+    pieces.forEach((p, i) => {
+      const c = p.offsetLeft + p.offsetWidth / 2;
+      const d = Math.abs(c - center);
+      if (d < bestD) { bestD = d; active = i; }
+    });
+    setLit(active);
+    const max = hall.scrollWidth - hall.clientWidth;
+    hudBar.style.width = (max > 0 ? (x / max) * 100 : 0) + '%';
+    if (x > 60) walkHint.classList.add('gone');
+  }
+  hall.addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(update); }, { passive: true });
+  window.addEventListener('resize', () => {
+    if (!document.body.contains(mgRoom) || mgRoom.hidden) return;
+    if (mode === 'overview') { inner.style.transform = camOverview(); scatterPieces(); }
+    else update();
+  });
+
+  // ----- ฝุ่นละอองในแสง (อยู่ใน mgRoom — โชว์เฉพาะตอนแกลเลอรีเปิด) -----
+  for (let i = 0; i < 14; i++) {
+    const m = document.createElement('div');
+    m.className = 'mote';
+    const s = 2 + Math.random() * 3;
+    m.style.width = m.style.height = s + 'px';
+    m.style.left = Math.random() * 100 + 'vw';
+    m.style.bottom = (10 + Math.random() * 40) + 'vh';
+    m.style.animationDuration = (9 + Math.random() * 10) + 's';
+    m.style.animationDelay = (Math.random() * 9) + 's';
+    mgRoom.appendChild(m);
+  }
+
+  // ----- เปิด/ปิดแกลเลอรี (เรียกจาก hotspot 📦 / ปุ่ม ← ทางเข้า) -----
+  openGallery = function () {
+    mgRoom.hidden = false;
+    mode = 'overview';
+    currentIdx = 0;
+    setWall(0);
+    mgRoom.classList.add('overview-mode');
+    mgRoom.classList.remove('walk-mode', 'pinching');
+    walkDim.style.opacity = 0;
+    ovBack.classList.remove('show');
+    walkHint.classList.remove('gone');
+    inner.style.transform = camOverview();
+    inner.querySelectorAll('.piece').forEach(p => { p.classList.remove('lit'); p.style.setProperty('--reveal', 0); });
+    requestAnimationFrame(scatterPieces);
+    setTimeout(scatterPieces, 350); // recompute หลังฟอนต์/ภาพโหลด
+  };
+  function closeGallery() {
+    mgRoom.classList.remove('overview-mode', 'walk-mode', 'pinching');
+    inner.querySelectorAll('.piece').forEach(p => { p.style.transform = ''; p.classList.remove('lit'); p.style.setProperty('--reveal', 0); });
+    inner.style.transform = '';
+    hall.scrollLeft = 0;
+    ovBack.classList.remove('show');
+    mode = 'overview';
+    currentIdx = 0;
+    mgRoom.hidden = true;
+  }
+
+  } // end if (mgRoom)
 })();

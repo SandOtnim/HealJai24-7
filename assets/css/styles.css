@@ -655,7 +655,7 @@ header {
   flex-wrap: wrap;
 }
 .exhibit-nav-btn {
-  width: 38px; height: 38px;
+  width: 44px; height: 44px;
   border-radius: 50%;
   border: 1.5px solid var(--beige);
   background: var(--bg);
@@ -670,15 +670,17 @@ header {
   display: flex; gap: 6px;
 }
 .exhibit-dot {
-  width: 7px; height: 7px;
+  width: 19px; height: 19px;
+  box-sizing: border-box;
   background: var(--beige);
+  background-clip: padding-box; /* visual dot 7px, hit area 19px */
+  border: 6px solid transparent;
   border-radius: 50%;
-  border: none;
   padding: 0;
   cursor: pointer;
   transition: all var(--transition);
 }
-.exhibit-dot.active { background: var(--clay); width: 18px; border-radius: 4px; }
+.exhibit-dot.active { background: var(--clay); background-clip: padding-box; width: 30px; border-radius: 10px; }
 .exhibit-auto-toggle {
   font-size: 11px;
   background: none;
@@ -820,7 +822,8 @@ header {
   transform: scale(0.94);
   transition: transform 0.4s var(--ease);
   box-shadow: 0 30px 80px rgba(0,0,0,0.4);
-  overflow: hidden;
+  overflow-y: auto; /* เลื่อนในการ์ด — ปุ่มปิด sticky อยู่กับที่ */
+  max-height: calc(100dvh - 48px);
   margin: auto;
 }
 .exhibit-modal.active .exhibit-detail { transform: scale(1); }
@@ -879,9 +882,10 @@ header {
   text-align: right;
 }
 .exhibit-detail-close {
-  position: absolute;
-  top: 16px; right: 16px;
-  width: 38px; height: 38px;
+  position: sticky;
+  top: 12px;
+  margin: 12px 12px -56px auto;
+  width: 44px; height: 44px;
   border-radius: 50%;
   background: rgba(255,255,255,0.95);
   display: flex; align-items: center; justify-content: center;
@@ -5333,14 +5337,16 @@ footer {
     min-height: 0 !important;
   }
   .exhibit-dot {
-    width: 8px !important;
-    height: 8px !important;
+    width: 20px !important;
+    height: 20px !important;
+    border: 6px solid transparent;
+    background-clip: padding-box;
     flex: 0 0 auto;
     box-sizing: border-box;
   }
   .exhibit-dot.active {
-    width: 22px !important;
-    height: 8px !important;
+    width: 34px !important;
+    height: 20px !important;
   }
 
   /* Cursor-hover patterns → become touch friendly */
@@ -5948,4 +5954,427 @@ body.meditating #apane-meditate .breathing-stage.active { position: relative; z-
   aspect-ratio: 3 / 4;
   margin-bottom: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+/* ============================================================
+   MUSEUM GALLERY — เดินชมแกลเลอรี (แทน horizontal slide เดิม)
+   ฉากเดียวกล้องเดียว: overview (ภาพกระจาย salon wall) ↔ walk (เดินชมแถวยาว)
+   โหมดอยู่บน .mg-room: .overview-mode / .walk-mode / .pinching
+   ============================================================ */
+.mg-room {
+  --wall: #F2E8DA;
+  --wall-dark: #E8DCC8;
+  --floor: #C9B294;
+  --cam-ease: cubic-bezier(0.55, 0, 0.15, 1);
+  position: fixed; inset: 0; z-index: 150;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--wall) 0%, var(--wall-dark) 71.8%, var(--floor) 72%, #BCA47F 100%);
+}
+.mg-room[hidden] { display: none !important; }
+
+/* --- ห้องเดียว กล้องเดียว --- */
+.mg-room .hall {
+  position: absolute; inset: 0;
+  overflow-x: auto; overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.mg-room .hall::-webkit-scrollbar { display: none; }
+.mg-room.overview-mode .hall { overflow-x: hidden; touch-action: none; } /* มุมกว้าง: นิ้วเป็นของเรา (ปัด/pinch) */
+
+.mg-room .hall-inner {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: stretch;
+  gap: clamp(48px, 7vw, 120px);
+  width: max-content;
+  transform-origin: 0 0;
+  will-change: transform;
+  background:
+    linear-gradient(180deg, rgba(43,33,24,0.07) 0%, transparent 13%),
+    repeating-linear-gradient(90deg, transparent 0 340px, rgba(139,115,85,0.05) 340px 342px),
+    linear-gradient(180deg, transparent 0 71.2%, #D8C9B2 71.2% 71.9%, #C4B49A 71.9% 72.1%, transparent 72.1%),
+    repeating-linear-gradient(90deg, rgba(92,74,60,0.10) 0 2px, transparent 2px 110px),
+    linear-gradient(180deg, var(--wall) 0%, var(--wall-dark) 72%, #D3BD9E 72.2%, var(--floor) 100%);
+}
+.mg-room .hall-inner::after {
+  content: ''; position: absolute; left: 0; right: 0; top: 72%; height: 7%;
+  background: linear-gradient(180deg, rgba(43,33,24,0.16), transparent);
+  pointer-events: none;
+}
+.mg-room.pinching .hall-inner, .mg-room.pinching .piece { transition: none !important; }
+
+/* โหมดเดินชม: หรี่ไฟทั้งห้อง — ลำแสงกรวยจากโคมเพดาน (จุดกำเนิดเหนือจอ) */
+.mg-room .walk-dim {
+  position: absolute; inset: 0; pointer-events: none; z-index: 4;
+  background:
+    conic-gradient(from 0deg at 50% -12%,
+      rgba(24, 18, 12, 0.62) 0deg,
+      rgba(24, 18, 12, 0.62) 126deg,
+      rgba(24, 18, 12, 0.40) 138deg,
+      rgba(24, 18, 12, 0.14) 148deg,
+      rgba(24, 18, 12, 0)   156deg,
+      rgba(24, 18, 12, 0)   204deg,
+      rgba(24, 18, 12, 0.14) 212deg,
+      rgba(24, 18, 12, 0.40) 222deg,
+      rgba(24, 18, 12, 0.62) 234deg,
+      rgba(24, 18, 12, 0.62) 360deg);
+  opacity: 0; /* JS ขับค่าตาม t ของกล้อง */
+}
+@media (min-width: 700px) {
+  .mg-room .walk-dim {
+    background:
+      conic-gradient(from 0deg at 50% -35%,
+        rgba(24, 18, 12, 0.62) 0deg,
+        rgba(24, 18, 12, 0.62) 126deg,
+        rgba(24, 18, 12, 0.40) 138deg,
+        rgba(24, 18, 12, 0.14) 148deg,
+        rgba(24, 18, 12, 0)   156deg,
+        rgba(24, 18, 12, 0)   204deg,
+        rgba(24, 18, 12, 0.14) 212deg,
+        rgba(24, 18, 12, 0.40) 222deg,
+        rgba(24, 18, 12, 0.62) 234deg,
+        rgba(24, 18, 12, 0.62) 360deg);
+  }
+}
+.mg-room .room-vignette {
+  position: absolute; inset: 0; pointer-events: none; z-index: 5;
+  background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(43, 31, 24, 0.14) 100%);
+}
+
+/* --- ชิ้นงานแต่ละชิ้น --- */
+.mg-room .piece {
+  position: relative;
+  flex: 0 0 auto;
+  width: min(560px, 86vw);
+  height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding-bottom: 9vh;
+  transition: transform 1.3s var(--cam-ease);
+  will-change: transform;
+}
+.mg-room .spacer { flex: 0 0 calc(50vw - min(280px, 43vw)); }
+
+.mg-room .spot {
+  position: absolute; top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 150%; height: 78%;
+  background: radial-gradient(ellipse 46% 80% at 50% 0%,
+    rgba(255, 240, 200, 0.55) 0%,
+    rgba(255, 240, 200, 0.18) 45%,
+    transparent 72%);
+  opacity: 0.18;
+  transition: opacity 0.9s var(--ease);
+  pointer-events: none;
+}
+.mg-room .piece.lit .spot { opacity: 1; }
+.mg-room.overview-mode .spot { opacity: 0; }
+.mg-room.overview-mode .end-wall { opacity: 0; transition: opacity 0.5s; }
+.mg-room .end-wall { transition: opacity 0.5s 0.6s; }
+
+.mg-room .art { display: flex; flex-direction: column; align-items: center; }
+.mg-room .lamp {
+  position: relative;
+  width: 64px; height: 10px; border-radius: 6px 6px 12px 12px;
+  background: linear-gradient(180deg, #8B6F47, #6B543A);
+  box-shadow: 0 2px 5px rgba(43,31,24,0.3);
+  margin-bottom: 12px;
+}
+.mg-room .lamp::after {
+  content: ''; position: absolute; left: 50%; bottom: -5px;
+  transform: translateX(-50%);
+  width: 26px; height: 5px; border-radius: 0 0 8px 8px;
+  background: #FFE9B8;
+  opacity: 0.4; transition: opacity 0.9s;
+  box-shadow: 0 0 14px 4px rgba(255, 233, 184, 0.35);
+}
+.mg-room .piece.lit .lamp::after, .mg-room.overview-mode .lamp::after { opacity: 1; }
+
+.mg-room .frame {
+  position: relative;
+  background: linear-gradient(135deg, #2B1F18 0%, #4A3826 48%, #2B1F18 100%);
+  padding: clamp(12px, 2vw, 20px);
+  box-shadow:
+    0 24px 60px rgba(43, 31, 24, 0.35),
+    inset 0 1px 0 rgba(255,255,255,0.12);
+  cursor: pointer;
+  filter: brightness(0.62) saturate(0.85);
+  transform: scale(0.94);
+  transition: filter 0.9s var(--ease), transform 0.9s var(--ease), box-shadow 0.9s;
+}
+.mg-room .frame::before {
+  content: ''; position: absolute; inset: clamp(6px, 1vw, 10px);
+  border: 1px solid rgba(201, 169, 97, 0.35);
+  pointer-events: none;
+}
+.mg-room .piece.lit .frame {
+  filter: brightness(1) saturate(1);
+  transform: scale(1);
+  box-shadow:
+    0 30px 80px rgba(43, 31, 24, 0.45),
+    0 0 60px rgba(255, 233, 184, 0.12),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+}
+.mg-room.overview-mode .frame {
+  filter: brightness(0.96) saturate(0.97);
+  transform: scale(1);
+  cursor: zoom-in;
+}
+.mg-room .frame .mat { background: #FAF6EE; padding: clamp(10px, 1.6vw, 18px); }
+.mg-room .ph-slot {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  max-height: 44vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 6px;
+  background:
+    repeating-linear-gradient(45deg, rgba(139,115,85,0.04) 0 14px, transparent 14px 28px),
+    #F4ECDE;
+  border: 1.5px dashed rgba(139, 115, 85, 0.35);
+}
+.mg-room .ph-num {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: clamp(40px, 6vw, 64px);
+  color: rgba(139, 115, 85, 0.4);
+  font-style: italic;
+  line-height: 1;
+}
+.mg-room .ph-text { font-size: 12px; color: rgba(139, 115, 85, 0.55); letter-spacing: 1px; }
+.mg-room .frame img {
+  display: block;
+  width: 100%;
+  max-height: 44vh;
+  object-fit: cover;
+  filter: sepia(0.12) saturate(0.95);
+}
+
+/* ป้ายคำอธิบายใต้กรอบ */
+.mg-room .plaque {
+  margin-top: 22px;
+  background: linear-gradient(180deg, #FFFDF8, #F6EDDD);
+  border: 1px solid rgba(193, 154, 108, 0.4);
+  border-radius: 4px;
+  padding: 12px 22px;
+  text-align: center;
+  max-width: 86%;
+  box-shadow: 0 6px 18px rgba(92, 74, 60, 0.14);
+  opacity: 0; transform: translateY(10px);
+  transition: opacity 0.9s var(--ease) 0.15s, transform 0.9s var(--ease) 0.15s;
+  cursor: pointer;
+}
+.mg-room .piece.lit .plaque { opacity: 1; transform: translateY(0); }
+.mg-room.overview-mode .plaque { opacity: 0.85; transform: none; transition-delay: 0s; }
+.mg-room .plaque-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 16.5px; font-weight: 500; font-style: italic;
+}
+/* เรื่องเต็ม — คลี่ตามตัวแปร --reveal (0→1) สมการเดียวกับกล้อง */
+.mg-room .plaque-story {
+  display: block;
+  overflow: hidden;
+  font-size: 13.5px;
+  line-height: 1.95;
+  color: var(--ink);
+  text-align: left;
+  max-height: calc(var(--reveal, 0) * 30vh);
+  opacity: var(--reveal, 0);
+  margin-top: calc(var(--reveal, 0) * 10px);
+  padding-top: calc(var(--reveal, 0) * 10px);
+  border-top: 1px solid rgba(193, 154, 108, calc(var(--reveal, 0) * 0.3));
+  transition: max-height 0.6s var(--ease), opacity 0.6s var(--ease),
+              margin-top 0.6s var(--ease), padding-top 0.6s var(--ease);
+}
+.mg-room .plaque-sig {
+  display: block;
+  overflow: hidden;
+  font-family: 'IBM Plex Serif', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--ink-soft);
+  text-align: right;
+  max-height: calc(var(--reveal, 0) * 3em);
+  opacity: var(--reveal, 0);
+  margin-top: calc(var(--reveal, 0) * 6px);
+  transition: max-height 0.6s var(--ease), opacity 0.6s var(--ease), margin-top 0.6s var(--ease);
+}
+.mg-room.pinching .plaque-story, .mg-room.pinching .plaque-sig { transition: none !important; }
+.mg-room .plaque-meta { font-size: 11.5px; color: var(--ink-soft); margin-top: 3px; letter-spacing: 0.4px; }
+
+/* --- ผนังท้ายสุด: CTA --- */
+.mg-room .end-wall {
+  position: relative;
+  flex: 0 0 auto;
+  width: min(520px, 90vw);
+  height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  padding-bottom: 9vh;
+}
+.mg-room .end-card {
+  text-align: center; padding: 40px 32px;
+  border: 1.5px dashed rgba(176, 125, 98, 0.5);
+  border-radius: 18px;
+  background: rgba(255, 253, 248, 0.65);
+  max-width: 380px;
+}
+.mg-room .end-card .big { font-size: 38px; margin-bottom: 12px; }
+.mg-room .end-card h3 { font-family: 'IBM Plex Serif', serif; font-size: 20px; margin-bottom: 8px; color: var(--ink); }
+.mg-room .end-card p { font-size: 13.5px; color: var(--ink-soft); line-height: 1.8; margin-bottom: 18px; }
+.mg-room .end-btn {
+  font-family: inherit; font-size: 14px; color: #fff;
+  background: linear-gradient(180deg, #C08A6B, var(--clay));
+  border: none; border-radius: 999px; padding: 12px 28px; cursor: pointer;
+  box-shadow: 0 8px 22px rgba(176, 125, 98, 0.35);
+}
+
+/* --- UI มุมกว้าง --- */
+.mg-room .ov-ui {
+  position: absolute; left: 0; right: 0; top: 0; z-index: 10;
+  padding: 26px 20px 0;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.7s var(--ease);
+}
+.mg-room.overview-mode .ov-ui { opacity: 1; }
+.mg-room .ov-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: clamp(19px, 3vw, 26px); color: var(--ink);
+}
+.mg-room .ov-sub { font-size: 13px; color: var(--ink-soft); margin-top: 4px; }
+
+/* จุดเปลี่ยนผนัง — กดจุดไหนไปผนังนั้น */
+.mg-room .wall-nav {
+  position: absolute; left: 50%; bottom: 86px; z-index: 10;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 6px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.7s var(--ease);
+}
+.mg-room.overview-mode .wall-nav { opacity: 1; pointer-events: auto; }
+.mg-room .wall-dot {
+  width: 32px; height: 32px; min-height: 0 !important;
+  border: none; background: none; cursor: pointer; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.mg-room .wall-dot::after {
+  content: '';
+  width: 9px; height: 9px; border-radius: 50%;
+  background: rgba(92, 74, 60, 0.25);
+  transition: all 0.35s var(--ease);
+}
+.mg-room .wall-dot:hover::after { background: rgba(92, 74, 60, 0.45); }
+.mg-room .wall-dot.active::after {
+  width: 22px; border-radius: 5px;
+  background: var(--clay);
+}
+
+.mg-room .ov-walk-btn {
+  position: absolute; left: 50%; bottom: 26px; z-index: 10;
+  transform: translateX(-50%);
+  font-family: inherit; font-size: 14px; color: #fff;
+  background: linear-gradient(180deg, #C08A6B, var(--clay));
+  border: none; border-radius: 999px; padding: 12px 30px; cursor: pointer;
+  box-shadow: 0 8px 22px rgba(176, 125, 98, 0.35);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.7s var(--ease);
+}
+.mg-room.overview-mode .ov-walk-btn { opacity: 1; pointer-events: auto; }
+
+/* ปุ่มกลับมุมกว้าง (โหมดเดินชม) */
+.mg-room .ov-back {
+  position: absolute; top: 16px; right: 16px; z-index: 12;
+  font-family: inherit; font-size: 13px; color: var(--ink);
+  background: rgba(255, 253, 248, 0.9);
+  border: 1px solid rgba(193,154,108,0.35);
+  border-radius: 999px; padding: 9px 18px; cursor: pointer;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.6s;
+}
+.mg-room .ov-back.show { opacity: 1; pointer-events: auto; }
+
+/* ปุ่มถอยกลับหน้าทางเข้า (มุมกว้าง) */
+.mg-room .ov-exit {
+  position: absolute; top: 16px; left: 16px; z-index: 12;
+  font-family: inherit; font-size: 13px; color: var(--ink);
+  background: rgba(255, 253, 248, 0.9);
+  border: 1px solid rgba(193,154,108,0.35);
+  border-radius: 999px; padding: 9px 18px; cursor: pointer;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.7s var(--ease);
+}
+.mg-room.overview-mode .ov-exit { opacity: 1; pointer-events: auto; }
+
+/* --- HUD ความคืบหน้า (โหมดเดินชม) --- */
+.mg-room .hud {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 14px 22px 18px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  z-index: 10; pointer-events: none;
+  transition: opacity 0.6s;
+}
+.mg-room.overview-mode .hud { opacity: 0; }
+.mg-room .hud-count {
+  font-family: 'IBM Plex Serif', serif; font-style: italic;
+  font-size: 13px; color: var(--ink-soft);
+  background: rgba(255, 253, 248, 0.85);
+  border: 1px solid rgba(193,154,108,0.35);
+  padding: 6px 14px; border-radius: 999px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.mg-room .hud-bar {
+  flex: 1; height: 3px; border-radius: 2px;
+  background: rgba(92, 74, 60, 0.15);
+  overflow: hidden;
+}
+.mg-room .hud-bar i {
+  display: block; height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--gold), var(--clay));
+  border-radius: 2px;
+  transition: width 0.2s linear;
+}
+.mg-room .walk-hint {
+  pointer-events: none;
+  position: absolute; bottom: 64px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 13px; color: var(--ink-soft);
+  background: rgba(255, 253, 248, 0.9);
+  border: 1px solid rgba(193,154,108,0.3);
+  padding: 9px 20px; border-radius: 999px;
+  z-index: 10;
+  animation: mgHintBob 2.4s ease-in-out infinite;
+  transition: opacity 0.8s;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.mg-room .walk-hint.gone, .mg-room.overview-mode .walk-hint { opacity: 0; }
+@keyframes mgHintBob {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, -6px); }
+}
+
+/* ฝุ่นละอองในแสง */
+.mg-room .mote {
+  position: absolute; border-radius: 50%;
+  background: rgba(255, 240, 200, 0.5);
+  pointer-events: none; z-index: 4;
+  animation: mgMoteFloat linear infinite;
+}
+@keyframes mgMoteFloat {
+  0% { transform: translateY(0); opacity: 0; }
+  12% { opacity: 0.7; }
+  88% { opacity: 0.4; }
+  100% { transform: translateY(-46vh); opacity: 0; }
+}
+
+@media (max-width: 600px) {
+  .mg-room .plaque-title { font-size: 14.5px; }
 }

@@ -225,33 +225,7 @@
         <button class="museum-tab" data-pane="words"></button>
       </div>
 
-      <!-- Pane 1: Exhibits — horizontal slide -->
-      <div class="gallery-pane active" id="pane-objects">
-        <div class="exhibit-nav">
-          <button class="exhibit-nav-btn" id="exhibitPrev" aria-label="ก่อนหน้า">←</button>
-          <div class="exhibit-nav-dots" id="exhibitDots"></div>
-          <button class="exhibit-nav-btn" id="exhibitNext" aria-label="ถัดไป">→</button>
-          <button class="exhibit-auto-toggle on" id="exhibitAutoToggle">
-            <span data-th>⏸ หยุดเลื่อน</span><span data-en>⏸ Pause</span>
-          </button>
-        </div>
-        <div class="exhibits" id="exhibitsGrid"></div>
-
-        <div class="submit-cta">
-          <div class="submit-cta-icon">📦</div>
-          <div class="submit-cta-title">
-            <span data-th>มีของที่อยากให้จัดแสดง?</span>
-            <span data-en>Have something to exhibit?</span>
-          </div>
-          <div class="submit-cta-sub">
-            <span data-th>ส่งรูป + เรื่องของคุณ — ภัณฑารักษ์จะคัดมาแสดง 1-2 วัน</span>
-            <span data-en>Submit a photo + story — the curator selects within 1–2 days</span>
-          </div>
-          <button class="submit-cta-btn" data-submit-type="object">
-            <span data-th>ส่งของของฉัน</span><span data-en>Submit yours</span>
-          </button>
-        </div>
-      </div>
+      <!-- Pane 1 (objects) ถูกแทนด้วยแกลเลอรีเดินชม #mgRoom (ดูท้ายไฟล์) -->
 
       <!-- Pane 2: Words — reuse .exhibits layout (proven safe on mobile) -->
       <div class="gallery-pane" id="pane-words">
@@ -282,22 +256,65 @@
   </div>
 </div>
 
-<!-- Exhibit detail modal (shows full story when a frame is clicked) -->
-<div class="exhibit-modal" id="exhibitModal">
-  <div class="exhibit-detail">
-    <button class="exhibit-detail-close" data-exhibit-close aria-label="Close">✕</button>
-    <div class="exhibit-detail-frame">
-      <div class="exhibit-detail-mat">
-        <img class="exhibit-detail-photo" id="exhibitDetailPhoto" src="" alt="">
+<!-- ============ MUSEUM GALLERY — เดินชมแกลเลอรี (ฉากเดียวกล้องเดียว) ============
+     เปิดจาก hotspot 📦 — ทุกอย่างอยู่ใน .mg-room, JS อยู่ใน museum.js ============ -->
+<div class="mg-room" id="mgRoom" hidden>
+  <div class="room-vignette"></div>
+  <div class="walk-dim" aria-hidden="true"></div>
+
+  <div class="hall" id="mgHall">
+    <div class="hall-inner" id="mgHallInner">
+      <div class="spacer"></div>
+      <!-- pieces ถูกสร้างด้วย JS (museum.js) -->
+      <div class="end-wall" id="mgEndWall">
+        <div class="end-card">
+          <div class="big">📦</div>
+          <h3>
+            <span data-th>มีของที่แค่เห็นก็ฮีลใจ?</span>
+            <span data-en>Have something that heals at a glance?</span>
+          </h3>
+          <p>
+            <span data-th>ส่งรูป + เรื่องของเธอมาจัดแสดงที่ผนังนี้<br>เพื่อขอบคุณมัน — แล้วเดินต่อด้วยกัน</span>
+            <span data-en>Send a photo + your story to hang on this wall<br>— to thank it, and walk on together.</span>
+          </p>
+          <button class="end-btn" data-submit-type="object">
+            <span data-th>ส่งของของฉัน</span><span data-en>Submit mine</span>
+          </button>
+        </div>
       </div>
+      <div class="spacer"></div>
     </div>
-    <div class="exhibit-detail-body">
-      <div class="exhibit-detail-eyebrow" id="exhibitDetailEyebrow"></div>
-      <h3 class="exhibit-detail-title" id="exhibitDetailTitle"></h3>
-      <div class="exhibit-detail-meta" id="exhibitDetailMeta"></div>
-      <p class="exhibit-detail-story" id="exhibitDetailStory"></p>
-      <div class="exhibit-detail-author" id="exhibitDetailAuthor"></div>
-    </div>
+  </div>
+
+  <div class="ov-ui">
+    <h2 class="ov-title">
+      <span data-th>ผนังเรื่องราวทั้งหมดในวันนี้</span>
+      <span data-en>All the stories on the walls today</span>
+    </h2>
+    <p class="ov-sub">
+      <span data-th>เลือกภาพที่ใจเรียก — กล้องจะพาเธอเดินเข้าไปดูใกล้ๆ</span>
+      <span data-en>Pick the one that calls you — the camera walks you in close</span>
+    </p>
+  </div>
+  <div class="wall-nav" id="mgWallNav"><!-- จุดถูกสร้างด้วย JS ตามจำนวนผนัง --></div>
+  <button class="ov-walk-btn" id="mgOvWalkBtn">
+    🚶 <span data-th>เดินชมตามลำดับ</span><span data-en>Walk the gallery</span>
+  </button>
+  <button class="ov-back" id="mgOvBack">
+    🖼 <span data-th>ดูทั้งผนัง</span><span data-en>See the whole wall</span>
+  </button>
+  <button class="ov-exit" id="mgOvExit">
+    ← <span data-th>ทางเข้า</span><span data-en>Entrance</span>
+  </button>
+
+  <div class="walk-hint" id="mgWalkHint">
+    <span data-th>เลื่อนไปทางขวา เพื่อเดินชมทีละภาพ →</span>
+    <span data-en>Swipe right to walk piece by piece →</span>
+  </div>
+
+  <div class="hud">
+    <span class="hud-count" id="mgHudCount"></span>
+    <div class="hud-bar"><i id="mgHudBar"></i></div>
   </div>
 </div>
 
