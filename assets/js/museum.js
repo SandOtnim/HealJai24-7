@@ -160,22 +160,6 @@
     },
   ];
 
-  // Render words gallery
-  function renderWords() {
-    const grid = document.getElementById('wordsGrid');
-    grid.innerHTML = WORDS.map(w => `
-      <div class="word-card-wall">
-        <span class="quote-mark">"</span>
-        <div class="word-quote">
-          <span data-th>${w.th}</span><span data-en>${w.en}</span>
-        </div>
-        <div class="word-author">${w.author}</div>
-      </div>
-    `).join('');
-  }
-
-  renderWords();
-
   // Submit modal
   const submitModal = document.getElementById('submitModal');
   const submitForm = document.getElementById('submitForm');
@@ -244,45 +228,11 @@
   });
 
 
-  // ============ MUSEUM — Sub-room mode ============
-  // 📦 objects = เปิดแกลเลอรีเดินชม (mgRoom, ดูด้านล่าง) · 💌 words = subroom เดิม
-  const museumInner = document.querySelector('#room-museum .museum-inner');
-  function switchMuseumPane(target, enterSubroom = true) {
-    if (target === 'objects') { openGallery(); return; }
-    document.querySelectorAll('.museum-tab').forEach(t =>
-      t.classList.toggle('active', t.dataset.pane === target));
-    document.querySelectorAll('#room-museum .gallery-pane').forEach(p =>
-      p.classList.toggle('active', p.id === 'pane-' + target));
-    document.querySelectorAll('#room-museum .hotspot[data-mpane]').forEach(h =>
-      h.classList.toggle('active', h.dataset.mpane === target));
-    if (enterSubroom && museumInner) {
-      museumInner.classList.add('subroom-active');
-      const overlay = document.getElementById('room-museum');
-      if (overlay) overlay.scrollTop = 0;
-    }
-  }
-  function exitMuseumSubroom() {
-    if (museumInner) museumInner.classList.remove('subroom-active');
-    const overlay = document.getElementById('room-museum');
-    if (overlay) overlay.scrollTop = 0;
-  }
-  document.querySelectorAll('.museum-tab').forEach(tab => {
-    tab.addEventListener('click', () => switchMuseumPane(tab.dataset.pane, true));
-  });
+  // ============ MUSEUM — hotspots ============
+  // ทั้ง 2 โซนเปิดแกลเลอรีเดินชมเดียวกัน: 📦 objects = ภาพของจริง · 💌 words = กรอบคำพูด
   document.querySelectorAll('#room-museum .hotspot[data-mpane]').forEach(h => {
-    h.addEventListener('click', () => switchMuseumPane(h.dataset.mpane, true));
+    h.addEventListener('click', () => openGallery(h.dataset.mpane === 'words' ? 'words' : 'objects'));
   });
-
-  // Back buttons exit subroom
-  document.querySelectorAll('[data-subroom-back]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (btn.closest('#room-alone')) exitAloneSubroom();
-      else if (btn.closest('#room-museum')) exitMuseumSubroom();
-    });
-  });
-
-
-  const museumRoot = document.querySelector('#room-museum .museum-inner'); if (museumRoot) museumRoot.classList.remove('subroom-active');
 
 
   /* ============================================================
@@ -298,15 +248,22 @@
   let openGallery = () => {};
   if (mgRoom) {
 
-  // 18 ช่อง = ผนัง 3 ด้าน — 6 ภาพแรกมีของจริง ที่เหลือเป็นช่องว่างรอจัดแสดง
-  const GALLERY = EXHIBITS.slice();
-  while (GALLERY.length < 18) {
-    const n = GALLERY.length + 1;
-    GALLERY.push({ placeholder: true, num: String(n).padStart(2, '0') });
-  }
-
+  // 2 ชุดข้อมูล ใช้เครื่องยนต์เดียวกัน: 'objects' = ภาพของจริง · 'words' = กรอบคำพูด
+  // เติมช่องว่าง (placeholder) จนเต็มผนัง 3 ด้าน 18 ช่อง
   const WALL_SIZE = 6;
-  const WALL_COUNT = Math.ceil(GALLERY.length / WALL_SIZE);
+  const TOTAL_SLOTS = 18;
+  function makeItems(type) {
+    const items = type === 'words'
+      ? WORDS.map(w => ({ word: true, th: w.th, en: w.en, author: w.author }))
+      : EXHIBITS.slice();
+    while (items.length < TOTAL_SLOTS) {
+      items.push({ placeholder: true, num: String(items.length + 1).padStart(2, '0') });
+    }
+    return items;
+  }
+  let GALLERY = [];
+  let currentType = null;
+  let WALL_COUNT = TOTAL_SLOTS / WALL_SIZE;
   let currentWall = 0;
   let currentIdx = 0;
   let mode = 'overview'; // 'overview' | 'walk' | 'pinching'
@@ -321,47 +278,62 @@
   const hudCount = document.getElementById('mgHudCount');
   const hudBar = document.getElementById('mgHudBar');
 
-  // ----- สร้างชิ้นงาน (สองภาษาด้วย data-th/data-en — สลับภาษาทำงานอัตโนมัติผ่าน CSS) -----
-  GALLERY.forEach((ex, i) => {
-    const piece = document.createElement('div');
-    piece.className = 'piece';
-    piece.dataset.idx = i;
-    const visual = ex.placeholder
-      ? `<div class="ph-slot"><div class="ph-num">${ex.num}</div>
-           <div class="ph-text"><span data-th>ยังว่างอยู่</span><span data-en>Still empty</span></div></div>`
-      : `<img src="${ex.img}" alt="${ex.title_en}" loading="lazy">`;
-    const title = ex.placeholder
-      ? `<span data-th>หมายเลข ${ex.num}</span><span data-en>No. ${ex.num}</span>`
-      : `<span data-th>${ex.title_th}</span><span data-en>${ex.title_en}</span>`;
-    const meta = ex.placeholder
-      ? `<span data-th>ยังไม่มีภาพจัดแสดง · รอเรื่องของเธอ</span><span data-en>Nothing here yet · waiting for your story</span>`
-      : `${ex.author} · ${ex.year}`;
-    const story = ex.placeholder ? '' :
-      `<div class="plaque-story"><span data-th>${ex.story_th}</span><span data-en>${ex.story_en}</span></div>
-       <div class="plaque-sig">— ${ex.author}</div>`;
-    piece.innerHTML = `
-      <div class="spot"></div>
-      <div class="art">
-        <div class="lamp"></div>
-        <div class="frame">
-          <div class="mat">${visual}</div>
+  // ----- สร้างชิ้นงานตามชุดข้อมูล (สองภาษาด้วย data-th/data-en — สลับภาษาผ่าน CSS อัตโนมัติ) -----
+  function buildPieces(type) {
+    currentType = type;
+    GALLERY = makeItems(type);
+    WALL_COUNT = Math.ceil(GALLERY.length / WALL_SIZE);
+    inner.querySelectorAll('.piece').forEach(p => p.remove());
+    GALLERY.forEach((ex, i) => {
+      const piece = document.createElement('div');
+      piece.className = 'piece';
+      piece.dataset.idx = i;
+      let visual, title, meta, story = '';
+      if (ex.placeholder) {
+        visual = `<div class="ph-slot"><div class="ph-num">${ex.num}</div>
+             <div class="ph-text"><span data-th>ยังว่างอยู่</span><span data-en>Still empty</span></div></div>`;
+        title = `<span data-th>หมายเลข ${ex.num}</span><span data-en>No. ${ex.num}</span>`;
+        meta = type === 'words'
+          ? `<span data-th>ยังไม่มีคำจัดแสดง · รอคำของเธอ</span><span data-en>No words here yet · waiting for yours</span>`
+          : `<span data-th>ยังไม่มีภาพจัดแสดง · รอเรื่องของเธอ</span><span data-en>Nothing here yet · waiting for your story</span>`;
+      } else if (ex.word) {
+        // กรอบคำพูด — คำคือชิ้นงานศิลปะ
+        visual = `<div class="word-art"><span class="wq">"</span>
+             <div class="word-text"><span data-th>${ex.th}</span><span data-en>${ex.en}</span></div></div>`;
+        title = ex.author;
+        meta = `<span data-th>จากแบบสำรวจ "คุณฮีลใจยังไง?"</span><span data-en>From the "How do you heal?" survey</span>`;
+      } else {
+        visual = `<img src="${ex.img}" alt="${ex.title_en}" loading="lazy">`;
+        title = `<span data-th>${ex.title_th}</span><span data-en>${ex.title_en}</span>`;
+        meta = `${ex.author} · ${ex.year}`;
+        story = `<div class="plaque-story"><span data-th>${ex.story_th}</span><span data-en>${ex.story_en}</span></div>
+         <div class="plaque-sig">— ${ex.author}</div>`;
+      }
+      piece.innerHTML = `
+        <div class="spot"></div>
+        <div class="art">
+          <div class="lamp"></div>
+          <div class="frame">
+            <div class="mat">${visual}</div>
+          </div>
+          <div class="plaque">
+            <div class="plaque-title">${title}</div>
+            <div class="plaque-meta">${meta}</div>
+            ${story}
+          </div>
         </div>
-        <div class="plaque">
-          <div class="plaque-title">${title}</div>
-          <div class="plaque-meta">${meta}</div>
-          ${story}
-        </div>
-      </div>
-    `;
-    const onTap = () => {
-      if (camAnim || mode === 'pinching') return;
-      if (mode === 'overview') zoomToPiece(i);
-      // โหมดเดินชม: เรื่องโชว์เต็มอยู่แล้ว ไม่ต้องกดดู
-    };
-    piece.querySelector('.frame').addEventListener('click', onTap);
-    piece.querySelector('.plaque').addEventListener('click', onTap);
-    inner.insertBefore(piece, endWall);
-  });
+      `;
+      const onTap = () => {
+        if (camAnim || mode === 'pinching') return;
+        if (mode === 'overview') zoomToPiece(i);
+        // โหมดเดินชม: เรื่องโชว์เต็มอยู่แล้ว ไม่ต้องกดดู
+      };
+      piece.querySelector('.frame').addEventListener('click', onTap);
+      piece.querySelector('.plaque').addEventListener('click', onTap);
+      inner.insertBefore(piece, endWall);
+    });
+    buildDots();
+  }
 
   /* ----- กล้อง: คณิตศาสตร์เดียว ใช้ทั้งสองมุม -----
      มุมกว้าง: กล้องเฉยๆ ภาพย้ายตัวเองไปตำแหน่งกระจาย
@@ -447,23 +419,27 @@
     animateCam(1, 0, L, currentIdx, 1150);
   }
 
-  // ----- จุดบอกผนัง — กดจุดไหนกระโดดไปผนังนั้น -----
+  // ----- จุดบอกผนัง — กดจุดไหนกระโดดไปผนังนั้น (สร้างใหม่ตามจำนวนผนังของชุดข้อมูล) -----
   const wallNav = document.getElementById('mgWallNav');
-  const wallDots = [];
-  for (let w = 0; w < WALL_COUNT; w++) {
-    const d = document.createElement('button');
-    d.className = 'wall-dot';
-    d.setAttribute('aria-label', 'ผนังที่ ' + (w + 1));
-    d.addEventListener('click', () => setWall(w));
-    wallNav.appendChild(d);
-    wallDots.push(d);
+  let wallDots = [];
+  function buildDots() {
+    wallNav.innerHTML = '';
+    wallDots = [];
+    for (let w = 0; w < WALL_COUNT; w++) {
+      const d = document.createElement('button');
+      d.className = 'wall-dot';
+      d.setAttribute('aria-label', 'ผนังที่ ' + (w + 1));
+      d.addEventListener('click', () => setWall(w));
+      wallNav.appendChild(d);
+      wallDots.push(d);
+    }
+    wallDots[0].classList.add('active');
   }
   function setWall(w) {
     currentWall = Math.max(0, Math.min(WALL_COUNT - 1, w));
     wallDots.forEach((d, i) => d.classList.toggle('active', i === currentWall));
     if (mode === 'overview') scatterPieces(); // .piece มี transition → ภาพไหลไปเอง
   }
-  wallDots[0].classList.add('active');
 
   // ปัดซ้าย-ขวาในมุมกว้าง = เปลี่ยนผนัง
   let wallSwipe = null;
@@ -659,8 +635,9 @@
     inner.querySelectorAll('.piece').forEach((p, i) => {
       p.classList.toggle('lit', i === idx);
     });
+    const nounTh = currentType === 'words' ? 'คำที่' : 'ภาพที่';
     hudCount.innerHTML =
-      '<span data-th>ภาพที่ ' + (idx + 1) + ' / ' + GALLERY.length + '</span>' +
+      '<span data-th>' + nounTh + ' ' + (idx + 1) + ' / ' + GALLERY.length + '</span>' +
       '<span data-en>Piece ' + (idx + 1) + ' / ' + GALLERY.length + '</span>';
   }
   let raf = null;
@@ -701,8 +678,19 @@
     mgRoom.appendChild(m);
   }
 
-  // ----- เปิด/ปิดแกลเลอรี (เรียกจาก hotspot 📦 / ปุ่ม ← ทางเข้า) -----
-  openGallery = function () {
+  // ----- เปิด/ปิดแกลเลอรี (เรียกจาก hotspot 📦/💌 / ปุ่ม ← ทางเข้า) -----
+  openGallery = function (type) {
+    type = type || 'objects';
+    if (type !== currentType) buildPieces(type);
+    // หัวข้อมุมกว้าง + การ์ดท้ายผนัง ตามชุดข้อมูล
+    document.getElementById('mgOvTitle').innerHTML = type === 'words'
+      ? '<span data-th>ผนังคำพูดทั้งหมดในวันนี้</span><span data-en>All the words on the walls today</span>'
+      : '<span data-th>ผนังเรื่องราวทั้งหมดในวันนี้</span><span data-en>All the stories on the walls today</span>';
+    document.getElementById('mgOvSub').innerHTML = type === 'words'
+      ? '<span data-th>เลือกคำที่ใจเรียก — กล้องจะพาเธอเดินเข้าไปดูใกล้ๆ</span><span data-en>Pick the words that call you — the camera walks you in close</span>'
+      : '<span data-th>เลือกภาพที่ใจเรียก — กล้องจะพาเธอเดินเข้าไปดูใกล้ๆ</span><span data-en>Pick the one that calls you — the camera walks you in close</span>';
+    document.getElementById('mgEndCardObjects').hidden = type !== 'objects';
+    document.getElementById('mgEndCardWords').hidden = type !== 'words';
     mgRoom.hidden = false;
     mode = 'overview';
     currentIdx = 0;

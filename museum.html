@@ -196,9 +196,6 @@
   <a class="close-btn" href="index.html" aria-label="Back to map">✕</a>
   <div class="room-content">
     <div class="museum-inner">
-      <button class="subroom-back" data-subroom-back>
-        ← <span data-th>กลับเข้าพิพิธภัณฑ์</span><span data-en>Back to museum</span>
-      </button>
       <span class="room-eyebrow"><span data-th>ห้องที่ 3 · พิพิธภัณฑ์จัดแสดงใจ</span><span data-en>Room 03 · Heart Museum</span></span>
       <h2 class="room-title"><span data-th>พิพิธภัณฑ์จัดแสดงใจ</span><span data-en>Heart Museum</span></h2>
       <p class="room-subtitle">
@@ -219,35 +216,7 @@
         </button>
       </div>
 
-      <!-- Tabs removed — hotspots on illustration are the only navigation. -->
-      <div class="museum-tabs" hidden aria-hidden="true">
-        <button class="museum-tab active" data-pane="objects"></button>
-        <button class="museum-tab" data-pane="words"></button>
-      </div>
-
-      <!-- Pane 1 (objects) ถูกแทนด้วยแกลเลอรีเดินชม #mgRoom (ดูท้ายไฟล์) -->
-
-      <!-- Pane 2: Words — reuse .exhibits layout (proven safe on mobile) -->
-      <div class="gallery-pane" id="pane-words">
-        <div class="exhibits words-as-exhibits" id="wordsGrid"></div>
-
-        <div class="submit-cta">
-          <div class="submit-cta-icon">💌</div>
-          <div class="submit-cta-title">
-            <span data-th>มีคำที่อยากฝากไว้บนผนัง?</span>
-            <span data-en>Have words to leave on the wall?</span>
-          </div>
-          <div class="submit-cta-sub">
-            <span data-th>คำที่อยากบอกใครสักคน · ความหวัง · คำขอบคุณ — ทีมงานจะคัดมาขึ้นแสดง (ไม่ระบุตัวตน)</span>
-            <span data-en>Words for someone, hope, thanks — we curate and post anonymously.</span>
-          </div>
-          <a class="submit-cta-btn"
-             href="https://docs.google.com/forms/d/e/1FAIpQLSf603ePmxbR1QFI_-UKHj1adzbsxxaQySrP4KWzd-HG_rMYWA/viewform"
-             target="_blank" rel="noopener">
-            ✉️ <span data-th>ฝากคำของฉัน</span><span data-en>Leave my words</span>
-          </a>
-        </div>
-      </div>
+      <!-- ทั้ง 2 โซน (📦 ภาพ / 💌 คำพูด) เปิดแกลเลอรีเดินชม #mgRoom (ดูท้ายไฟล์) -->
 
       <nav class="room-nav room-nav-simple">
         <a class="nav-btn map" href="index.html">← <span data-th>กลับแผนที่</span><span data-en>Back to map</span></a>
@@ -267,7 +236,7 @@
       <div class="spacer"></div>
       <!-- pieces ถูกสร้างด้วย JS (museum.js) -->
       <div class="end-wall" id="mgEndWall">
-        <div class="end-card">
+        <div class="end-card" id="mgEndCardObjects">
           <div class="big">📦</div>
           <h3>
             <span data-th>มีของที่แค่เห็นก็ฮีลใจ?</span>
@@ -281,17 +250,33 @@
             <span data-th>ส่งของของฉัน</span><span data-en>Submit mine</span>
           </button>
         </div>
+        <div class="end-card" id="mgEndCardWords" hidden>
+          <div class="big">💌</div>
+          <h3>
+            <span data-th>มีคำที่อยากฝากไว้บนผนัง?</span>
+            <span data-en>Have words to leave on the wall?</span>
+          </h3>
+          <p>
+            <span data-th>คำที่อยากบอกใครสักคน · ความหวัง · คำขอบคุณ<br>ทีมงานจะคัดมาขึ้นแสดง (ไม่ระบุตัวตน)</span>
+            <span data-en>Words for someone, hope, thanks —<br>we curate and post anonymously.</span>
+          </p>
+          <a class="end-btn"
+             href="https://docs.google.com/forms/d/e/1FAIpQLSf603ePmxbR1QFI_-UKHj1adzbsxxaQySrP4KWzd-HG_rMYWA/viewform"
+             target="_blank" rel="noopener">
+            ✉️ <span data-th>ฝากคำของฉัน</span><span data-en>Leave my words</span>
+          </a>
+        </div>
       </div>
       <div class="spacer"></div>
     </div>
   </div>
 
   <div class="ov-ui">
-    <h2 class="ov-title">
+    <h2 class="ov-title" id="mgOvTitle">
       <span data-th>ผนังเรื่องราวทั้งหมดในวันนี้</span>
       <span data-en>All the stories on the walls today</span>
     </h2>
-    <p class="ov-sub">
+    <p class="ov-sub" id="mgOvSub">
       <span data-th>เลือกภาพที่ใจเรียก — กล้องจะพาเธอเดินเข้าไปดูใกล้ๆ</span>
       <span data-en>Pick the one that calls you — the camera walks you in close</span>
     </p>

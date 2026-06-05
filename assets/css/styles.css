@@ -6378,3 +6378,36 @@ body.meditating #apane-meditate .breathing-stage.active { position: relative; z-
 @media (max-width: 600px) {
   .mg-room .plaque-title { font-size: 14.5px; }
 }
+
+/* --- กรอบคำพูด (โซน 💌 ใช้เครื่องยนต์แกลเลอรีเดียวกัน — คำคือชิ้นงานศิลปะ) --- */
+.mg-room .word-art {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  max-height: 44vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: clamp(14px, 2.4vw, 32px);
+  box-sizing: border-box;
+  background: #FAF6EE;
+}
+.mg-room .word-art .wq {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: clamp(30px, 4vw, 46px);
+  color: var(--gold);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.mg-room .word-art .word-text {
+  font-family: 'IBM Plex Serif', serif;
+  font-style: italic;
+  font-size: clamp(14px, 1.7vw, 19px);
+  line-height: 1.95;
+  color: var(--ink);
+  overflow: hidden;
+}
+/* ปุ่มท้ายผนังแบบลิงก์ (ฝากคำ → Google Form) ให้หน้าตาเหมือนปุ่มปกติ */
+.mg-room a.end-btn {
+  display: inline-block;
+  text-decoration: none;
+}
