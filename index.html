@@ -217,8 +217,8 @@
         </div>
       </a>
 
-      <!-- Pin 6: ห้องระบาย (SOON — ปิดปรับปรุง) -->
-      <div class="pin pin-6" data-room="scream" data-status="soon">
+      <!-- Pin 6: ห้องระบาย (ตัดออกตามมติประชุม 10/06) -->
+      <div class="pin pin-6" data-room="scream" data-status="soon" style="display:none !important">
         <svg class="pin-svg" viewBox="0 0 32 48" xmlns="http://www.w3.org/2000/svg">
           <path d="M16 0 C7.2 0 0 7.2 0 16 C0 28 16 48 16 48 C16 48 32 28 32 16 C32 7.2 24.8 0 16 0 Z" fill="#C0B5A0"/>
           <circle cx="16" cy="16" r="6" fill="#FEFCF9"/>
@@ -230,8 +230,8 @@
         </div>
       </div>
 
-      <!-- Pin 7: ร้านไว้ใจ (SOON) -->
-      <div class="pin pin-7" data-room="sponsor" data-status="soon">
+      <!-- Pin 7: ร้านไว้ใจ (ตัดออกตามมติประชุม 10/06) -->
+      <div class="pin pin-7" data-room="sponsor" data-status="soon" style="display:none !important">
         <svg class="pin-svg" viewBox="0 0 32 48" xmlns="http://www.w3.org/2000/svg">
           <path d="M16 0 C7.2 0 0 7.2 0 16 C0 28 16 48 16 48 C16 48 32 28 32 16 C32 7.2 24.8 0 16 0 Z" fill="#C0B5A0"/>
           <circle cx="16" cy="16" r="6" fill="#FEFCF9"/>
@@ -245,8 +245,8 @@
 
         </div><!-- /map-section-heart -->
 
-        <!-- ================== Section 2: Death island ================== -->
-        <div class="map-section map-section-island">
+        <!-- ================== Section 2: Death island (ปิดไปก่อน — มติประชุม 10/06) ================== -->
+        <div class="map-section map-section-island" style="display:none !important">
           <video class="map-img" id="islandMapVideo" loop muted playsinline preload="none">
             <source src="assets/Video/death-island.mp4" type="video/mp4">
           </video>
@@ -272,13 +272,13 @@
       </div><!-- /map-canvas -->
 
       <!-- Right-pointing sign — visible on heart side, hides when island visible -->
-      <button class="signpost signpost-right" id="signpost" aria-label="ไปเกาะแห่งเวลา">
+      <button class="signpost signpost-right" id="signpost" aria-label="ไปเกาะแห่งเวลา" style="display:none !important">
         <span data-th>เกาะแห่งเวลา</span><span data-en>Time Island</span>
         <span class="signpost-arrow-tip">→</span>
       </button>
 
       <!-- Left-pointing sign — visible on island side, hides when heart visible -->
-      <button class="signpost signpost-left gone" id="signpostBack" aria-label="กลับเกาะฮีลใจ">
+      <button class="signpost signpost-left gone" id="signpostBack" aria-label="กลับเกาะฮีลใจ" style="display:none !important">
         <span class="signpost-arrow-tip">←</span>
         <span data-th>เกาะฮีลใจ</span><span data-en>Heal Island</span>
       </button>

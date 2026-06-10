@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สวนหย่อนใจ (เวอร์ชันใหม่) — Chill Garden · Head B demo</title>
+<style>
+  /* ===== Brand palette (จาก styles.css :root + เพิ่มโทน coral/terracotta) ===== */
+  :root{
+    --bg:#FFFFFF;
+    --cream:#F5EBE0;
+    --beige:#E3D5CA;
+    --blush:#D5BDAF;
+    --sage:#C0B5A0;
+    --butter:#F0D9B5;
+    --clay:#B07A65;
+    --coral:#D98E6F;
+    --terra:#C2674A;
+    --ink:#5C4A3C;
+    --ink-soft:#8B7355;
+    --gold:#C9A961;
+    --shadow:rgba(92,74,60,.14);
+    --ease:cubic-bezier(.4,0,.2,1);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{max-width:100vw;overflow-x:hidden;touch-action:manipulation}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Sukhumvit Set","Thonburi",system-ui,"Helvetica Neue",sans-serif;
+    color:var(--ink);
+    /* สวนยามเช้า: ครีม → เขียวอ่อน */
+    background:
+      radial-gradient(120% 80% at 50% -10%, #FBF4EA 0%, #F5EBE0 45%, #E9E2D2 100%);
+    min-height:100vh;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* ===== Top bar ===== */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 18px;max-width:680px;margin:0 auto;
+  }
+  .brand{display:flex;align-items:center;gap:7px;font-weight:600;font-size:15px}
+  .brand .hh{color:var(--terra)}
+  .lang-toggle{
+    border:1px solid var(--blush);background:var(--bg);color:var(--ink-soft);
+    border-radius:999px;padding:7px 16px;font-size:13px;font-weight:600;
+    cursor:pointer;min-height:40px;transition:all .25s var(--ease);
+    font-family:inherit;
+  }
+  .lang-toggle:active{transform:scale(.96)}
+  .lang-toggle:hover{background:var(--cream);border-color:var(--clay);color:var(--ink)}
+
+  /* ===== Shell ===== */
+  .wrap{max-width:680px;margin:0 auto;padding:6px 18px 64px}
+  .eyebrow{
+    display:inline-block;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;
+    color:var(--clay);font-weight:600;margin-bottom:6px;
+  }
+  h1.room-title{font-size:30px;font-weight:700;color:var(--ink);letter-spacing:.3px}
+  .room-sub{color:var(--ink-soft);font-size:15px;margin:8px 0 4px;max-width:30em}
+
+  /* ===== Category filter ===== */
+  .cats{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0 4px}
+  .cat{
+    border:1px solid var(--beige);background:var(--bg);color:var(--ink-soft);
+    border-radius:999px;padding:9px 15px;font-size:13.5px;font-weight:600;
+    cursor:pointer;min-height:40px;transition:all .25s var(--ease);
+    display:flex;align-items:center;gap:6px;font-family:inherit;
+  }
+  .cat:hover{border-color:var(--clay)}
+  .cat.active{background:var(--terra);border-color:var(--terra);color:#fff;box-shadow:0 4px 14px rgba(194,103,74,.28)}
+
+  /* ===== Wheel stage ===== */
+  .stage{display:flex;flex-direction:column;align-items:center;margin-top:18px}
+  .wheel-frame{position:relative;width:min(86vw,360px);aspect-ratio:1}
+  .pointer{
+    position:absolute;top:-6px;left:50%;transform:translateX(-50%);
+    z-index:3;font-size:30px;color:var(--terra);
+    filter:drop-shadow(0 2px 3px rgba(92,74,60,.35));line-height:1;
+  }
+  .disc-shadow{
+    position:absolute;inset:0;border-radius:50%;
+    box-shadow:0 18px 40px -10px var(--shadow), inset 0 0 0 8px #fff,
+               inset 0 0 0 10px var(--beige);
+    pointer-events:none;z-index:2;
+  }
+  svg.disc{
+    width:100%;height:100%;display:block;border-radius:50%;
+    transition:transform 4.4s cubic-bezier(.15,.85,.18,1);
+    will-change:transform;
+  }
+  .spin-btn{
+    margin-top:22px;
+    border:none;border-radius:999px;cursor:pointer;font-family:inherit;
+    background:linear-gradient(135deg,var(--coral),var(--terra));
+    color:#fff;font-weight:700;font-size:17px;letter-spacing:.3px;
+    padding:15px 42px;min-height:54px;
+    box-shadow:0 8px 22px -4px rgba(194,103,74,.5);
+    transition:transform .2s var(--ease),box-shadow .2s var(--ease);
+  }
+  .spin-btn:hover{box-shadow:0 12px 28px -4px rgba(194,103,74,.6)}
+  .spin-btn:active{transform:scale(.95)}
+  .spin-btn:disabled{opacity:.55;cursor:default;box-shadow:none}
+
+  /* ===== Result card ===== */
+  .result{
+    margin-top:22px;width:100%;max-width:420px;
+    background:var(--bg);border:1px solid var(--beige);
+    border-radius:22px;padding:24px 22px;text-align:center;
+    box-shadow:0 14px 36px -16px var(--shadow);
+    animation:rise .5s var(--ease);
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .result[hidden]{display:none}
+  .result .ic{font-size:34px}
+  .result .pick{font-size:23px;font-weight:700;color:var(--ink);margin:6px 0 8px;line-height:1.35}
+  .result .why{
+    font-size:14.5px;color:var(--ink-soft);background:var(--cream);
+    border-radius:14px;padding:11px 14px;margin-bottom:16px;
+  }
+  .result .why b{color:var(--terra);font-weight:600}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  .btn{
+    border-radius:999px;cursor:pointer;font-family:inherit;font-weight:600;
+    font-size:14px;padding:11px 18px;min-height:46px;transition:all .2s var(--ease);
+    border:1px solid var(--beige);background:var(--bg);color:var(--ink);
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .btn:active{transform:scale(.96)}
+  .btn:hover{background:var(--cream)}
+  .btn.primary{background:var(--sage);border-color:var(--sage);color:#fff}
+  .btn.primary:hover{background:#b0a589}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--ink-soft)}
+
+  /* ===== Passport / collection ===== */
+  .passport{
+    margin-top:42px;background:linear-gradient(160deg,#fff,#FBF4EA);
+    border:1px dashed var(--blush);border-radius:22px;padding:22px 20px;
+  }
+  .passport h2{font-size:18px;color:var(--ink);display:flex;align-items:center;gap:8px}
+  .passport .ps{font-size:13.5px;color:var(--ink-soft);margin:6px 0 14px}
+  .stamps{display:flex;flex-direction:column;gap:9px}
+  .empty{
+    text-align:center;color:var(--ink-soft);font-size:14px;
+    padding:14px;background:var(--cream);border-radius:14px;
+  }
+  .stamp{
+    display:flex;align-items:center;gap:12px;
+    background:var(--bg);border:1px solid var(--beige);border-radius:14px;
+    padding:11px 14px;animation:rise .4s var(--ease);
+  }
+  .stamp .seal{
+    flex:0 0 auto;width:38px;height:38px;border-radius:50%;
+    background:var(--butter);display:flex;align-items:center;justify-content:center;
+    font-size:19px;border:2px solid var(--gold);
+  }
+  .stamp .txt{flex:1;min-width:0}
+  .stamp .txt .t{font-weight:600;font-size:14.5px;color:var(--ink);line-height:1.3}
+  .stamp .txt .d{font-size:12px;color:var(--ink-soft)}
+  .count-pill{
+    margin-left:auto;background:var(--terra);color:#fff;font-size:12px;font-weight:700;
+    border-radius:999px;padding:3px 10px;
+  }
+
+  /* toast */
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;padding:12px 20px;border-radius:999px;
+    font-size:14px;font-weight:500;opacity:0;pointer-events:none;
+    transition:all .35s var(--ease);z-index:50;box-shadow:0 8px 24px var(--shadow);
+    max-width:90vw;text-align:center;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  .footnote{margin-top:34px;text-align:center;color:var(--ink-soft);font-size:12px;opacity:.8}
+
+  /* lang visibility */
+  body[data-lang="th"] [data-en]{display:none}
+  body[data-lang="en"] [data-th]{display:none}
+
+  @media(max-width:420px){
+    h1.room-title{font-size:25px}
+    .spin-btn{width:100%;justify-content:center}
+  }
+</style>
+</head>
+<body data-lang="th">
+
+  <div class="topbar">
+    <div class="brand"><span class="hh">&#9829;</span>
+      <span data-th>ฮีลใจ 24/7</span><span data-en>Heal 24/7</span>
+    </div>
+    <button class="lang-toggle" id="langToggle">
+      <span data-th>EN</span><span data-en>TH</span>
+    </button>
+  </div>
+
+  <div class="wrap">
+    <span class="eyebrow"><span data-th>ห้องที่ 2</span><span data-en>Room 02</span></span>
+    <h1 class="room-title"><span data-th>สวนหย่อนใจ</span><span data-en>Chill Garden</span></h1>
+    <p class="room-sub">
+      <span data-th>วันไหนที่ใจอยากออกไปข้างนอก แต่ไม่รู้จะไปไหน — หมุนวงล้อ แล้วปล่อยให้วันนี้พาไปเอง ไม่มีถูกผิด ไม่ต้องรีบ</span>
+      <span data-en>For days your heart wants to go out but doesn't know where — spin the wheel and let today decide. No right or wrong, no rush.</span>
+    </p>
+
+    <!-- Category filter -->
+    <div class="cats" id="cats">
+      <button class="cat active" data-cat="near">🏠 <span data-th>ใกล้ๆ ตัว</span><span data-en>Close by</span></button>
+      <button class="cat" data-cat="far">🚶 <span data-th>ออกไปไกลหน่อย</span><span data-en>A bit further</span></button>
+      <button class="cat" data-cat="people">🫶 <span data-th>เจอผู้คน</span><span data-en>With people</span></button>
+    </div>
+
+    <!-- Wheel -->
+    <div class="stage">
+      <div class="wheel-frame">
+        <div class="pointer">▼</div>
+        <div class="disc-shadow"></div>
+        <svg class="disc" id="disc" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <button class="spin-btn" id="spinBtn">
+        🌿 <span data-th>หมุนดูสิ</span><span data-en>Spin it</span>
+      </button>
+    </div>
+
+    <!-- Result -->
+    <div class="result" id="result" hidden>
+      <div class="ic">✨</div>
+      <div class="pick" id="pick"></div>
+      <div class="why" id="why"></div>
+      <div class="actions">
+        <button class="btn primary" id="didIt">
+          ✓ <span data-th>ทำแล้ว เก็บไว้ในสมุด</span><span data-en>Did it — keep it</span>
+        </button>
+        <button class="btn" id="again">
+          ↻ <span data-th>หมุนใหม่</span><span data-en>Spin again</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Passport / collection -->
+    <div class="passport">
+      <h2>📔 <span data-th>สมุดวันสบายใจ</span><span data-en>My calm-day book</span></h2>
+      <p class="ps">
+        <span data-th>ทุกครั้งที่เธอออกไปทำจริง แล้วกด “ทำแล้ว” มันจะมาแปะตรงนี้ — ไว้ดูตอนใจล้าว่าเธอก็เคยก้าวออกไปได้นะ</span>
+        <span data-en>Every time you actually go do it and tap “Did it”, it lands here — to look back on when you're tired and remember you can step out.</span>
+      </p>
+      <div class="stamps" id="stamps">
+        <div class="empty" id="empty">
+          <span data-th>ยังว่างอยู่ — หมุนสักที แล้วลองออกไปดูสักอย่างนะ 🌿</span>
+          <span data-en>Still empty — spin once and try stepping out 🌿</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="footnote">
+      <span data-th>เดโมสายปรึกษา (Head B) · วงล้อหมุนได้จริง · เปิดไฟล์เดียวจบ · ไม่มีฟอนต์/CDN ภายนอก</span>
+      <span data-en>Head B demo · real spinning wheel · single self-contained file · no external fonts/CDN</span>
+    </p>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var body=document.body;
+
+  /* ---------- activity data: TH/EN + a warm "why" ---------- */
+  var DATA={
+    near:[
+      {th:'เดินเล่นรอบบ้าน 10 นาที', en:'Walk around the block, 10 min', wth:'ขยับตัวเบาๆ ช่วยให้หัวโล่งขึ้นโดยไม่ต้องคิดอะไรมาก', wen:'A gentle move clears the head without needing a plan'},
+      {th:'หามุมนั่งมองท้องฟ้า', en:'Find a spot and watch the sky', wth:'ให้สายตาได้พักจากจอ แค่นี้ใจก็เบาขึ้น', wen:'Letting your eyes rest from screens lightens things'},
+      {th:'รดน้ำต้นไม้ / ดูใบไม้สักต้น', en:'Water a plant or really look at one', wth:'ของที่ค่อยๆ โต เตือนเราว่าไม่ต้องรีบก็ได้', wen:'Slow-growing things remind us we don\'t have to rush'},
+      {th:'ซื้อของอร่อยให้ตัวเอง 1 อย่าง', en:'Buy yourself one small treat', wth:'ดูแลตัวเองเล็กๆ ก็นับว่าใจดีกับตัวเองแล้ว', wen:'A tiny kindness to yourself still counts'},
+      {th:'นั่งร้านกาแฟใกล้บ้านคนเดียว', en:'Sit at a nearby café, solo', wth:'อยู่ท่ามกลางผู้คนเงียบๆ บางทีก็อุ่นใจกว่าอยู่คนเดียวในห้อง', wen:'Quiet company can feel warmer than an empty room'},
+    ],
+    far:[
+      {th:'นั่งรถไฟฟ้า/รถเมล์ไปสุดสาย', en:'Ride transit to the last stop', wth:'เปลี่ยนวิวสักหน่อย ใจก็ได้ออกจากที่เดิม', wen:'A change of scene lets the mind leave its loop'},
+      {th:'ไปสวนสาธารณะที่ไม่เคยไป', en:'Visit a park you\'ve never been to', wth:'ที่ใหม่ๆ ทำให้เราได้เป็นตัวเองแบบไม่มีใครคาดหวัง', wen:'New places let you be yourself with no expectations'},
+      {th:'เดินตลาด/ร้านหนังสือมือสอง', en:'Wander a market or used-book shop', wth:'เดินดูเฉยๆ ไม่ต้องซื้อ ก็เป็นการพักอย่างหนึ่ง', wen:'Browsing with no goal is its own kind of rest'},
+      {th:'ปั่นจักรยานเล่นเส้นทางใหม่', en:'Bike a new route for fun', wth:'ลมปะทะหน้านิดๆ ช่วยปลุกตัวเราที่หลับไป', wen:'A little wind on your face wakes the parts that dozed off'},
+      {th:'ไปดูพระอาทิตย์ตกสักที่', en:'Go catch a sunset somewhere', wth:'บางวันแค่ได้เห็นฟ้าเปลี่ยนสี ก็พอจะหายใจได้เต็มปอด', wen:'Some days, watching the sky change color is enough'},
+    ],
+    people:[
+      {th:'โทรหาคนที่ไม่ได้คุยนาน', en:'Call someone you miss', wth:'ไม่ต้องมีเรื่องสำคัญก็โทรได้ — แค่ “คิดถึง” ก็พอ', wen:'You don\'t need a reason — “I miss you” is enough'},
+      {th:'ชวนเพื่อนกินข้าวร้านใหม่', en:'Take a friend to a new spot to eat', wth:'แบ่งมื้อกับใครสักคน ทำให้วันธรรมดาอุ่นขึ้น', wen:'Sharing a meal warms up an ordinary day'},
+      {th:'ทักเพื่อนเก่าไปสั้นๆ', en:'Send an old friend a short hello', wth:'ความสัมพันธ์ดีๆ ไม่ได้หายไป แค่รอใครเริ่มก่อน', wen:'Good ties don\'t vanish — they wait for someone to start'},
+      {th:'ไปงานที่มีคนเยอะๆ สักงาน', en:'Go to an event with a crowd', wth:'อยู่ในพลังของคนหมู่มาก บางทีก็ชาร์จใจได้ดี', wen:'A buzzing crowd can recharge you'},
+      {th:'ทักทายคนขายของที่ซื้อประจำ', en:'Chat with a vendor you buy from', wth:'บทสนทนาเล็กๆ กับคนแปลกหน้า เตือนว่าโลกยังใจดี', wen:'Tiny talk with a stranger reminds you the world is kind'},
+    ]
+  };
+
+  var WHEEL_COLORS=['#F0D9B5','#E8B79A','#D98E6F','#C0B5A0','#CCD8BC','#E3D5CA'];
+
+  var disc=document.getElementById('disc');
+  var spinBtn=document.getElementById('spinBtn');
+  var result=document.getElementById('result');
+  var pickEl=document.getElementById('pick');
+  var whyEl=document.getElementById('why');
+  var didItBtn=document.getElementById('didIt');
+  var againBtn=document.getElementById('again');
+  var stampsEl=document.getElementById('stamps');
+  var emptyEl=document.getElementById('empty');
+  var toastEl=document.getElementById('toast');
+
+  var cat='near';
+  var rotation=0;
+  var spinning=false;
+  var lastWin=null;
+  var collection=[];
+  var SVGNS='http://www.w3.org/2000/svg';
+
+  function lang(){return body.getAttribute('data-lang');}
+  function t(o){return lang()==='en'?o.en:o.th;}
+  function wt(o){return lang()==='en'?o.wen:o.wth;}
+
+  function items(){return DATA[cat];}
+
+  function drawWheel(){
+    disc.innerHTML='';
+    var list=items();
+    var n=list.length;
+    var slice=360/n, cx=200, cy=200, r=196;
+    for(var i=0;i<n;i++){
+      var a0=(i*slice-90)*Math.PI/180;
+      var a1=((i+1)*slice-90)*Math.PI/180;
+      var x1=cx+r*Math.cos(a0), y1=cy+r*Math.sin(a0);
+      var x2=cx+r*Math.cos(a1), y2=cy+r*Math.sin(a1);
+      var large=slice>180?1:0;
+      var p=document.createElementNS(SVGNS,'path');
+      p.setAttribute('d','M'+cx+' '+cy+' L'+x1+' '+y1+' A'+r+' '+r+' 0 '+large+' 1 '+x2+' '+y2+' Z');
+      p.setAttribute('fill',WHEEL_COLORS[i%WHEEL_COLORS.length]);
+      p.setAttribute('stroke','#fff');
+      p.setAttribute('stroke-width','3');
+      disc.appendChild(p);
+
+      // radial label
+      var mid=(i*slice+slice/2-90);
+      var mr=mid*Math.PI/180;
+      var inner=44;
+      var lx=cx+inner*Math.cos(mr), ly=cy+inner*Math.sin(mr);
+      var raw=t(list[i]);
+      // keep wheel labels short: take a compact version
+      var label=shortLabel(raw);
+      var tx=document.createElementNS(SVGNS,'text');
+      tx.setAttribute('x',lx); tx.setAttribute('y',ly);
+      tx.setAttribute('fill','#4a2f1a');
+      tx.setAttribute('font-size','15');
+      tx.setAttribute('font-weight','600');
+      tx.setAttribute('text-anchor','start');
+      tx.setAttribute('dominant-baseline','middle');
+      tx.setAttribute('transform','rotate('+mid+' '+lx+' '+ly+')');
+      tx.textContent=label;
+      disc.appendChild(tx);
+    }
+    // center hub
+    var hub=document.createElementNS(SVGNS,'circle');
+    hub.setAttribute('cx',cx);hub.setAttribute('cy',cy);hub.setAttribute('r',26);
+    hub.setAttribute('fill','#fff');
+    hub.setAttribute('stroke','#C2674A');hub.setAttribute('stroke-width','3');
+    disc.appendChild(hub);
+    var heart=document.createElementNS(SVGNS,'text');
+    heart.setAttribute('x',cx);heart.setAttribute('y',cy+1);
+    heart.setAttribute('text-anchor','middle');
+    heart.setAttribute('dominant-baseline','middle');
+    heart.setAttribute('font-size','22');
+    heart.textContent='🌿';
+    disc.appendChild(heart);
+  }
+
+  // Compact label for wheel face (full text shows in result)
+  function shortLabel(s){
+    if(s.length<=14) return s;
+    return s.slice(0,13)+'…';
+  }
+
+  function spin(){
+    if(spinning) return;
+    spinning=true;
+    spinBtn.disabled=true;
+    result.hidden=true;
+    var list=items();
+    var n=list.length;
+    var win=Math.floor(Math.random()*n);
+    var slice=360/n;
+    var target=360-(win*slice+slice/2);
+    var turns=5+Math.floor(Math.random()*2);
+    rotation+=turns*360+(target-(rotation%360));
+    disc.style.transform='rotate('+rotation+'deg)';
+    setTimeout(function(){
+      lastWin=list[win];
+      pickEl.textContent=t(lastWin);
+      whyEl.innerHTML='<b>'+(lang()==='en'?'why it helps':'ทำไมถึงดี')+'</b> · '+wt(lastWin);
+      result.hidden=false;
+      spinning=false;
+      spinBtn.disabled=false;
+      result.scrollIntoView({behavior:'smooth',block:'center'});
+    },4500);
+  }
+
+  function showToast(msg){
+    toastEl.textContent=msg;
+    toastEl.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t=setTimeout(function(){toastEl.classList.remove('show');},2400);
+  }
+
+  function renderStamps(){
+    if(collection.length===0){
+      stampsEl.innerHTML='';
+      stampsEl.appendChild(emptyEl);
+      emptyEl.hidden=false;
+      return;
+    }
+    emptyEl.hidden=true;
+    stampsEl.innerHTML='';
+    var seals={near:'🏠',far:'🚶',people:'🫶'};
+    collection.forEach(function(item,i){
+      var row=document.createElement('div');
+      row.className='stamp';
+      var d=lang()==='en'?'kept just now':'เก็บเมื่อสักครู่';
+      row.innerHTML='<div class="seal">'+(seals[item.cat]||'🌿')+'</div>'+
+        '<div class="txt"><div class="t"></div><div class="d">'+d+'</div></div>'+
+        (i===0?'<span class="count-pill">'+collection.length+'</span>':'');
+      row.querySelector('.t').textContent=t(item);
+      stampsEl.appendChild(row);
+    });
+  }
+
+  /* events */
+  document.getElementById('cats').addEventListener('click',function(e){
+    var b=e.target.closest('.cat'); if(!b) return;
+    document.querySelectorAll('.cat').forEach(function(x){x.classList.remove('active');});
+    b.classList.add('active');
+    cat=b.dataset.cat;
+    result.hidden=true;
+    drawWheel();
+  });
+
+  spinBtn.addEventListener('click',spin);
+  againBtn.addEventListener('click',function(){result.hidden=true;spin();});
+
+  didItBtn.addEventListener('click',function(){
+    if(!lastWin) return;
+    var entry={th:lastWin.th,en:lastWin.en,cat:cat};
+    collection.unshift(entry);
+    renderStamps();
+    result.hidden=true;
+    showToast(lang()==='en'?'Kept it. You stepped out today 🌿':'เก็บไว้แล้ว วันนี้เธอก้าวออกไปได้นะ 🌿');
+    document.querySelector('.passport').scrollIntoView({behavior:'smooth',block:'center'});
+  });
+
+  /* language toggle */
+  document.getElementById('langToggle').addEventListener('click',function(){
+    body.setAttribute('data-lang',lang()==='th'?'en':'th');
+    drawWheel();
+    if(!result.hidden && lastWin){
+      pickEl.textContent=t(lastWin);
+      whyEl.innerHTML='<b>'+(lang()==='en'?'why it helps':'ทำไมถึงดี')+'</b> · '+wt(lastWin);
+    }
+    renderStamps();
+  });
+
+  drawWheel();
+  renderStamps();
+})();
+</script>
+</body>
+</html>

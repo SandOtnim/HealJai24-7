@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>สวนหย่อนใจ — Art Direction Explorer</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --terra:#C8674F; --terra-deep:#9E4A36; --coral:#E89A82;
+    --cream:#F7F1E8; --sand:#EBE1D2; --ink:#2B2622; --slate:#3D4A4D;
+    --sage:#8FA68E; --wood:#A8835E;
+  }
+  html{scroll-behavior:smooth}
+  body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:#11100E}
+  .serif{font-family:Georgia,"Times New Roman",serif}
+
+  /* ---------- intro ---------- */
+  .intro{min-height:48vh;display:flex;flex-direction:column;justify-content:center;align-items:center;
+    text-align:center;padding:54px 24px;background:radial-gradient(120% 120% at 50% 0%,#1c1a16,#100f0d);color:#F7F1E8}
+  .intro .kick{letter-spacing:.42em;font-size:11px;text-transform:uppercase;color:#C8674F;margin-bottom:18px}
+  .intro h1{font-size:clamp(28px,5vw,46px);font-weight:300;line-height:1.25;margin-bottom:16px}
+  .intro h1 b{font-weight:700}
+  .intro p{max-width:560px;color:#C9BFB0;font-size:15px;line-height:1.85}
+  .intro .hint{margin-top:26px;font-size:12px;color:#6f685d;letter-spacing:.1em}
+  .intro .hint span{display:inline-block;animation:bob 1.8s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+  /* ---------- panel shell ---------- */
+  .panel{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:80px 24px}
+  .tag{position:absolute;top:26px;left:26px;z-index:9;font-size:11px;letter-spacing:.34em;text-transform:uppercase;
+    padding:9px 16px;border-radius:30px;backdrop-filter:blur(8px)}
+  .ref{position:absolute;top:26px;right:26px;z-index:9;font-size:10.5px;letter-spacing:.06em;opacity:.7;text-align:right;line-height:1.6}
+  .stage{width:100%;max-width:1080px;display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+  @media(max-width:820px){.stage{grid-template-columns:1fr;gap:34px;text-align:center;max-width:520px}}
+  .eyebrow{font-size:12px;letter-spacing:.3em;text-transform:uppercase;margin-bottom:18px}
+  .title{font-size:clamp(40px,7vw,76px);line-height:1.02;margin-bottom:22px}
+  .sub{font-size:16px;line-height:1.9;max-width:430px;margin-bottom:30px}
+  @media(max-width:820px){.sub{margin-left:auto;margin-right:auto}}
+  .cta{display:inline-flex;align-items:center;gap:10px;padding:15px 30px;border-radius:40px;font-size:14px;
+    letter-spacing:.08em;text-decoration:none;font-weight:600;cursor:default}
+  .wheelwrap{display:flex;justify-content:center;align-items:center}
+  .note{position:absolute;bottom:24px;left:0;right:0;text-align:center;font-size:12.5px;letter-spacing:.04em;padding:0 24px}
+
+  /* ===== A · CINEMATIC DAWN ===== */
+  #A{background:linear-gradient(160deg,#2a1b3d 0%,#5b3b59 30%,#a9596a 60%,#e8956d 84%,#f6c98f 100%)}
+  #A::before{content:"";position:absolute;inset:0;background:
+    radial-gradient(60% 50% at 78% 22%,rgba(255,221,170,.55),transparent 60%),
+    radial-gradient(40% 40% at 20% 80%,rgba(120,80,150,.5),transparent 60%);mix-blend-mode:screen}
+  #A .grain{position:absolute;inset:0;opacity:.10;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
+  #A .tag{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.3)}
+  #A .ref{color:#ffe9d4}
+  #A .eyebrow{color:#ffd9b3}
+  #A .title{color:#fff;font-weight:300;text-shadow:0 2px 40px rgba(60,20,60,.5)}
+  #A .title b{font-weight:700}
+  #A .sub{color:rgba(255,255,255,.9)}
+  #A .cta{background:rgba(255,255,255,.92);color:#7a3b52;box-shadow:0 18px 50px rgba(40,10,40,.45)}
+  #A .glass{position:relative;width:300px;height:300px;border-radius:50%;
+    background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.35);
+    backdrop-filter:blur(14px);box-shadow:0 30px 80px rgba(40,10,40,.5),inset 0 0 60px rgba(255,255,255,.18);
+    display:flex;align-items:center;justify-content:center;animation:floaty 7s ease-in-out infinite}
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+  #A .note{color:#ffe9d4}
+
+  /* ===== B · EDITORIAL BOTANICAL ===== */
+  #B{background:var(--cream)}
+  #B .tag{background:rgba(43,38,34,.06);color:var(--terra-deep);border:1px solid rgba(43,38,34,.15)}
+  #B .ref{color:#9a8e7c}
+  #B .eyebrow{color:var(--terra);font-style:italic;font-family:Georgia,serif;letter-spacing:.12em;text-transform:none;font-size:15px}
+  #B .title{color:var(--ink);font-family:Georgia,"Times New Roman",serif;font-weight:400;letter-spacing:-.5px}
+  #B .title em{font-style:italic;color:var(--terra)}
+  #B .sub{color:#6a6055;font-size:16.5px}
+  #B .rule{width:64px;height:1px;background:var(--terra);margin:0 0 26px}
+  @media(max-width:820px){#B .rule{margin-left:auto;margin-right:auto}}
+  #B .cta{background:transparent;color:var(--ink);border:1px solid var(--ink);border-radius:0;padding:15px 34px;text-transform:uppercase;letter-spacing:.18em;font-size:12px}
+  #B .botan{width:330px;height:380px;position:relative}
+  #B .note{color:#9a8e7c}
+
+  /* ===== C · ZEN / MA ===== */
+  #C{background:#F3EFE7}
+  #C .paper{position:absolute;inset:0;opacity:.5;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='.04' numOctaves='3'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)' opacity='.06'/></svg>")}
+  #C .stage{grid-template-columns:1fr;max-width:760px;text-align:center}
+  #C .tag{background:rgba(43,38,34,.05);color:#5b524a;border:1px solid rgba(43,38,34,.12)}
+  #C .ref{color:#a89c8b}
+  #C .enso{margin:0 auto 40px}
+  #C .eyebrow{color:#b5a896;letter-spacing:.5em}
+  #C .title{color:#2B2622;font-weight:300;letter-spacing:8px}
+  #C .sub{color:#7a7065;margin:24px auto 34px;font-size:15px;letter-spacing:.04em}
+  #C .cta{background:var(--terra);color:#fff;border-radius:2px;letter-spacing:.2em;padding:16px 40px;font-weight:500}
+  #C .note{color:#a89c8b}
+
+  /* shared wheel ticks */
+  .spin{transform-origin:50% 50%;animation:turn 26s linear infinite}
+  @keyframes turn{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<section class="intro">
+  <div class="kick">Art Direction · สวนหย่อนใจ</div>
+  <h1 class="serif">เลือกทิศที่ทำให้เธอ <b>“ว้าว”</b> ที่สุด</h1>
+  <p>เลื่อนลงดู 3 ทิศทางดีไซน์ — โครงสร้าง/ฟีเจอร์เหมือนกันหมด ต่างกันที่ <b>อารมณ์ภาพ</b> เท่านั้น ลองดูว่าอันไหนทำให้ใจเต้น แล้วบอกฉันว่า A / B / C (หรือผสม)</p>
+  <div class="hint"><span>↓ เลื่อนลง</span></div>
+</section>
+
+<!-- ========== A ========== -->
+<section class="panel" id="A">
+  <div class="grain"></div>
+  <div class="tag">A · Cinematic Dawn</div>
+  <div class="ref">อารมณ์: ภาพยนตร์ · ฟ้าใกล้รุ่ง<br>ref: Awwwards immersive / gradient atmosphere</div>
+  <div class="stage">
+    <div>
+      <div class="eyebrow">ห้องที่ 2 — Chill Garden</div>
+      <h1 class="title">สวน<b>หย่อนใจ</b></h1>
+      <p class="sub">หมุนวงล้อแห่งวันสบายใจ ปล่อยให้แสงพาไป — พื้นที่ที่ใจได้หายใจกลางเมือง</p>
+      <a class="cta">🌸 หมุนดูสิ</a>
+    </div>
+    <div class="wheelwrap">
+      <div class="glass">
+        <svg width="230" height="230" viewBox="0 0 200 200" class="spin">
+          <defs><radialGradient id="ga" cx="50%" cy="40%"><stop offset="0%" stop-color="#fff3e2"/><stop offset="100%" stop-color="#f3b27f"/></radialGradient></defs>
+          <circle cx="100" cy="100" r="92" fill="url(#ga)" opacity="0.92"/>
+          <g stroke="rgba(255,255,255,.55)" stroke-width="1">
+            <line x1="100" y1="8" x2="100" y2="192"/><line x1="8" y1="100" x2="192" y2="100"/>
+            <line x1="34" y1="34" x2="166" y2="166"/><line x1="166" y1="34" x2="34" y2="166"/>
+          </g>
+          <circle cx="100" cy="100" r="14" fill="#fff"/>
+          <text x="100" y="40" font-size="11" fill="#8a4a3a" text-anchor="middle" font-family="Georgia,serif">เดินเล่น</text>
+          <text x="160" y="104" font-size="11" fill="#8a4a3a" text-anchor="middle" font-family="Georgia,serif">คาเฟ่</text>
+          <text x="100" y="170" font-size="11" fill="#8a4a3a" text-anchor="middle" font-family="Georgia,serif">โทรหาเพื่อน</text>
+          <text x="44" y="104" font-size="11" fill="#8a4a3a" text-anchor="middle" font-family="Georgia,serif">ต้นไม้</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div class="note">โทน: ดราม่า ฟิล์มลุค แสงไล่เฉดอบอุ่น + กระจกฝ้า (glass) ลอยเด่น — สายผู้กำกับน่าจะอิน</div>
+</section>
+
+<!-- ========== B ========== -->
+<section class="panel" id="B">
+  <div class="tag">B · Editorial Botanical</div>
+  <div class="ref">อารมณ์: นิตยสาร Kinfolk/Cereal<br>ref: editorial serif · botanical line art</div>
+  <div class="stage">
+    <div>
+      <div class="eyebrow">Room 02 — Chill Garden</div>
+      <div class="rule"></div>
+      <h1 class="title">สวนหย่อน<em>ใจ</em></h1>
+      <p class="sub">ค่อย ๆ หมุน ค่อย ๆ เลือก กิจกรรมเล็ก ๆ ที่ทำให้วันธรรมดามีที่ว่างให้ใจ — เหมือนพลิกหน้านิตยสารที่อ่านแล้วใจเบา</p>
+      <a class="cta">Spin the wheel</a>
+    </div>
+    <div class="wheelwrap">
+      <svg class="botan" viewBox="0 0 330 380">
+        <g fill="none" stroke="#C8674F" stroke-width="1.3">
+          <path d="M165 360 C165 280 165 210 165 150"/>
+          <path d="M165 250 C120 235 95 200 92 165 C140 172 165 210 165 245" fill="#EBDfce" fill-opacity=".5"/>
+          <path d="M165 220 C210 205 235 170 238 135 C190 142 165 180 165 215" fill="#E0E7d9" fill-opacity=".6"/>
+          <path d="M165 285 C128 275 108 248 106 220 C146 226 165 256 165 282" fill="#EBDfce" fill-opacity=".4"/>
+        </g>
+        <circle cx="165" cy="120" r="62" fill="none" stroke="#2B2622" stroke-width="1.2"/>
+        <g class="spin" style="transform-origin:165px 120px">
+          <line x1="165" y1="58" x2="165" y2="182" stroke="#2B2622" stroke-width=".8"/>
+          <line x1="103" y1="120" x2="227" y2="120" stroke="#2B2622" stroke-width=".8"/>
+          <line x1="121" y1="76" x2="209" y2="164" stroke="#2B2622" stroke-width=".5"/>
+          <line x1="209" y1="76" x2="121" y2="164" stroke="#2B2622" stroke-width=".5"/>
+        </g>
+        <circle cx="165" cy="120" r="7" fill="#C8674F"/>
+        <text x="165" y="96" font-size="9.5" fill="#6a6055" text-anchor="middle" font-family="Georgia,serif" font-style="italic">walk</text>
+        <text x="200" y="124" font-size="9.5" fill="#6a6055" text-anchor="middle" font-family="Georgia,serif" font-style="italic">café</text>
+        <text x="165" y="152" font-size="9.5" fill="#6a6055" text-anchor="middle" font-family="Georgia,serif" font-style="italic">call</text>
+        <text x="132" y="124" font-size="9.5" fill="#6a6055" text-anchor="middle" font-family="Georgia,serif" font-style="italic">plant</text>
+      </svg>
+    </div>
+  </div>
+  <div class="note">โทน: พรีเมียมแบบสิ่งพิมพ์ ตัวอักษร serif ตัวใหญ่ พื้นที่ว่างเยอะ ลายเส้นพฤกษา — เรียบหรู คลาสสิก</div>
+</section>
+
+<!-- ========== C ========== -->
+<section class="panel" id="C">
+  <div class="paper"></div>
+  <div class="tag">C · Zen / Ma 間</div>
+  <div class="ref">อารมณ์: เซน ญี่ปุ่น · พื้นที่ว่าง<br>ref: sumi-e · enso · negative space</div>
+  <div class="stage">
+    <div>
+      <svg class="enso" width="190" height="190" viewBox="0 0 200 200">
+        <path d="M100 22 C150 22 184 60 184 104 C184 150 146 182 100 182 C54 182 18 150 18 104 C18 62 48 30 92 24"
+          fill="none" stroke="#2B2622" stroke-width="11" stroke-linecap="round" stroke-dasharray="0 0"
+          transform="rotate(-18 100 100)" opacity=".9"/>
+        <circle cx="100" cy="104" r="5" fill="#C8674F"/>
+      </svg>
+      <div class="eyebrow">ห้องที่ 2</div>
+      <h1 class="title">สวนหย่อนใจ</h1>
+      <p class="sub">หนึ่งวงล้อ · หนึ่งกิจกรรม · หนึ่งลมหายใจ<br>ไม่ต้องรีบ ปล่อยให้ใจเลือกเอง</p>
+      <a class="cta">หมุน</a>
+    </div>
+  </div>
+  <div class="note">โทน: มินิมอลสุด เงียบ สงบ พื้นที่ว่างคือพระเอก แต้มสีดินเผาจุดเดียว — สายสงบ ลึก</div>
+</section>
+
+</body>
+</html>

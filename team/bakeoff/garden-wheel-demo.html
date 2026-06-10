@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>สวนหย่อนใจ — วงล้อฮีลใจ</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --terra:#C8674F; --terra-deep:#9E4A36; --coral:#E89A82;
+    --cream:#F7F1E8; --sand:#EBE1D2; --ink:#4A4039; --slate:#5b524a; --sage:#8FA68E;
+  }
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif; color:var(--ink);
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #FBF6EE 0%, #F4EADB 55%, #ECDcc6 100%);
+    overflow-x:hidden; position:relative;
+  }
+  .serif{font-family:Georgia,"Times New Roman",serif}
+
+  /* floating petals */
+  .petal{position:fixed;top:-30px;width:14px;height:14px;background:radial-gradient(circle at 30% 30%,#F6C9D4,#E89AAE);
+    border-radius:60% 0 60% 0;opacity:.55;animation:fall linear infinite;pointer-events:none;z-index:0}
+  @keyframes fall{0%{transform:translateY(-30px) rotate(0)}100%{transform:translateY(105vh) rotate(420deg)}}
+
+  .wrap{position:relative;z-index:2;width:100%;max-width:520px;padding:30px 22px 60px;text-align:center}
+  .lang{position:fixed;top:18px;right:18px;z-index:5;display:flex;gap:6px;background:rgba(255,255,255,.6);
+    backdrop-filter:blur(8px);border:1px solid rgba(0,0,0,.06);border-radius:30px;padding:4px}
+  .lang button{border:0;background:transparent;font:inherit;font-size:13px;padding:6px 12px;border-radius:24px;cursor:pointer;color:var(--slate)}
+  .lang button.on{background:var(--terra);color:#fff}
+
+  .eyebrow{font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:var(--terra);margin-bottom:10px}
+  h1{font-size:clamp(34px,8vw,46px);font-weight:400;letter-spacing:-.5px;margin-bottom:12px}
+  .sub{font-size:15px;line-height:1.8;color:var(--slate);max-width:360px;margin:0 auto 26px}
+
+  /* wheel */
+  .stage{position:relative;width:min(82vw,380px);height:min(82vw,380px);margin:8px auto 0}
+  .pointer{position:absolute;top:-10px;left:50%;transform:translateX(-50%);z-index:4;
+    width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;
+    border-top:26px solid var(--terra);filter:drop-shadow(0 4px 5px rgba(120,50,30,.4))}
+  .pointer::after{content:"";position:absolute;top:-34px;left:-8px;width:16px;height:16px;border-radius:50%;
+    background:var(--terra);box-shadow:0 3px 6px rgba(120,50,30,.35)}
+  .wheel{width:100%;height:100%;
+    background:url("../../assets/images/garden-wheel.png") center/contain no-repeat;
+    filter:drop-shadow(0 22px 30px rgba(120,80,50,.28));
+    transition:transform 4.4s cubic-bezier(.13,.72,.12,1);
+    animation:idle 6s ease-in-out infinite;}
+  .stage.spinning .wheel{animation:none}
+  @keyframes idle{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+
+  .spin-btn{margin-top:30px;border:0;cursor:pointer;font:inherit;font-size:17px;font-weight:600;letter-spacing:.02em;
+    color:#fff;background:linear-gradient(180deg,#D2715A,#B0492F);padding:16px 44px;border-radius:40px;
+    box-shadow:0 12px 26px rgba(160,70,45,.4),inset 0 1px 0 rgba(255,255,255,.3);transition:transform .12s,box-shadow .2s}
+  .spin-btn:hover{transform:translateY(-2px);box-shadow:0 16px 32px rgba(160,70,45,.46)}
+  .spin-btn:active{transform:translateY(1px)}
+  .spin-btn:disabled{opacity:.5;cursor:default;transform:none}
+
+  /* result */
+  .result{margin:30px auto 0;max-width:380px;background:rgba(255,255,255,.78);backdrop-filter:blur(10px);
+    border:1px solid rgba(0,0,0,.05);border-radius:24px;padding:26px 24px;box-shadow:0 18px 44px rgba(120,80,50,.18);
+    opacity:0;transform:translateY(16px) scale(.96);transition:opacity .5s,transform .5s;pointer-events:none}
+  .result.show{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+  .result .ric{font-size:40px;margin-bottom:8px}
+  .result h3{font-size:22px;font-weight:600;margin-bottom:8px}
+  .result p{font-size:14.5px;line-height:1.75;color:var(--slate);margin-bottom:18px}
+  .ractions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .ractions button{border:0;cursor:pointer;font:inherit;font-size:13.5px;padding:11px 20px;border-radius:30px;
+    background:var(--sand);color:var(--ink);transition:background .15s}
+  .ractions button.primary{background:var(--terra);color:#fff}
+  .ractions button:hover{filter:brightness(.97)}
+
+  [data-en]{display:none}
+  body.en [data-th]{display:none}
+  body.en [data-en]{display:inline}
+</style>
+</head>
+<body>
+<div class="lang">
+  <button class="on" data-set="th">ไทย</button>
+  <button data-set="en">EN</button>
+</div>
+
+<div class="wrap">
+  <div class="eyebrow"><span data-th>ห้องที่ 2</span><span data-en>Room 02</span></div>
+  <h1 class="serif"><span data-th>สวนหย่อนใจ</span><span data-en>Chill Garden</span></h1>
+  <p class="sub">
+    <span data-th>หมุนวงล้อ แล้วออกไปทำสิ่งเล็กๆ ที่สุ่มได้ — ให้ใจได้พักในวันธรรมดา</span>
+    <span data-en>Spin the wheel and go do the little thing it lands on — a small breath for an ordinary day.</span>
+  </p>
+
+  <div class="stage" id="stage">
+    <div class="pointer"></div>
+    <div class="wheel" id="wheel"></div>
+  </div>
+
+  <button class="spin-btn" id="spinBtn">
+    🌸 <span data-th>หมุนเลย</span><span data-en>Spin</span>
+  </button>
+
+  <div class="result" id="result">
+    <div class="ric" id="ric">✨</div>
+    <h3 id="rtitle"></h3>
+    <p id="rsub"></p>
+    <div class="ractions">
+      <button class="primary" id="again">↻ <span data-th>หมุนใหม่</span><span data-en>Spin again</span></button>
+      <button id="save">🔖 <span data-th>บันทึกไว้</span><span data-en>Save</span></button>
+    </div>
+  </div>
+</div>
+
+<script>
+// petals
+for(let i=0;i<9;i++){const p=document.createElement('div');p.className='petal';
+  p.style.left=Math.random()*100+'vw';p.style.animationDuration=(7+Math.random()*7)+'s';
+  p.style.animationDelay=(-Math.random()*10)+'s';p.style.transform='scale('+(.6+Math.random()*.8)+')';
+  document.body.appendChild(p);}
+
+// 6 segments — center angle (clockwise from top) must match the wheel image
+const ACTS=[
+  {a:330, ic:'☕', th:'นั่งจิบกาแฟ/ชาอุ่นๆ คนเดียวสักแก้ว', en:'Sip a warm coffee or tea, just for you',
+    sth:'ช้าลงสักครู่ ให้มือได้อุ่น ให้ใจได้พัก', sen:'Slow down a moment — warm hands, easy heart.'},
+  {a:30,  ic:'👟', th:'ออกไปเดินเล่นรับลม 15 นาที', en:'Take a 15-minute walk outside',
+    sth:'แค่เปลี่ยนที่หายใจ โลกก็ดูเบาลง', sen:'A change of air can lighten the whole day.'},
+  {a:90,  ic:'🪴', th:'รดน้ำต้นไม้ จับดินสักหน่อย', en:'Water a plant, touch some soil',
+    sth:'อะไรที่เราดูแล มักดูแลใจเรากลับ', sen:'What we tend, tends to us back.'},
+  {a:150, ic:'📱', th:'โทรหาคนที่คิดถึง', en:'Call someone you miss',
+    sth:'ประโยคสั้นๆ ก็ต่อใจถึงกันได้', sen:'One short hello is enough to reconnect.'},
+  {a:210, ic:'📖', th:'อ่านหนังสือ/การ์ตูนที่ค้างไว้', en:'Read a few pages you left behind',
+    sth:'หายไปในโลกอื่นสักพัก ไม่ผิดอะไร', sen:'It is okay to drift into another world for a while.'},
+  {a:270, ic:'🌤', th:'ออกไปรับแดดอ่อนๆ', en:'Step out for some gentle sun',
+    sth:'แดดเช้าฟรี และใจดีกับเราเสมอ', sen:'Morning light is free, and always kind.'},
+];
+
+const wheel=document.getElementById('wheel'), stage=document.getElementById('stage'),
+      btn=document.getElementById('spinBtn'), result=document.getElementById('result');
+let rot=0, spinning=false;
+
+function spin(){
+  if(spinning) return; spinning=true;
+  stage.classList.add('spinning'); result.classList.remove('show'); btn.disabled=true;
+  const pick=Math.floor(Math.random()*ACTS.length);
+  const target=ACTS[pick];
+  const base=360*5;                            // at least 5 full turns
+  const want=(360 - target.a) % 360;           // land segment center under TOP pointer
+  const curMod=((rot%360)+360)%360;
+  let delta=base + ((want - curMod)+360)%360;
+  rot+=delta;
+  wheel.style.transform='rotate('+rot+'deg)';
+  setTimeout(()=>{ showResult(target); spinning=false; btn.disabled=false; }, 4500);
+}
+function showResult(t){
+  const en=document.body.classList.contains('en');
+  document.getElementById('ric').textContent=t.ic;
+  document.getElementById('rtitle').textContent=en? t.en : t.th;
+  document.getElementById('rsub').textContent=en? t.sen : t.sth;
+  result.dataset.th=t.th; result.dataset.en=t.en; result.dataset.sth=t.sth; result.dataset.sen=t.sen;
+  result.classList.add('show');
+}
+btn.onclick=spin;
+document.getElementById('again').onclick=spin;
+document.getElementById('save').onclick=function(){ this.textContent='✓'; setTimeout(()=>location.reload(),600); };
+
+// language
+document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>{
+  document.body.classList.toggle('en', b.dataset.set==='en');
+  document.querySelectorAll('.lang button').forEach(x=>x.classList.toggle('on',x===b));
+  if(result.classList.contains('show')){
+    const en=document.body.classList.contains('en');
+    document.getElementById('rtitle').textContent=en?result.dataset.en:result.dataset.th;
+    document.getElementById('rsub').textContent=en?result.dataset.sen:result.dataset.sth;
+  }
+});
+</script>
+</body>
+</html>
